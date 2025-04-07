@@ -1,6 +1,6 @@
 "use client";
 
-import { Technician, getTechnicians } from "@/lib/api/api";
+import { Technician, getTechnicians } from "@/lib/api";
 import {
   Customer,
   getCustomers,

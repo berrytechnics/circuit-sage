@@ -1,6 +1,6 @@
 "use client";
 
-import { getTechnicians, Technician } from "@/lib/api/api";
+import { getTechnicians, Technician } from "@/lib/api";
 import {
   addDiagnosticNote,
   addRepairNote,

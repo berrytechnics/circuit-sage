@@ -1,8 +1,11 @@
 "use client";
 
 // components/Sidebar.tsx
+import { logout } from "@/lib/api";
+import { useUser } from "@/lib/UserContext";
 import { cn } from "@/lib/utils";
 import {
+  ArrowRightOnRectangleIcon,
   Bars3Icon,
   ChartBarIcon,
   Cog6ToothIcon,
@@ -13,7 +16,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface SidebarLinkProps {
@@ -42,9 +45,23 @@ const SidebarLink = ({ href, icon, label, active }: SidebarLinkProps) => {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const { user, isLoading, setUser } = useUser();
 
   const toggleSidebar = () => setIsOpen(!isOpen);
+
+  const handleLogout = () => {
+    logout();
+    setUser(null);
+    router.push("/login");
+  };
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user) return "?";
+    return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`;
+  };
 
   const navigation = [
     {
@@ -79,6 +96,79 @@ export default function Sidebar() {
     },
   ];
 
+  // If no user is logged in, just display login/register links
+  if (!isLoading && !user) {
+    return (
+      <>
+        {/* Mobile hamburger menu button */}
+        <div className="lg:hidden fixed top-4 left-4 z-50">
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-md text-gray-500 hover:text-gray-900 focus:outline-none bg-white shadow"
+          >
+            <Bars3Icon className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Mobile overlay */}
+        {isOpen && (
+          <div
+            className="fixed inset-0 bg-gray-800/50 z-40 lg:hidden"
+            onClick={() => setIsOpen(false)}
+          />
+        )}
+
+        {/* Minimal sidebar with auth links */}
+        <aside
+          className={cn(
+            "fixed top-0 left-0 z-40 h-screen w-64 border-r border-gray-200 bg-white transition-transform duration-300 ease-in-out",
+            isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          )}
+        >
+          <div className="flex flex-col h-full py-6 px-3">
+            {/* Logo */}
+            <div className="px-3 mb-6">
+              <h1 className="font-bold text-xl">Repair Manager</h1>
+            </div>
+
+            <div className="flex flex-col flex-1 items-center justify-center space-y-4 px-3">
+              <p className="text-gray-600 text-center">
+                Please log in to access the repair management system
+              </p>
+
+              <Link
+                href="/login"
+                className="w-full px-4 py-2 text-center bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Login
+              </Link>
+
+              <Link
+                href="/register"
+                className="w-full px-4 py-2 text-center border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Register
+              </Link>
+            </div>
+          </div>
+        </aside>
+      </>
+    );
+  }
+
+  // Show loading state during initial load
+  if (isLoading) {
+    return (
+      <aside className="fixed top-0 left-0 z-40 h-screen w-64 border-r border-gray-200 bg-white">
+        <div className="flex flex-col h-full items-center justify-center">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-2 text-sm text-gray-500">Loading...</p>
+        </div>
+      </aside>
+    );
+  }
+
+  // Full sidebar for logged-in users
   return (
     <>
       {/* Mobile hamburger menu button */}
@@ -103,7 +193,7 @@ export default function Sidebar() {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Full sidebar */}
       <aside
         className={cn(
           "fixed top-0 left-0 z-40 h-screen w-64 border-r border-gray-200 bg-white transition-transform duration-300 ease-in-out",
@@ -124,21 +214,41 @@ export default function Sidebar() {
                 href={item.href}
                 icon={item.icon}
                 label={item.label}
-                active={pathname.includes(item.href)}
+                active={
+                  pathname === item.href || pathname.startsWith(`${item.href}/`)
+                }
               />
             ))}
           </nav>
 
           {/* User profile */}
           <div className="mt-auto pt-4 border-t border-gray-200">
-            <div className="flex items-center px-3 py-2">
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                <UsersIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+            <div className="px-3">
+              <div className="flex items-center py-2">
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                  <span className="text-sm font-medium text-blue-700">
+                    {getUserInitials()}
+                  </span>
+                </div>
+                <div className="ml-3 overflow-hidden">
+                  <p className="text-sm font-medium truncate">
+                    {user?.firstName} {user?.lastName}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {user?.email}
+                  </p>
+                  <p className="text-xs text-gray-500 capitalize">
+                    {user?.role}
+                  </p>
+                </div>
               </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium">Admin User</p>
-                <p className="text-xs text-gray-500">admin@repairmanager.com</p>
-              </div>
+              <button
+                onClick={handleLogout}
+                className="w-full mt-2 flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <ArrowRightOnRectangleIcon className="w-5 h-5" />
+                <span>Logout</span>
+              </button>
             </div>
           </div>
         </div>

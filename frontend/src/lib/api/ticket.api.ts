@@ -1,4 +1,4 @@
-import api, { ApiResponse } from "./api";
+import api, { ApiResponse } from ".";
 // Ticket interfaces
 export interface Ticket {
   id: string;

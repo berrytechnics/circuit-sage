@@ -1,4 +1,4 @@
-import api, { ApiResponse } from "./api";
+import api, { ApiResponse } from ".";
 import { Ticket } from "./ticket.api";
 
 // Customer interfaces
