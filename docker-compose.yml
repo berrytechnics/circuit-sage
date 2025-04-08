@@ -7,7 +7,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-repair_admin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-repair_password}
       POSTGRES_DB: ${POSTGRES_DB:-repair_business}
-      POSTGRES_INITDB_ARGS: "--max-connections=100 --shared-buffers=256MB"
     ports:
       - "5432:5432"
     volumes:
