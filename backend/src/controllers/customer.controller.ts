@@ -214,10 +214,9 @@ export const deleteCustomer = async (
     }
 
     // Check if customer has associated tickets
-    const ticketCount = await customer.countTickets();
-    if (ticketCount > 0) {
+    if (customer.tickets?.length ?? 0 > 0) {
       throw new BadRequestError(
-        `Cannot delete customer with ${ticketCount} associated tickets. Please delete or reassign tickets first.`
+        `Cannot delete customer with ${customer.tickets?.length} associated tickets. Please delete or reassign tickets first.`
       );
     }
 
