@@ -41,7 +41,7 @@ describe("Invoice Routes", () => {
     mockedVerifyJWTToken.mockResolvedValue(mockUser);
   });
 
-  describe("GET /invoice", () => {
+  describe("GET /api/invoices", () => {
     it("should return list of invoices", async () => {
       const mockInvoices = [
         {
@@ -91,7 +91,7 @@ describe("Invoice Routes", () => {
       mockedInvoiceService.findAll.mockResolvedValue(mockInvoices);
 
       const response = await request(app)
-        .get("/invoice")
+        .get("/api/invoices")
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(200);
@@ -129,7 +129,7 @@ describe("Invoice Routes", () => {
       mockedInvoiceService.findAll.mockResolvedValue(mockInvoices);
 
       const response = await request(app)
-        .get(`/invoice?customerId=${CUSTOMER_ID_1}`)
+        .get(`/api/invoices?customerId=${CUSTOMER_ID_1}`)
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(200);
@@ -165,7 +165,7 @@ describe("Invoice Routes", () => {
       mockedInvoiceService.findAll.mockResolvedValue(mockInvoices);
 
       const response = await request(app)
-        .get("/invoice?status=paid")
+        .get("/api/invoices?status=paid")
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(200);
@@ -176,7 +176,7 @@ describe("Invoice Routes", () => {
     it("should return 401 without authentication token", async () => {
       mockedVerifyJWTToken.mockResolvedValue(null);
 
-      const response = await request(app).get("/invoice");
+      const response = await request(app).get("/api/invoices");
 
       expect(response.status).toBe(401);
       expect(response.body.message).toBe("Invalid token");
@@ -186,7 +186,7 @@ describe("Invoice Routes", () => {
       mockedVerifyJWTToken.mockResolvedValue(null);
 
       const response = await request(app)
-        .get("/invoice")
+        .get("/api/invoices")
         .set("Authorization", "Bearer invalid-token");
 
       expect(response.status).toBe(403);
@@ -194,7 +194,7 @@ describe("Invoice Routes", () => {
     });
   });
 
-  describe("GET /invoice/:id", () => {
+  describe("GET /api/invoices/:id", () => {
     it("should return invoice by ID", async () => {
       const mockInvoice = {
         id: INVOICE_ID_1,
@@ -221,7 +221,7 @@ describe("Invoice Routes", () => {
       mockedInvoiceService.findById.mockResolvedValue(mockInvoice);
 
       const response = await request(app)
-        .get(`/invoice/${INVOICE_ID_1}`)
+        .get(`/api/invoices/${INVOICE_ID_1}`)
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(200);
@@ -235,7 +235,7 @@ describe("Invoice Routes", () => {
       mockedInvoiceService.findById.mockResolvedValue(null);
 
       const response = await request(app)
-        .get("/invoice/non-existent-id")
+        .get("/api/invoices/non-existent-id")
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(404);
@@ -244,7 +244,7 @@ describe("Invoice Routes", () => {
     });
   });
 
-  describe("POST /invoice", () => {
+  describe("POST /api/invoices", () => {
     it("should create a new invoice", async () => {
       const newInvoiceData = {
         customerId: CUSTOMER_ID_1,
@@ -275,7 +275,7 @@ describe("Invoice Routes", () => {
       mockedInvoiceService.create.mockResolvedValue(mockCreatedInvoice);
 
       const response = await request(app)
-        .post("/invoice")
+        .post("/api/invoices")
         .set("Authorization", "Bearer valid-token")
         .send(newInvoiceData);
 
@@ -287,7 +287,7 @@ describe("Invoice Routes", () => {
 
     it("should return 400 for missing required fields", async () => {
       const response = await request(app)
-        .post("/invoice")
+        .post("/api/invoices")
         .set("Authorization", "Bearer valid-token")
         .send({
           subtotal: 100.0,
@@ -305,7 +305,7 @@ describe("Invoice Routes", () => {
       );
 
       const response = await request(app)
-        .post("/invoice")
+        .post("/api/invoices")
         .set("Authorization", "Bearer valid-token")
         .send({
           customerId: CUSTOMER_ID_1,
@@ -318,7 +318,7 @@ describe("Invoice Routes", () => {
     });
   });
 
-  describe("PUT /invoice/:id", () => {
+  describe("PUT /api/invoices/:id", () => {
     it("should update invoice successfully", async () => {
       const updateData = {
         status: "paid" as const,
@@ -352,7 +352,7 @@ describe("Invoice Routes", () => {
       mockedInvoiceService.update.mockResolvedValue(mockUpdatedInvoice);
 
       const response = await request(app)
-        .put(`/invoice/${INVOICE_ID_1}`)
+        .put(`/api/invoices/${INVOICE_ID_1}`)
         .set("Authorization", "Bearer valid-token")
         .send(updateData);
 
@@ -370,7 +370,7 @@ describe("Invoice Routes", () => {
       mockedInvoiceService.update.mockResolvedValue(null);
 
       const response = await request(app)
-        .put("/invoice/non-existent-id")
+        .put("/api/invoices/non-existent-id")
         .set("Authorization", "Bearer valid-token")
         .send({ status: "paid" });
 
@@ -380,12 +380,12 @@ describe("Invoice Routes", () => {
     });
   });
 
-  describe("DELETE /invoice/:id", () => {
+  describe("DELETE /api/invoices/:id", () => {
     it("should delete invoice successfully", async () => {
       mockedInvoiceService.delete.mockResolvedValue(true);
 
       const response = await request(app)
-        .delete(`/invoice/${INVOICE_ID_1}`)
+        .delete(`/api/invoices/${INVOICE_ID_1}`)
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(200);
@@ -398,7 +398,7 @@ describe("Invoice Routes", () => {
       mockedInvoiceService.delete.mockResolvedValue(false);
 
       const response = await request(app)
-        .delete("/invoice/non-existent-id")
+        .delete("/api/invoices/non-existent-id")
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(404);

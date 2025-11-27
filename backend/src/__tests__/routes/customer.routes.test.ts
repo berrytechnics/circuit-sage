@@ -38,7 +38,7 @@ describe("Customer Routes", () => {
     mockedVerifyJWTToken.mockResolvedValue(mockUser);
   });
 
-  describe("GET /customer", () => {
+  describe("GET /api/customers", () => {
     it("should return list of customers", async () => {
       const mockCustomers = [
         {
@@ -74,7 +74,7 @@ describe("Customer Routes", () => {
       mockedCustomerService.findAll.mockResolvedValue(mockCustomers);
 
       const response = await request(app)
-        .get("/customer")
+        .get("/api/customers")
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(200);
@@ -105,7 +105,7 @@ describe("Customer Routes", () => {
       mockedCustomerService.findAll.mockResolvedValue(mockCustomers);
 
       const response = await request(app)
-        .get("/customer?query=alice")
+        .get("/api/customers?query=alice")
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(200);
@@ -116,7 +116,7 @@ describe("Customer Routes", () => {
     it("should return 401 without authentication token", async () => {
       mockedVerifyJWTToken.mockResolvedValue(null);
 
-      const response = await request(app).get("/customer");
+      const response = await request(app).get("/api/customers");
 
       expect(response.status).toBe(401);
       expect(response.body.message).toBe("Invalid token");
@@ -126,7 +126,7 @@ describe("Customer Routes", () => {
       mockedVerifyJWTToken.mockResolvedValue(null);
 
       const response = await request(app)
-        .get("/customer")
+        .get("/api/customers")
         .set("Authorization", "Bearer invalid-token");
 
       expect(response.status).toBe(403);
@@ -134,7 +134,7 @@ describe("Customer Routes", () => {
     });
   });
 
-  describe("GET /customer/search", () => {
+  describe("GET /api/customers/search", () => {
     it("should search customers with query parameter", async () => {
       const mockCustomers = [
         {
@@ -156,7 +156,7 @@ describe("Customer Routes", () => {
       mockedCustomerService.findAll.mockResolvedValue(mockCustomers);
 
       const response = await request(app)
-        .get("/customer/search?query=alice")
+        .get("/api/customers/search?query=alice")
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(200);
@@ -166,7 +166,7 @@ describe("Customer Routes", () => {
 
     it("should return 400 when query is missing", async () => {
       const response = await request(app)
-        .get("/customer/search")
+        .get("/api/customers/search")
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(400);
@@ -175,7 +175,7 @@ describe("Customer Routes", () => {
     });
   });
 
-  describe("GET /customer/:id", () => {
+  describe("GET /api/customers/:id", () => {
     it("should return customer by ID", async () => {
       const mockCustomer = {
         id: "customer-1",
@@ -195,7 +195,7 @@ describe("Customer Routes", () => {
       mockedCustomerService.findById.mockResolvedValue(mockCustomer);
 
       const response = await request(app)
-        .get("/customer/customer-1")
+        .get("/api/customers/customer-1")
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(200);
@@ -209,7 +209,7 @@ describe("Customer Routes", () => {
       mockedCustomerService.findById.mockResolvedValue(null);
 
       const response = await request(app)
-        .get("/customer/non-existent-id")
+        .get("/api/customers/non-existent-id")
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(404);
@@ -218,7 +218,7 @@ describe("Customer Routes", () => {
     });
   });
 
-  describe("POST /customer", () => {
+  describe("POST /api/customers", () => {
     it("should create a new customer", async () => {
       const newCustomerData = {
         firstName: "Charlie",
@@ -242,7 +242,7 @@ describe("Customer Routes", () => {
       mockedCustomerService.create.mockResolvedValue(mockCreatedCustomer);
 
       const response = await request(app)
-        .post("/customer")
+        .post("/api/customers")
         .set("Authorization", "Bearer valid-token")
         .send(newCustomerData);
 
@@ -260,7 +260,7 @@ describe("Customer Routes", () => {
       );
 
       const response = await request(app)
-        .post("/customer")
+        .post("/api/customers")
         .set("Authorization", "Bearer valid-token")
         .send({
           firstName: "Charlie",
@@ -274,7 +274,7 @@ describe("Customer Routes", () => {
     });
   });
 
-  describe("PUT /customer/:id", () => {
+  describe("PUT /api/customers/:id", () => {
     it("should update customer successfully", async () => {
       const updateData = {
         phone: "555-9999",
@@ -299,7 +299,7 @@ describe("Customer Routes", () => {
       mockedCustomerService.update.mockResolvedValue(mockUpdatedCustomer);
 
       const response = await request(app)
-        .put("/customer/customer-1")
+        .put("/api/customers/customer-1")
         .set("Authorization", "Bearer valid-token")
         .send(updateData);
 
@@ -317,7 +317,7 @@ describe("Customer Routes", () => {
       mockedCustomerService.update.mockResolvedValue(null);
 
       const response = await request(app)
-        .put("/customer/non-existent-id")
+        .put("/api/customers/non-existent-id")
         .set("Authorization", "Bearer valid-token")
         .send({ phone: "555-9999" });
 
@@ -327,12 +327,12 @@ describe("Customer Routes", () => {
     });
   });
 
-  describe("DELETE /customer/:id", () => {
+  describe("DELETE /api/customers/:id", () => {
     it("should delete customer successfully", async () => {
       mockedCustomerService.delete.mockResolvedValue(true);
 
       const response = await request(app)
-        .delete("/customer/customer-1")
+        .delete("/api/customers/customer-1")
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(200);
@@ -345,7 +345,7 @@ describe("Customer Routes", () => {
       mockedCustomerService.delete.mockResolvedValue(false);
 
       const response = await request(app)
-        .delete("/customer/non-existent-id")
+        .delete("/api/customers/non-existent-id")
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(404);
@@ -354,12 +354,12 @@ describe("Customer Routes", () => {
     });
   });
 
-  describe("GET /customer/:id/tickets", () => {
+  describe("GET /api/customers/:id/tickets", () => {
     it("should return customer tickets", async () => {
       mockedTicketService.findAll.mockResolvedValue([]);
 
       const response = await request(app)
-        .get("/customer/customer-1/tickets")
+        .get("/api/customers/customer-1/tickets")
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(200);

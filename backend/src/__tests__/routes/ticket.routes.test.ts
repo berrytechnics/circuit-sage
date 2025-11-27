@@ -1,14 +1,24 @@
 import request from "supertest";
 import app from "../../app";
 import ticketService from "../../services/ticket.service";
+import customerService from "../../services/customer.service";
+import userService from "../../services/user.service";
 import { verifyJWTToken } from "../../utils/auth";
 
-// Mock the ticket service and auth
+// Mock the ticket service, customer service, user service, and auth
 jest.mock("../../services/ticket.service");
+jest.mock("../../services/customer.service");
+jest.mock("../../services/user.service");
 jest.mock("../../utils/auth");
 
 const mockedTicketService = ticketService as jest.Mocked<
   typeof ticketService
+>;
+const mockedCustomerService = customerService as jest.Mocked<
+  typeof customerService
+>;
+const mockedUserService = userService as jest.Mocked<
+  typeof userService
 >;
 const mockedVerifyJWTToken = verifyJWTToken as jest.MockedFunction<
   typeof verifyJWTToken
@@ -39,9 +49,12 @@ describe("Ticket Routes", () => {
     jest.clearAllMocks();
     // Default: authenticate all requests
     mockedVerifyJWTToken.mockResolvedValue(mockUser);
+    // Mock customer and user services to return null by default
+    mockedCustomerService.findById.mockResolvedValue(null);
+    mockedUserService.findById.mockResolvedValue(null);
   });
 
-  describe("GET /ticket", () => {
+  describe("GET /api/tickets", () => {
     it("should return list of tickets", async () => {
       const mockTickets = [
         {
@@ -84,10 +97,43 @@ describe("Ticket Routes", () => {
         },
       ];
 
+      const mockCustomer1 = {
+        id: CUSTOMER_ID_1,
+        firstName: "Alice",
+        lastName: "Johnson",
+        email: "alice@example.com",
+        phone: null,
+        address: null,
+        city: null,
+        state: null,
+        zipCode: null,
+        notes: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockCustomer2 = {
+        id: CUSTOMER_ID_2,
+        firstName: "Bob",
+        lastName: "Williams",
+        email: "bob@example.com",
+        phone: null,
+        address: null,
+        city: null,
+        state: null,
+        zipCode: null,
+        notes: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
       mockedTicketService.findAll.mockResolvedValue(mockTickets);
+      mockedCustomerService.findById
+        .mockResolvedValueOnce(mockCustomer1)
+        .mockResolvedValueOnce(mockCustomer2);
 
       const response = await request(app)
-        .get("/ticket")
+        .get("/api/tickets")
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(200);
@@ -102,7 +148,7 @@ describe("Ticket Routes", () => {
         {
           id: "ticket-1",
           ticketNumber: "TKT-12345678-001",
-          customerId: "customer-1",
+          customerId: CUSTOMER_ID_1,
           technicianId: null,
           status: "new" as const,
           priority: "medium" as const,
@@ -120,10 +166,26 @@ describe("Ticket Routes", () => {
         },
       ];
 
+      const mockCustomer = {
+        id: CUSTOMER_ID_1,
+        firstName: "Alice",
+        lastName: "Johnson",
+        email: "alice@example.com",
+        phone: null,
+        address: null,
+        city: null,
+        state: null,
+        zipCode: null,
+        notes: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
       mockedTicketService.findAll.mockResolvedValue(mockTickets);
+      mockedCustomerService.findById.mockResolvedValue(mockCustomer);
 
       const response = await request(app)
-        .get(`/ticket?customerId=${CUSTOMER_ID_1}`)
+        .get(`/api/tickets?customerId=${CUSTOMER_ID_1}`)
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(200);
@@ -136,7 +198,7 @@ describe("Ticket Routes", () => {
         {
           id: "ticket-1",
           ticketNumber: "TKT-12345678-001",
-          customerId: "customer-1",
+          customerId: CUSTOMER_ID_1,
           technicianId: null,
           status: "completed" as const,
           priority: "medium" as const,
@@ -154,10 +216,26 @@ describe("Ticket Routes", () => {
         },
       ];
 
+      const mockCustomer = {
+        id: CUSTOMER_ID_1,
+        firstName: "Alice",
+        lastName: "Johnson",
+        email: "alice@example.com",
+        phone: null,
+        address: null,
+        city: null,
+        state: null,
+        zipCode: null,
+        notes: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
       mockedTicketService.findAll.mockResolvedValue(mockTickets);
+      mockedCustomerService.findById.mockResolvedValue(mockCustomer);
 
       const response = await request(app)
-        .get("/ticket?status=completed")
+        .get("/api/tickets?status=completed")
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(200);
@@ -168,7 +246,7 @@ describe("Ticket Routes", () => {
     it("should return 401 without authentication token", async () => {
       mockedVerifyJWTToken.mockResolvedValue(null);
 
-      const response = await request(app).get("/ticket");
+      const response = await request(app).get("/api/tickets");
 
       expect(response.status).toBe(401);
       expect(response.body.message).toBe("Invalid token");
@@ -178,7 +256,7 @@ describe("Ticket Routes", () => {
       mockedVerifyJWTToken.mockResolvedValue(null);
 
       const response = await request(app)
-        .get("/ticket")
+        .get("/api/tickets")
         .set("Authorization", "Bearer invalid-token");
 
       expect(response.status).toBe(403);
@@ -186,7 +264,7 @@ describe("Ticket Routes", () => {
     });
   });
 
-  describe("GET /ticket/:id", () => {
+  describe("GET /api/tickets/:id", () => {
     it("should return ticket by ID", async () => {
       const mockTicket = {
         id: TICKET_ID_1,
@@ -211,7 +289,7 @@ describe("Ticket Routes", () => {
       mockedTicketService.findById.mockResolvedValue(mockTicket);
 
       const response = await request(app)
-        .get(`/ticket/${TICKET_ID_1}`)
+        .get(`/api/tickets/${TICKET_ID_1}`)
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(200);
@@ -225,7 +303,7 @@ describe("Ticket Routes", () => {
       mockedTicketService.findById.mockResolvedValue(null);
 
       const response = await request(app)
-        .get("/ticket/non-existent-id")
+        .get("/api/tickets/non-existent-id")
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(404);
@@ -234,7 +312,7 @@ describe("Ticket Routes", () => {
     });
   });
 
-  describe("POST /ticket", () => {
+  describe("POST /api/tickets", () => {
     it("should create a new ticket", async () => {
       const newTicketData = {
         customerId: CUSTOMER_ID_1,
@@ -263,7 +341,7 @@ describe("Ticket Routes", () => {
       mockedTicketService.create.mockResolvedValue(mockCreatedTicket);
 
       const response = await request(app)
-        .post("/ticket")
+        .post("/api/tickets")
         .set("Authorization", "Bearer valid-token")
         .send(newTicketData);
 
@@ -275,7 +353,7 @@ describe("Ticket Routes", () => {
 
     it("should return 400 for missing required fields", async () => {
       const response = await request(app)
-        .post("/ticket")
+        .post("/api/tickets")
         .set("Authorization", "Bearer valid-token")
         .send({
           deviceType: "Smartphone",
@@ -293,7 +371,7 @@ describe("Ticket Routes", () => {
       );
 
       const response = await request(app)
-        .post("/ticket")
+        .post("/api/tickets")
         .set("Authorization", "Bearer valid-token")
         .send({
           customerId: CUSTOMER_ID_1,
@@ -307,7 +385,7 @@ describe("Ticket Routes", () => {
     });
   });
 
-  describe("PUT /ticket/:id", () => {
+  describe("PUT /api/tickets/:id", () => {
     it("should update ticket successfully", async () => {
       const updateData = {
         status: "completed" as const,
@@ -338,7 +416,7 @@ describe("Ticket Routes", () => {
       mockedTicketService.update.mockResolvedValue(mockUpdatedTicket);
 
       const response = await request(app)
-        .put(`/ticket/${TICKET_ID_1}`)
+        .put(`/api/tickets/${TICKET_ID_1}`)
         .set("Authorization", "Bearer valid-token")
         .send(updateData);
 
@@ -356,7 +434,7 @@ describe("Ticket Routes", () => {
       mockedTicketService.update.mockResolvedValue(null);
 
       const response = await request(app)
-        .put("/ticket/non-existent-id")
+        .put("/api/tickets/non-existent-id")
         .set("Authorization", "Bearer valid-token")
         .send({ status: "completed" });
 
@@ -366,12 +444,12 @@ describe("Ticket Routes", () => {
     });
   });
 
-  describe("DELETE /ticket/:id", () => {
+  describe("DELETE /api/tickets/:id", () => {
     it("should delete ticket successfully", async () => {
       mockedTicketService.delete.mockResolvedValue(true);
 
       const response = await request(app)
-        .delete(`/ticket/${TICKET_ID_1}`)
+        .delete(`/api/tickets/${TICKET_ID_1}`)
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(200);
@@ -384,7 +462,7 @@ describe("Ticket Routes", () => {
       mockedTicketService.delete.mockResolvedValue(false);
 
       const response = await request(app)
-        .delete("/ticket/non-existent-id")
+        .delete("/api/tickets/non-existent-id")
         .set("Authorization", "Bearer valid-token");
 
       expect(response.status).toBe(404);
