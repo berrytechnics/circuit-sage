@@ -48,10 +48,10 @@ export default function DashboardPage() {
   );
 
   // Get low stock items count (placeholder for now)
-  const lowStockItems = 5;
+  const lowStockItems = 0;
 
   // Calculate monthly revenue (placeholder for now)
-  const monthlyRevenue = "$8,732";
+  const monthlyRevenue = "$0";
 
   // Format date
   const formatTimeAgo = (dateString: string) => {
