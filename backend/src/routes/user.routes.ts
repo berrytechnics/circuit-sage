@@ -4,7 +4,9 @@ import {
   UnauthorizedError,
 } from "../config/errors";
 import { validateRequest } from "../middlewares/auth.middleware";
+import { requireTenantContext } from "../middlewares/tenant.middleware";
 import { validate } from "../middlewares/validation.middleware";
+import companyService from "../services/company.service";
 import userService, { UserWithoutPassword } from "../services/user.service";
 import { asyncHandler } from "../utils/asyncHandler";
 import { generateNewJWTToken } from "../utils/auth";
@@ -60,10 +62,37 @@ router.post(
   "/register",
   validate(registerValidation),
   asyncHandler(async (req: Request, res: Response) => {
-    const user = await userService.create(req.body);
+    const { firstName, lastName, email, password, companyName, role } = req.body;
+    
+    // Create or find company
+    let company = await companyService.findBySubdomain(
+      companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+    );
+    
+    if (!company) {
+      // Create new company
+      company = await companyService.create({
+        name: companyName,
+        subdomain: companyName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""),
+        plan: "free",
+        status: "active",
+      });
+    }
+    
+    // Create user with company_id
+    const user = await userService.create({
+      firstName,
+      lastName,
+      email,
+      password,
+      companyId: company.id,
+      role,
+    });
+    
     if (!user) {
       throw new BadRequestError("Registration failed");
     }
+    
     const token = generateNewJWTToken(user);
     const formattedUser = formatUserForResponse(user);
     
@@ -99,8 +128,10 @@ router.get(
 router.get(
   "/technicians",
   validateRequest,
+  requireTenantContext,
   asyncHandler(async (req: Request, res: Response) => {
-    const technicians = await userService.findTechnicians();
+    const companyId = req.companyId!;
+    const technicians = await userService.findTechnicians(companyId);
     const formattedTechnicians = technicians.map(formatUserForResponse);
     
     res.json({

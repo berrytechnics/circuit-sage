@@ -1,7 +1,7 @@
 import request from "supertest";
 import app from "../../app";
-import ticketService from "../../services/ticket.service";
 import customerService from "../../services/customer.service";
+import ticketService from "../../services/ticket.service";
 import userService from "../../services/user.service";
 import { verifyJWTToken } from "../../utils/auth";
 
@@ -25,6 +25,7 @@ const mockedVerifyJWTToken = verifyJWTToken as jest.MockedFunction<
 >;
 
 // Mock user for authentication
+const MOCK_COMPANY_ID = "550e8400-e29b-41d4-a716-446655440099";
 const mockUser = {
   id: "550e8400-e29b-41d4-a716-446655440000",
   firstName: "John",
@@ -32,6 +33,7 @@ const mockUser = {
   email: "john@example.com",
   role: "technician" as const,
   active: true,
+  company_id: MOCK_COMPANY_ID,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -48,7 +50,7 @@ describe("Ticket Routes", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Default: authenticate all requests
-    mockedVerifyJWTToken.mockResolvedValue(mockUser);
+    mockedVerifyJWTToken.mockResolvedValue(mockUser as any);
     // Mock customer and user services to return null by default
     mockedCustomerService.findById.mockResolvedValue(null);
     mockedUserService.findById.mockResolvedValue(null);
@@ -140,7 +142,7 @@ describe("Ticket Routes", () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data).toHaveLength(2);
       expect(response.body.data[0].ticketNumber).toBe("TKT-12345678-001");
-      expect(mockedTicketService.findAll).toHaveBeenCalledWith(undefined, undefined);
+      expect(mockedTicketService.findAll).toHaveBeenCalledWith(MOCK_COMPANY_ID, undefined, undefined);
     });
 
     it("should filter tickets by customerId", async () => {
@@ -190,7 +192,7 @@ describe("Ticket Routes", () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(mockedTicketService.findAll).toHaveBeenCalledWith(CUSTOMER_ID_1, undefined);
+      expect(mockedTicketService.findAll).toHaveBeenCalledWith(MOCK_COMPANY_ID, CUSTOMER_ID_1, undefined);
     });
 
     it("should filter tickets by status", async () => {
@@ -240,7 +242,7 @@ describe("Ticket Routes", () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(mockedTicketService.findAll).toHaveBeenCalledWith(undefined, "completed");
+      expect(mockedTicketService.findAll).toHaveBeenCalledWith(MOCK_COMPANY_ID, undefined, "completed");
     });
 
     it("should return 401 without authentication token", async () => {
@@ -296,7 +298,7 @@ describe("Ticket Routes", () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.id).toBe(TICKET_ID_1);
       expect(response.body.data.ticketNumber).toBe("TKT-12345678-001");
-      expect(mockedTicketService.findById).toHaveBeenCalledWith(TICKET_ID_1);
+      expect(mockedTicketService.findById).toHaveBeenCalledWith(TICKET_ID_1, MOCK_COMPANY_ID);
     });
 
     it("should return 404 when ticket not found", async () => {
@@ -348,7 +350,7 @@ describe("Ticket Routes", () => {
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
       expect(response.body.data.deviceType).toBe("Smartphone");
-      expect(mockedTicketService.create).toHaveBeenCalledWith(newTicketData);
+      expect(mockedTicketService.create).toHaveBeenCalledWith(newTicketData, MOCK_COMPANY_ID);
     });
 
     it("should return 400 for missing required fields", async () => {
@@ -426,7 +428,8 @@ describe("Ticket Routes", () => {
       expect(response.body.data.repairNotes).toBe("Screen replaced successfully");
       expect(mockedTicketService.update).toHaveBeenCalledWith(
         TICKET_ID_1,
-        updateData
+        updateData,
+        MOCK_COMPANY_ID
       );
     });
 
@@ -467,7 +470,8 @@ describe("Ticket Routes", () => {
       expect(response.body.data.priority).toBe("urgent");
       expect(mockedTicketService.update).toHaveBeenCalledWith(
         TICKET_ID_1,
-        updateData
+        updateData,
+        MOCK_COMPANY_ID
       );
     });
 
@@ -481,7 +485,7 @@ describe("Ticket Routes", () => {
           customerId: CUSTOMER_ID_1,
           technicianId: null,
           status: "new" as const,
-          priority: priority as const,
+          priority: priority as "low" | "medium" | "high" | "urgent",
           deviceType: "Smartphone",
           deviceBrand: null,
           deviceModel: null,
@@ -495,7 +499,7 @@ describe("Ticket Routes", () => {
           updatedAt: new Date(),
         };
 
-        mockedTicketService.update.mockResolvedValue(mockUpdatedTicket);
+        mockedTicketService.update.mockResolvedValue(mockUpdatedTicket as any);
 
         const response = await request(app)
           .put(`/api/tickets/${TICKET_ID_1}`)
@@ -543,7 +547,7 @@ describe("Ticket Routes", () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data.message).toBe("Ticket deleted successfully");
-      expect(mockedTicketService.delete).toHaveBeenCalledWith(TICKET_ID_1);
+      expect(mockedTicketService.delete).toHaveBeenCalledWith(TICKET_ID_1, MOCK_COMPANY_ID);
     });
 
     it("should return 404 when ticket not found for deletion", async () => {
@@ -568,6 +572,7 @@ describe("Ticket Routes", () => {
         email: "jane@example.com",
         role: "technician" as const,
         active: true,
+        company_id: MOCK_COMPANY_ID,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -592,7 +597,7 @@ describe("Ticket Routes", () => {
         updatedAt: new Date(),
       };
 
-      mockedUserService.findById.mockResolvedValue(mockTechnician);
+      mockedUserService.findById.mockResolvedValue(mockTechnician as any);
       mockedTicketService.assignTechnician.mockResolvedValue(mockUpdatedTicket);
 
       const response = await request(app)
@@ -607,7 +612,8 @@ describe("Ticket Routes", () => {
       expect(response.body.data.technician.id).toBe(TECHNICIAN_ID);
       expect(mockedTicketService.assignTechnician).toHaveBeenCalledWith(
         TICKET_ID_1,
-        TECHNICIAN_ID
+        TECHNICIAN_ID,
+        MOCK_COMPANY_ID
       );
     });
 
@@ -644,7 +650,8 @@ describe("Ticket Routes", () => {
       expect(response.body.data.technicianId).toBeNull();
       expect(mockedTicketService.assignTechnician).toHaveBeenCalledWith(
         TICKET_ID_1,
-        null
+        null,
+        MOCK_COMPANY_ID
       );
     });
 
@@ -656,11 +663,12 @@ describe("Ticket Routes", () => {
         email: "jane@example.com",
         role: "technician" as const,
         active: true,
+        company_id: MOCK_COMPANY_ID,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
-      mockedUserService.findById.mockResolvedValue(mockTechnician);
+      mockedUserService.findById.mockResolvedValue(mockTechnician as any);
       mockedTicketService.assignTechnician.mockResolvedValue(null);
 
       const response = await request(app)
@@ -694,11 +702,12 @@ describe("Ticket Routes", () => {
         email: "jane@example.com",
         role: "frontdesk" as const,
         active: true,
+        company_id: MOCK_COMPANY_ID,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
-      mockedUserService.findById.mockResolvedValue(mockFrontdeskUser);
+      mockedUserService.findById.mockResolvedValue(mockFrontdeskUser as any);
 
       const response = await request(app)
         .post(`/api/tickets/${TICKET_ID_1}/assign`)
@@ -720,6 +729,7 @@ describe("Ticket Routes", () => {
         email: "admin@example.com",
         role: "admin" as const,
         active: true,
+        company_id: MOCK_COMPANY_ID,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -744,7 +754,7 @@ describe("Ticket Routes", () => {
         updatedAt: new Date(),
       };
 
-      mockedUserService.findById.mockResolvedValue(mockAdmin);
+      mockedUserService.findById.mockResolvedValue(mockAdmin as any);
       mockedTicketService.assignTechnician.mockResolvedValue(mockUpdatedTicket);
 
       const response = await request(app)
@@ -791,7 +801,8 @@ describe("Ticket Routes", () => {
       expect(response.body.data.status).toBe("completed");
       expect(mockedTicketService.updateStatus).toHaveBeenCalledWith(
         TICKET_ID_1,
-        "completed"
+        "completed",
+        MOCK_COMPANY_ID
       );
     });
 
@@ -839,7 +850,7 @@ describe("Ticket Routes", () => {
           ticketNumber: "TKT-12345678-001",
           customerId: CUSTOMER_ID_1,
           technicianId: null,
-          status: status as const,
+          status: status as "new" | "assigned" | "in_progress" | "on_hold" | "completed" | "cancelled",
           priority: "medium" as const,
           deviceType: "Smartphone",
           deviceBrand: null,
@@ -854,7 +865,7 @@ describe("Ticket Routes", () => {
           updatedAt: new Date(),
         };
 
-        mockedTicketService.updateStatus.mockResolvedValue(mockUpdatedTicket);
+        mockedTicketService.updateStatus.mockResolvedValue(mockUpdatedTicket as any);
 
         const response = await request(app)
           .post(`/api/tickets/${TICKET_ID_1}/status`)
@@ -906,7 +917,8 @@ describe("Ticket Routes", () => {
       expect(response.body.data.diagnosticNotes).toBe("Initial diagnostic: Screen needs replacement");
       expect(mockedTicketService.addDiagnosticNotes).toHaveBeenCalledWith(
         TICKET_ID_1,
-        "Initial diagnostic: Screen needs replacement"
+        "Initial diagnostic: Screen needs replacement",
+        MOCK_COMPANY_ID
       );
     });
 
@@ -1039,7 +1051,8 @@ describe("Ticket Routes", () => {
       expect(response.body.data.repairNotes).toBe("Screen replaced successfully");
       expect(mockedTicketService.addRepairNotes).toHaveBeenCalledWith(
         TICKET_ID_1,
-        "Screen replaced successfully"
+        "Screen replaced successfully",
+        MOCK_COMPANY_ID
       );
     });
 

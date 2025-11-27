@@ -3,8 +3,9 @@ import app from "../../app";
 import userService from "../../services/user.service";
 import { generateNewJWTToken } from "../../utils/auth";
 
-// Mock the user service
+// Mock the user service and company service
 jest.mock("../../services/user.service");
+jest.mock("../../services/company.service");
 jest.mock("../../utils/auth");
 
 const mockedUserService = userService as jest.Mocked<typeof userService>;
@@ -19,6 +20,7 @@ describe("User Routes", () => {
 
   describe("POST /api/auth/login", () => {
     // Mock user with snake_case fields as returned by the service
+    const MOCK_COMPANY_ID = "550e8400-e29b-41d4-a716-446655440099";
     const mockUser = {
       id: "user-123",
       first_name: "John",
@@ -26,6 +28,7 @@ describe("User Routes", () => {
       email: "john@example.com",
       role: "technician" as const,
       active: true,
+      company_id: MOCK_COMPANY_ID,
       created_at: new Date(),
       updated_at: new Date(),
       deleted_at: null,
@@ -121,6 +124,7 @@ describe("User Routes", () => {
 
   describe("POST /api/auth/register", () => {
     // Mock user with snake_case fields as returned by the service
+    const MOCK_COMPANY_ID = "550e8400-e29b-41d4-a716-446655440099";
     const mockNewUser = {
       id: "user-456",
       first_name: "Jane",
@@ -128,12 +132,28 @@ describe("User Routes", () => {
       email: "jane@example.com",
       role: "technician" as const,
       active: true,
+      company_id: MOCK_COMPANY_ID,
       created_at: new Date(),
       updated_at: new Date(),
       deleted_at: null,
     } as any;
 
     it("should register a new user successfully", async () => {
+      // Mock company service
+      const companyService = require("../../services/company.service");
+      jest.spyOn(companyService.default, "findBySubdomain").mockResolvedValue(null);
+      jest.spyOn(companyService.default, "create").mockResolvedValue({
+        id: MOCK_COMPANY_ID,
+        name: "Test Company",
+        subdomain: "test-company",
+        plan: "free",
+        status: "active",
+        settings: {},
+        created_at: new Date(),
+        updated_at: new Date(),
+        deleted_at: null,
+      });
+
       mockedUserService.create.mockResolvedValue(mockNewUser);
       mockedGenerateJWTToken.mockReturnValue("mock-jwt-token");
 
@@ -143,6 +163,7 @@ describe("User Routes", () => {
           firstName: "Jane",
           lastName: "Smith",
           email: "jane@example.com",
+          companyName: "Test Company",
           password: "Password123",
         });
 
@@ -166,11 +187,28 @@ describe("User Routes", () => {
         lastName: "Smith",
         email: "jane@example.com",
         password: "Password123",
+        companyId: MOCK_COMPANY_ID,
+        role: undefined,
       });
       expect(mockedGenerateJWTToken).toHaveBeenCalledWith(mockNewUser);
     });
 
     it("should return 400 when registration fails", async () => {
+      // Mock company service
+      const companyService = require("../../services/company.service");
+      jest.spyOn(companyService.default, "findBySubdomain").mockResolvedValue(null);
+      jest.spyOn(companyService.default, "create").mockResolvedValue({
+        id: MOCK_COMPANY_ID,
+        name: "Test Company",
+        subdomain: "test-company",
+        plan: "free",
+        status: "active",
+        settings: {},
+        created_at: new Date(),
+        updated_at: new Date(),
+        deleted_at: null,
+      });
+
       mockedUserService.create.mockResolvedValue(null);
 
       const response = await request(app)
@@ -179,17 +217,31 @@ describe("User Routes", () => {
           firstName: "Jane",
           lastName: "Smith",
           email: "jane@example.com",
+          companyName: "Test Company",
           password: "Password123",
         });
 
       expect(response.status).toBe(400);
-      expect(response.body).toEqual({
-        success: false,
-        error: { message: "Registration failed" },
-      });
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.message).toBe("Registration failed");
     });
 
     it("should handle service errors", async () => {
+      // Mock company service
+      const companyService = require("../../services/company.service");
+      jest.spyOn(companyService.default, "findBySubdomain").mockResolvedValue(null);
+      jest.spyOn(companyService.default, "create").mockResolvedValue({
+        id: MOCK_COMPANY_ID,
+        name: "Test Company",
+        subdomain: "test-company",
+        plan: "free",
+        status: "active",
+        settings: {},
+        created_at: new Date(),
+        updated_at: new Date(),
+        deleted_at: null,
+      });
+
       mockedUserService.create.mockRejectedValue(
         new Error("Database error")
       );
@@ -200,6 +252,7 @@ describe("User Routes", () => {
           firstName: "Jane",
           lastName: "Smith",
           email: "jane@example.com",
+          companyName: "Test Company",
           password: "Password123",
         });
 

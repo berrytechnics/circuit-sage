@@ -41,6 +41,7 @@ export interface UpdateTicketDto {
 export type Ticket = Omit<
   TicketTable,
   | "id"
+  | "company_id"
   | "ticket_number"
   | "customer_id"
   | "technician_id"
@@ -77,6 +78,7 @@ export type Ticket = Omit<
 // Helper function to convert DB row to Ticket (snake_case to camelCase)
 function toTicket(ticket: {
   id: string;
+  company_id: string;
   ticket_number: string;
   customer_id: string;
   technician_id: string | null;
@@ -116,21 +118,37 @@ function toTicket(ticket: {
   };
 }
 
-// Generate ticket number
-function generateTicketNumber(): string {
+// Generate ticket number (scoped to company)
+async function generateTicketNumber(companyId: string): Promise<string> {
   const prefix = "TKT";
   const timestamp = Date.now().toString().slice(-8);
   const random = Math.floor(Math.random() * 1000)
     .toString()
     .padStart(3, "0");
-  return `${prefix}-${timestamp}-${random}`;
+  const ticketNumber = `${prefix}-${timestamp}-${random}`;
+  
+  // Check if ticket number exists for this company
+  const existing = await db
+    .selectFrom("tickets")
+    .select("id")
+    .where("ticket_number", "=", ticketNumber)
+    .where("company_id", "=", companyId)
+    .executeTakeFirst();
+  
+  if (existing) {
+    // Recursively generate new number if collision
+    return generateTicketNumber(companyId);
+  }
+  
+  return ticketNumber;
 }
 
 export class TicketService {
-  async findAll(customerId?: string, status?: TicketStatus): Promise<Ticket[]> {
+  async findAll(companyId: string, customerId?: string, status?: TicketStatus): Promise<Ticket[]> {
     let query = db
       .selectFrom("tickets")
       .selectAll()
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null);
 
     if (customerId) {
@@ -145,38 +163,27 @@ export class TicketService {
     return tickets.map(toTicket);
   }
 
-  async findById(id: string): Promise<Ticket | null> {
+  async findById(id: string, companyId: string): Promise<Ticket | null> {
     const ticket = await db
       .selectFrom("tickets")
       .selectAll()
       .where("id", "=", id)
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null)
       .executeTakeFirst();
 
     return ticket ? toTicket(ticket) : null;
   }
 
-  async create(data: CreateTicketDto): Promise<Ticket> {
-    // Generate unique ticket number
-    let ticketNumber = generateTicketNumber();
-    let exists = true;
-    while (exists) {
-      const existing = await db
-        .selectFrom("tickets")
-        .select("id")
-        .where("ticket_number", "=", ticketNumber)
-        .executeTakeFirst();
-      if (!existing) {
-        exists = false;
-      } else {
-        ticketNumber = generateTicketNumber();
-      }
-    }
+  async create(data: CreateTicketDto, companyId: string): Promise<Ticket> {
+    // Generate unique ticket number for this company
+    const ticketNumber = await generateTicketNumber(companyId);
 
     const ticket = await db
       .insertInto("tickets")
       .values({
         id: uuidv4(),
+        company_id: companyId,
         ticket_number: ticketNumber,
         customer_id: data.customerId,
         technician_id: data.technicianId || null,
@@ -205,13 +212,14 @@ export class TicketService {
     return toTicket(ticket);
   }
 
-  async update(id: string, data: UpdateTicketDto): Promise<Ticket | null> {
+  async update(id: string, data: UpdateTicketDto, companyId: string): Promise<Ticket | null> {
     let updateQuery = db
       .updateTable("tickets")
       .set({
         updated_at: sql`now()`,
       })
       .where("id", "=", id)
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null);
 
     if (data.customerId !== undefined) {
@@ -269,7 +277,7 @@ export class TicketService {
     return updated ? toTicket(updated) : null;
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string, companyId: string): Promise<boolean> {
     const result = await db
       .updateTable("tickets")
       .set({
@@ -277,13 +285,14 @@ export class TicketService {
         updated_at: sql`now()`,
       })
       .where("id", "=", id)
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null)
       .executeTakeFirst();
 
     return !!result;
   }
 
-  async assignTechnician(id: string, technicianId: string | null): Promise<Ticket | null> {
+  async assignTechnician(id: string, technicianId: string | null, companyId: string): Promise<Ticket | null> {
     const updated = await db
       .updateTable("tickets")
       .set({
@@ -291,6 +300,7 @@ export class TicketService {
         updated_at: sql`now()`,
       })
       .where("id", "=", id)
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null)
       .returningAll()
       .executeTakeFirst();
@@ -298,7 +308,7 @@ export class TicketService {
     return updated ? toTicket(updated) : null;
   }
 
-  async updateStatus(id: string, status: TicketStatus): Promise<Ticket | null> {
+  async updateStatus(id: string, status: TicketStatus, companyId: string): Promise<Ticket | null> {
     const updated = await db
       .updateTable("tickets")
       .set({
@@ -306,6 +316,7 @@ export class TicketService {
         updated_at: sql`now()`,
       })
       .where("id", "=", id)
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null)
       .returningAll()
       .executeTakeFirst();
@@ -313,9 +324,9 @@ export class TicketService {
     return updated ? toTicket(updated) : null;
   }
 
-  async addDiagnosticNotes(id: string, notes: string): Promise<Ticket | null> {
+  async addDiagnosticNotes(id: string, notes: string, companyId: string): Promise<Ticket | null> {
     // Get current ticket to append or replace notes
-    const current = await this.findById(id);
+    const current = await this.findById(id, companyId);
     if (!current) {
       return null;
     }
@@ -332,6 +343,7 @@ export class TicketService {
         updated_at: sql`now()`,
       })
       .where("id", "=", id)
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null)
       .returningAll()
       .executeTakeFirst();
@@ -339,9 +351,9 @@ export class TicketService {
     return updated ? toTicket(updated) : null;
   }
 
-  async addRepairNotes(id: string, notes: string): Promise<Ticket | null> {
+  async addRepairNotes(id: string, notes: string, companyId: string): Promise<Ticket | null> {
     // Get current ticket to append or replace notes
-    const current = await this.findById(id);
+    const current = await this.findById(id, companyId);
     if (!current) {
       return null;
     }
@@ -358,6 +370,7 @@ export class TicketService {
         updated_at: sql`now()`,
       })
       .where("id", "=", id)
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null)
       .returningAll()
       .executeTakeFirst();

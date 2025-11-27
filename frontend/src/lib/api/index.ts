@@ -211,6 +211,7 @@ export const register = async (
   userData: LoginCredentials & {
     firstName: string;
     lastName: string;
+    companyName: string;
     role?: string;
   }
 ): Promise<AuthResponse> => {

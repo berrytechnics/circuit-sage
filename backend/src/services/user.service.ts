@@ -11,6 +11,7 @@ export interface CreateUserDto {
   lastName: string;
   email: string;
   password: string;
+  companyId: string;
   role?: UserRole;
   active?: boolean;
 }
@@ -34,6 +35,7 @@ export type UserWithoutPassword = Omit<UserTable, "password"> & {
 // Accepts query results (which may have string IDs instead of UUID types)
 function toUserWithoutPassword(user: {
   id: string;
+  company_id: string;
   first_name: string;
   last_name: string;
   email: string;
@@ -55,6 +57,7 @@ export class UserService {
       .selectFrom("users")
       .select([
         "id",
+        "company_id",
         "first_name",
         "last_name",
         "email",
@@ -76,6 +79,7 @@ export class UserService {
       .selectFrom("users")
       .select([
         "id",
+        "company_id",
         "first_name",
         "last_name",
         "email",
@@ -99,6 +103,7 @@ export class UserService {
       .insertInto("users")
       .values({
         id: uuidv4(),
+        company_id: data.companyId,
         first_name: data.firstName,
         last_name: data.lastName,
         email: data.email,
@@ -111,6 +116,7 @@ export class UserService {
       })
       .returning([
         "id",
+        "company_id",
         "first_name",
         "last_name",
         "email",
@@ -160,6 +166,7 @@ export class UserService {
     const updated = await updateQuery
       .returning([
         "id",
+        "company_id",
         "first_name",
         "last_name",
         "email",
@@ -208,11 +215,12 @@ export class UserService {
     return toUserWithoutPassword(user);
   }
 
-  async findTechnicians(): Promise<UserWithoutPassword[]> {
+  async findTechnicians(companyId: string): Promise<UserWithoutPassword[]> {
     const users = await db
       .selectFrom("users")
       .select([
         "id",
+        "company_id",
         "first_name",
         "last_name",
         "email",
@@ -222,6 +230,7 @@ export class UserService {
         "updated_at",
         "deleted_at",
       ])
+      .where("company_id", "=", companyId)
       .where("role", "=", "technician")
       .where("deleted_at", "is", null)
       .where("active", "=", true)

@@ -4,6 +4,7 @@ import {
 } from "../config/errors";
 import { InvoiceStatus } from "../config/types";
 import { validateRequest } from "../middlewares/auth.middleware";
+import { requireTenantContext } from "../middlewares/tenant.middleware";
 import { validate } from "../middlewares/validation.middleware";
 import invoiceService from "../services/invoice.service";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -17,16 +18,19 @@ import {
 
 const router = express.Router();
 
-// All routes require authentication
+// All routes require authentication and tenant context
 router.use(validateRequest);
+router.use(requireTenantContext);
 
 // GET /invoice - List all invoices (with optional filters)
 router.get(
   "/",
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const customerId = req.query.customerId as string | undefined;
     const status = req.query.status as InvoiceStatus | undefined;
     const invoices = await invoiceService.findAll(
+      companyId,
       customerId,
       status
     );
@@ -38,8 +42,9 @@ router.get(
 router.get(
   "/:id",
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id } = req.params;
-    const invoice = await invoiceService.findById(id);
+    const invoice = await invoiceService.findById(id, companyId);
     if (!invoice) {
       throw new NotFoundError("Invoice not found");
     }
@@ -52,7 +57,8 @@ router.post(
   "/",
   validate(createInvoiceValidation),
   asyncHandler(async (req: Request, res: Response) => {
-    const invoice = await invoiceService.create(req.body);
+    const companyId = req.companyId!;
+    const invoice = await invoiceService.create(req.body, companyId);
     res.status(201).json({ success: true, data: invoice });
   })
 );
@@ -62,8 +68,9 @@ router.put(
   "/:id",
   validate(updateInvoiceValidation),
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id } = req.params;
-    const invoice = await invoiceService.update(id, req.body);
+    const invoice = await invoiceService.update(id, req.body, companyId);
     if (!invoice) {
       throw new NotFoundError("Invoice not found");
     }
@@ -75,8 +82,9 @@ router.put(
 router.delete(
   "/:id",
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id } = req.params;
-    const deleted = await invoiceService.delete(id);
+    const deleted = await invoiceService.delete(id, companyId);
     if (!deleted) {
       throw new NotFoundError("Invoice not found");
     }
@@ -92,11 +100,12 @@ router.post(
   "/:id/items",
   validate(createInvoiceItemValidation),
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id } = req.params;
     const item = await invoiceService.createInvoiceItem({
       invoiceId: id,
       ...req.body,
-    });
+    }, companyId);
     res.status(201).json({ success: true, data: item });
   })
 );
@@ -106,8 +115,9 @@ router.put(
   "/:id/items/:itemId",
   validate(updateInvoiceItemValidation),
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id, itemId } = req.params;
-    const item = await invoiceService.updateInvoiceItem(id, itemId, req.body);
+    const item = await invoiceService.updateInvoiceItem(id, itemId, req.body, companyId);
     if (!item) {
       throw new NotFoundError("Invoice item not found");
     }
@@ -119,8 +129,9 @@ router.put(
 router.delete(
   "/:id/items/:itemId",
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id, itemId } = req.params;
-    const deleted = await invoiceService.deleteInvoiceItem(id, itemId);
+    const deleted = await invoiceService.deleteInvoiceItem(id, itemId, companyId);
     if (!deleted) {
       throw new NotFoundError("Invoice item not found");
     }
@@ -136,8 +147,9 @@ router.post(
   "/:id/paid",
   validate(markInvoicePaidValidation),
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id } = req.params;
-    const invoice = await invoiceService.markInvoiceAsPaid(id, req.body);
+    const invoice = await invoiceService.markInvoiceAsPaid(id, req.body, companyId);
     if (!invoice) {
       throw new NotFoundError("Invoice not found");
     }

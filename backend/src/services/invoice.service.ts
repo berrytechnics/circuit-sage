@@ -43,6 +43,7 @@ export interface UpdateInvoiceDto {
 export type Invoice = Omit<
   InvoiceTable,
   | "id"
+  | "company_id"
   | "invoice_number"
   | "customer_id"
   | "ticket_id"
@@ -159,6 +160,7 @@ function toInvoiceItem(item: {
 // Helper function to convert DB row to Invoice (snake_case to camelCase)
 function toInvoice(invoice: {
   id: string;
+  company_id: string;
   invoice_number: string;
   customer_id: string;
   ticket_id: string | null;
@@ -200,20 +202,36 @@ function toInvoice(invoice: {
   };
 }
 
-// Generate invoice number
-function generateInvoiceNumber(): string {
+// Generate invoice number (scoped to company)
+async function generateInvoiceNumber(companyId: string): Promise<string> {
   const prefix = "INV";
   const year = new Date().getFullYear();
   const month = (new Date().getMonth() + 1).toString().padStart(2, "0");
   const timestamp = Date.now().toString().slice(-6);
-  return `${prefix}-${year}${month}-${timestamp}`;
+  const invoiceNumber = `${prefix}-${year}${month}-${timestamp}`;
+  
+  // Check if invoice number exists for this company
+  const existing = await db
+    .selectFrom("invoices")
+    .select("id")
+    .where("invoice_number", "=", invoiceNumber)
+    .where("company_id", "=", companyId)
+    .executeTakeFirst();
+  
+  if (existing) {
+    // Recursively generate new number if collision
+    return generateInvoiceNumber(companyId);
+  }
+  
+  return invoiceNumber;
 }
 
 export class InvoiceService {
-  async findAll(customerId?: string, status?: InvoiceStatus): Promise<Invoice[]> {
+  async findAll(companyId: string, customerId?: string, status?: InvoiceStatus): Promise<Invoice[]> {
     let query = db
       .selectFrom("invoices")
       .selectAll()
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null);
 
     if (customerId) {
@@ -228,33 +246,21 @@ export class InvoiceService {
     return invoices.map(toInvoice);
   }
 
-  async findById(id: string): Promise<Invoice | null> {
+  async findById(id: string, companyId: string): Promise<Invoice | null> {
     const invoice = await db
       .selectFrom("invoices")
       .selectAll()
       .where("id", "=", id)
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null)
       .executeTakeFirst();
 
     return invoice ? toInvoice(invoice) : null;
   }
 
-  async create(data: CreateInvoiceDto): Promise<Invoice> {
-    // Generate unique invoice number
-    let invoiceNumber = generateInvoiceNumber();
-    let exists = true;
-    while (exists) {
-      const existing = await db
-        .selectFrom("invoices")
-        .select("id")
-        .where("invoice_number", "=", invoiceNumber)
-        .executeTakeFirst();
-      if (!existing) {
-        exists = false;
-      } else {
-        invoiceNumber = generateInvoiceNumber();
-      }
-    }
+  async create(data: CreateInvoiceDto, companyId: string): Promise<Invoice> {
+    // Generate unique invoice number for this company
+    const invoiceNumber = await generateInvoiceNumber(companyId);
 
     const subtotal = data.subtotal ?? 0;
     const taxRate = data.taxRate ?? 0;
@@ -266,6 +272,7 @@ export class InvoiceService {
       .insertInto("invoices")
       .values({
         id: uuidv4(),
+        company_id: companyId,
         invoice_number: invoiceNumber,
         customer_id: data.customerId,
         ticket_id: data.ticketId || null,
@@ -291,13 +298,14 @@ export class InvoiceService {
     return toInvoice(invoice);
   }
 
-  async update(id: string, data: UpdateInvoiceDto): Promise<Invoice | null> {
+  async update(id: string, data: UpdateInvoiceDto, companyId: string): Promise<Invoice | null> {
     let updateQuery = db
       .updateTable("invoices")
       .set({
         updated_at: sql`now()`,
       })
       .where("id", "=", id)
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null);
 
     if (data.customerId !== undefined) {
@@ -356,7 +364,7 @@ export class InvoiceService {
     return updated ? toInvoice(updated) : null;
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string, companyId: string): Promise<boolean> {
     const result = await db
       .updateTable("invoices")
       .set({
@@ -364,6 +372,7 @@ export class InvoiceService {
         updated_at: sql`now()`,
       })
       .where("id", "=", id)
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null)
       .executeTakeFirst();
 
@@ -371,7 +380,7 @@ export class InvoiceService {
   }
 
   // Recalculate invoice totals based on items
-  async recalculateInvoiceTotals(invoiceId: string): Promise<void> {
+  async recalculateInvoiceTotals(invoiceId: string, companyId: string): Promise<void> {
     // Get all invoice items
     const items = await db
       .selectFrom("invoice_items")
@@ -387,6 +396,7 @@ export class InvoiceService {
       .selectFrom("invoices")
       .select(["tax_rate", "discount_amount"])
       .where("id", "=", invoiceId)
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null)
       .executeTakeFirst();
 
@@ -409,14 +419,15 @@ export class InvoiceService {
         updated_at: sql`now()`,
       })
       .where("id", "=", invoiceId)
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null)
       .execute();
   }
 
   // Create invoice item
-  async createInvoiceItem(data: CreateInvoiceItemDto): Promise<InvoiceItem> {
+  async createInvoiceItem(data: CreateInvoiceItemDto, companyId: string): Promise<InvoiceItem> {
     // Validate invoice exists
-    const invoice = await this.findById(data.invoiceId);
+    const invoice = await this.findById(data.invoiceId, companyId);
     if (!invoice) {
       throw new Error("Invoice not found");
     }
@@ -448,7 +459,7 @@ export class InvoiceService {
       .executeTakeFirstOrThrow();
 
     // Recalculate invoice totals
-    await this.recalculateInvoiceTotals(data.invoiceId);
+    await this.recalculateInvoiceTotals(data.invoiceId, companyId);
 
     return toInvoiceItem(item);
   }
@@ -457,10 +468,11 @@ export class InvoiceService {
   async updateInvoiceItem(
     invoiceId: string,
     itemId: string,
-    data: UpdateInvoiceItemDto
+    data: UpdateInvoiceItemDto,
+    companyId: string
   ): Promise<InvoiceItem | null> {
     // Validate invoice exists
-    const invoice = await this.findById(invoiceId);
+    const invoice = await this.findById(invoiceId, companyId);
     if (!invoice) {
       throw new Error("Invoice not found");
     }
@@ -517,15 +529,15 @@ export class InvoiceService {
     }
 
     // Recalculate invoice totals
-    await this.recalculateInvoiceTotals(invoiceId);
+    await this.recalculateInvoiceTotals(invoiceId, companyId);
 
     return toInvoiceItem(updated);
   }
 
   // Delete invoice item
-  async deleteInvoiceItem(invoiceId: string, itemId: string): Promise<boolean> {
+  async deleteInvoiceItem(invoiceId: string, itemId: string, companyId: string): Promise<boolean> {
     // Validate invoice exists
-    const invoice = await this.findById(invoiceId);
+    const invoice = await this.findById(invoiceId, companyId);
     if (!invoice) {
       throw new Error("Invoice not found");
     }
@@ -550,7 +562,7 @@ export class InvoiceService {
       .executeTakeFirst();
 
     // Recalculate invoice totals
-    await this.recalculateInvoiceTotals(invoiceId);
+    await this.recalculateInvoiceTotals(invoiceId, companyId);
 
     return !!result;
   }
@@ -558,10 +570,11 @@ export class InvoiceService {
   // Mark invoice as paid
   async markInvoiceAsPaid(
     invoiceId: string,
-    data: MarkInvoicePaidDto
+    data: MarkInvoicePaidDto,
+    companyId: string
   ): Promise<Invoice | null> {
     // Validate invoice exists
-    const invoice = await this.findById(invoiceId);
+    const invoice = await this.findById(invoiceId, companyId);
     if (!invoice) {
       throw new Error("Invoice not found");
     }
@@ -580,6 +593,7 @@ export class InvoiceService {
         updated_at: sql`now()`,
       })
       .where("id", "=", invoiceId)
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null)
       .returningAll()
       .executeTakeFirst();
@@ -588,7 +602,12 @@ export class InvoiceService {
   }
 
   // Get invoice items
-  async getInvoiceItems(invoiceId: string): Promise<InvoiceItem[]> {
+  async getInvoiceItems(invoiceId: string, companyId: string): Promise<InvoiceItem[]> {
+    // Validate invoice exists and belongs to company
+    const invoice = await this.findById(invoiceId, companyId);
+    if (!invoice) {
+      throw new Error("Invoice not found");
+    }
     const items = await db
       .selectFrom("invoice_items")
       .selectAll()

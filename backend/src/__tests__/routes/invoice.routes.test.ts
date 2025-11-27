@@ -20,6 +20,7 @@ const mockedVerifyJWTToken = verifyJWTToken as jest.MockedFunction<
 >;
 
 // Mock user for authentication
+const MOCK_COMPANY_ID = "550e8400-e29b-41d4-a716-446655440099";
 const mockUser = {
   id: "550e8400-e29b-41d4-a716-446655440000",
   firstName: "John",
@@ -27,6 +28,7 @@ const mockUser = {
   email: "john@example.com",
   role: "technician" as const,
   active: true,
+  company_id: MOCK_COMPANY_ID,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -103,7 +105,7 @@ describe("Invoice Routes", () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data).toHaveLength(2);
       expect(response.body.data[0].invoiceNumber).toBe("INV-202412-123456");
-      expect(mockedInvoiceService.findAll).toHaveBeenCalledWith(undefined, undefined);
+      expect(mockedInvoiceService.findAll).toHaveBeenCalledWith(MOCK_COMPANY_ID, undefined, undefined);
     });
 
     it("should filter invoices by customerId", async () => {
@@ -139,7 +141,7 @@ describe("Invoice Routes", () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(mockedInvoiceService.findAll).toHaveBeenCalledWith(CUSTOMER_ID_1, undefined);
+      expect(mockedInvoiceService.findAll).toHaveBeenCalledWith(MOCK_COMPANY_ID, CUSTOMER_ID_1, undefined);
     });
 
     it("should filter invoices by status", async () => {
@@ -175,7 +177,7 @@ describe("Invoice Routes", () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(mockedInvoiceService.findAll).toHaveBeenCalledWith(undefined, "paid");
+      expect(mockedInvoiceService.findAll).toHaveBeenCalledWith(MOCK_COMPANY_ID, undefined, "paid");
     });
 
     it("should return 401 without authentication token", async () => {
@@ -233,7 +235,7 @@ describe("Invoice Routes", () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.id).toBe(INVOICE_ID_1);
       expect(response.body.data.invoiceNumber).toBe("INV-202412-123456");
-      expect(mockedInvoiceService.findById).toHaveBeenCalledWith(INVOICE_ID_1);
+      expect(mockedInvoiceService.findById).toHaveBeenCalledWith(INVOICE_ID_1, MOCK_COMPANY_ID);
     });
 
     it("should return 404 when invoice not found", async () => {
@@ -287,7 +289,7 @@ describe("Invoice Routes", () => {
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
       expect(response.body.data.customerId).toBe(CUSTOMER_ID_1);
-      expect(mockedInvoiceService.create).toHaveBeenCalledWith(newInvoiceData);
+      expect(mockedInvoiceService.create).toHaveBeenCalledWith(newInvoiceData, MOCK_COMPANY_ID);
     });
 
     it("should return 400 for missing required fields", async () => {
@@ -367,7 +369,8 @@ describe("Invoice Routes", () => {
       expect(response.body.data.paymentMethod).toBe("credit_card");
       expect(mockedInvoiceService.update).toHaveBeenCalledWith(
         INVOICE_ID_1,
-        updateData
+        updateData,
+        MOCK_COMPANY_ID
       );
     });
 
@@ -396,7 +399,7 @@ describe("Invoice Routes", () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data.message).toBe("Invoice deleted successfully");
-      expect(mockedInvoiceService.delete).toHaveBeenCalledWith(INVOICE_ID_1);
+      expect(mockedInvoiceService.delete).toHaveBeenCalledWith(INVOICE_ID_1, MOCK_COMPANY_ID);
     });
 
     it("should return 404 when invoice not found for deletion", async () => {
@@ -445,10 +448,13 @@ describe("Invoice Routes", () => {
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
       expect(response.body.data.description).toBe("Repair Service");
-      expect(mockedInvoiceService.createInvoiceItem).toHaveBeenCalledWith({
-        invoiceId: INVOICE_ID_1,
-        ...itemData,
-      });
+      expect(mockedInvoiceService.createInvoiceItem).toHaveBeenCalledWith(
+        {
+          invoiceId: INVOICE_ID_1,
+          ...itemData,
+        },
+        MOCK_COMPANY_ID
+      );
     });
 
     it("should return 400 for missing required fields", async () => {
@@ -523,7 +529,8 @@ describe("Invoice Routes", () => {
       expect(mockedInvoiceService.updateInvoiceItem).toHaveBeenCalledWith(
         INVOICE_ID_1,
         ITEM_ID_1,
-        updateData
+        updateData,
+        MOCK_COMPANY_ID
       );
     });
 
@@ -568,7 +575,8 @@ describe("Invoice Routes", () => {
       expect(response.body.data.message).toBe("Invoice item deleted successfully");
       expect(mockedInvoiceService.deleteInvoiceItem).toHaveBeenCalledWith(
         INVOICE_ID_1,
-        ITEM_ID_1
+        ITEM_ID_1,
+        MOCK_COMPANY_ID
       );
     });
 
@@ -629,7 +637,8 @@ describe("Invoice Routes", () => {
       expect(response.body.data.paymentReference).toBe("REF123");
       expect(mockedInvoiceService.markInvoiceAsPaid).toHaveBeenCalledWith(
         INVOICE_ID_1,
-        paymentData
+        paymentData,
+        MOCK_COMPANY_ID
       );
     });
 
@@ -700,7 +709,8 @@ describe("Invoice Routes", () => {
       expect(response.body.data.status).toBe("paid");
       expect(mockedInvoiceService.markInvoiceAsPaid).toHaveBeenCalledWith(
         INVOICE_ID_1,
-        paymentData
+        paymentData,
+        MOCK_COMPANY_ID
       );
     });
   });

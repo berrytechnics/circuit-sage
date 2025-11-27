@@ -4,6 +4,7 @@ import {
   NotFoundError,
 } from "../config/errors";
 import { validateRequest } from "../middlewares/auth.middleware";
+import { requireTenantContext } from "../middlewares/tenant.middleware";
 import { validate } from "../middlewares/validation.middleware";
 import customerService from "../services/customer.service";
 import invoiceService from "../services/invoice.service";
@@ -16,15 +17,17 @@ import {
 
 const router = express.Router();
 
-// All routes require authentication
+// All routes require authentication and tenant context
 router.use(validateRequest);
+router.use(requireTenantContext);
 
 // GET /customers - List all customers (with optional search)
 router.get(
   "/",
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const searchQuery = req.query.query as string | undefined;
-    const customers = await customerService.findAll(searchQuery);
+    const customers = await customerService.findAll(companyId, searchQuery);
     res.json({ success: true, data: customers });
   })
 );
@@ -33,11 +36,12 @@ router.get(
 router.get(
   "/search",
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const query = req.query.query as string;
     if (!query) {
       throw new BadRequestError("Search query is required");
     }
-    const customers = await customerService.findAll(query);
+    const customers = await customerService.findAll(companyId, query);
     res.json({ success: true, data: customers });
   })
 );
@@ -46,8 +50,9 @@ router.get(
 router.get(
   "/:id",
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id } = req.params;
-    const customer = await customerService.findById(id);
+    const customer = await customerService.findById(id, companyId);
     if (!customer) {
       throw new NotFoundError("Customer not found");
     }
@@ -60,7 +65,8 @@ router.post(
   "/",
   validate(createCustomerValidation),
   asyncHandler(async (req: Request, res: Response) => {
-    const customer = await customerService.create(req.body);
+    const companyId = req.companyId!;
+    const customer = await customerService.create(req.body, companyId);
     res.status(201).json({ success: true, data: customer });
   })
 );
@@ -70,8 +76,9 @@ router.put(
   "/:id",
   validate(updateCustomerValidation),
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id } = req.params;
-    const customer = await customerService.update(id, req.body);
+    const customer = await customerService.update(id, req.body, companyId);
     if (!customer) {
       throw new NotFoundError("Customer not found");
     }
@@ -83,8 +90,9 @@ router.put(
 router.delete(
   "/:id",
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id } = req.params;
-    const deleted = await customerService.delete(id);
+    const deleted = await customerService.delete(id, companyId);
     if (!deleted) {
       throw new NotFoundError("Customer not found");
     }
@@ -99,8 +107,9 @@ router.delete(
 router.get(
   "/:id/tickets",
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id } = req.params;
-    const tickets = await ticketService.findAll(id);
+    const tickets = await ticketService.findAll(companyId, id, undefined);
     res.json({ success: true, data: tickets });
   })
 );
@@ -109,8 +118,9 @@ router.get(
 router.get(
   "/:id/invoices",
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id } = req.params;
-    const invoices = await invoiceService.findAll(id, undefined);
+    const invoices = await invoiceService.findAll(companyId, id, undefined);
     res.json({ success: true, data: invoices });
   })
 );

@@ -25,6 +25,7 @@ const mockedVerifyJWTToken = verifyJWTToken as jest.MockedFunction<
 >;
 
 // Mock user for authentication
+const MOCK_COMPANY_ID = "550e8400-e29b-41d4-a716-446655440099";
 const mockUser = {
   id: "user-123",
   firstName: "John",
@@ -32,6 +33,7 @@ const mockUser = {
   email: "john@example.com",
   role: "technician" as const,
   active: true,
+  company_id: MOCK_COMPANY_ID,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -86,7 +88,7 @@ describe("Customer Routes", () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data).toHaveLength(2);
       expect(response.body.data[0].email).toBe("alice@example.com");
-      expect(mockedCustomerService.findAll).toHaveBeenCalledWith(undefined);
+      expect(mockedCustomerService.findAll).toHaveBeenCalledWith(MOCK_COMPANY_ID, undefined);
     });
 
     it("should filter customers by search query", async () => {
@@ -115,7 +117,7 @@ describe("Customer Routes", () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(mockedCustomerService.findAll).toHaveBeenCalledWith("alice");
+      expect(mockedCustomerService.findAll).toHaveBeenCalledWith(MOCK_COMPANY_ID, "alice");
     });
 
     it("should return 401 without authentication token", async () => {
@@ -166,7 +168,7 @@ describe("Customer Routes", () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(mockedCustomerService.findAll).toHaveBeenCalledWith("alice");
+      expect(mockedCustomerService.findAll).toHaveBeenCalledWith(MOCK_COMPANY_ID, "alice");
     });
 
     it("should return 400 when query is missing", async () => {
@@ -207,7 +209,7 @@ describe("Customer Routes", () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.id).toBe("customer-1");
       expect(response.body.data.email).toBe("alice@example.com");
-      expect(mockedCustomerService.findById).toHaveBeenCalledWith("customer-1");
+      expect(mockedCustomerService.findById).toHaveBeenCalledWith("customer-1", MOCK_COMPANY_ID);
     });
 
     it("should return 404 when customer not found", async () => {
@@ -255,7 +257,8 @@ describe("Customer Routes", () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.email).toBe("charlie@example.com");
       expect(mockedCustomerService.create).toHaveBeenCalledWith(
-        newCustomerData
+        newCustomerData,
+        MOCK_COMPANY_ID
       );
     });
 
@@ -314,7 +317,8 @@ describe("Customer Routes", () => {
       expect(response.body.data.notes).toBe("Updated notes");
       expect(mockedCustomerService.update).toHaveBeenCalledWith(
         "customer-1",
-        updateData
+        updateData,
+        MOCK_COMPANY_ID
       );
     });
 
@@ -343,7 +347,7 @@ describe("Customer Routes", () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data.message).toBe("Customer deleted successfully");
-      expect(mockedCustomerService.delete).toHaveBeenCalledWith("customer-1");
+      expect(mockedCustomerService.delete).toHaveBeenCalledWith("customer-1", MOCK_COMPANY_ID);
     });
 
     it("should return 404 when customer not found for deletion", async () => {
@@ -370,7 +374,7 @@ describe("Customer Routes", () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toEqual([]);
-      expect(mockedTicketService.findAll).toHaveBeenCalledWith("customer-1");
+      expect(mockedTicketService.findAll).toHaveBeenCalledWith(MOCK_COMPANY_ID, "customer-1", undefined);
     });
   });
 
@@ -409,7 +413,7 @@ describe("Customer Routes", () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data).toHaveLength(1);
       expect(response.body.data[0].invoiceNumber).toBe("INV-202412-123456");
-      expect(mockedInvoiceService.findAll).toHaveBeenCalledWith("customer-1", undefined);
+      expect(mockedInvoiceService.findAll).toHaveBeenCalledWith(MOCK_COMPANY_ID, "customer-1", undefined);
     });
 
     it("should return empty array for customer with no invoices", async () => {
@@ -422,7 +426,7 @@ describe("Customer Routes", () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toEqual([]);
-      expect(mockedInvoiceService.findAll).toHaveBeenCalledWith("customer-1", undefined);
+      expect(mockedInvoiceService.findAll).toHaveBeenCalledWith(MOCK_COMPANY_ID, "customer-1", undefined);
     });
   });
 });

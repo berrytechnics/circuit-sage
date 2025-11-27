@@ -5,6 +5,7 @@ import {
 } from "../config/errors";
 import { TicketStatus } from "../config/types";
 import { validateRequest } from "../middlewares/auth.middleware";
+import { requireTenantContext } from "../middlewares/tenant.middleware";
 import { validate } from "../middlewares/validation.middleware";
 import ticketService from "../services/ticket.service";
 import customerService from "../services/customer.service";
@@ -40,16 +41,19 @@ function formatUserForResponse(user: UserWithoutPassword) {
 
 const router = express.Router();
 
-// All routes require authentication
+// All routes require authentication and tenant context
 router.use(validateRequest);
+router.use(requireTenantContext);
 
 // GET /ticket - List all tickets (with optional filters)
 router.get(
   "/",
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const customerId = req.query.customerId as string | undefined;
     const status = req.query.status as TicketStatus | undefined;
     const tickets = await ticketService.findAll(
+      companyId,
       customerId,
       status
     );
@@ -57,7 +61,7 @@ router.get(
     // Populate customer and technician data for each ticket
     const ticketsWithRelations = await Promise.all(
       tickets.map(async (ticket) => {
-        const customer = await customerService.findById(ticket.customerId);
+        const customer = await customerService.findById(ticket.customerId, companyId);
         let technician = null;
         if (ticket.technicianId) {
           technician = await userService.findById(ticket.technicianId);
@@ -96,14 +100,15 @@ router.get(
 router.get(
   "/:id",
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id } = req.params;
-    const ticket = await ticketService.findById(id);
+    const ticket = await ticketService.findById(id, companyId);
     if (!ticket) {
       throw new NotFoundError("Ticket not found");
     }
 
     // Populate customer and technician data
-    const customer = await customerService.findById(ticket.customerId);
+    const customer = await customerService.findById(ticket.customerId, companyId);
     let technician = null;
     if (ticket.technicianId) {
       technician = await userService.findById(ticket.technicianId);
@@ -142,7 +147,8 @@ router.post(
   "/",
   validate(createTicketValidation),
   asyncHandler(async (req: Request, res: Response) => {
-    const ticket = await ticketService.create(req.body);
+    const companyId = req.companyId!;
+    const ticket = await ticketService.create(req.body, companyId);
     res.status(201).json({ success: true, data: ticket });
   })
 );
@@ -152,8 +158,9 @@ router.put(
   "/:id",
   validate(updateTicketValidation),
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id } = req.params;
-    const ticket = await ticketService.update(id, req.body);
+    const ticket = await ticketService.update(id, req.body, companyId);
     if (!ticket) {
       throw new NotFoundError("Ticket not found");
     }
@@ -166,21 +173,25 @@ router.post(
   "/:id/assign",
   validate(assignTechnicianValidation),
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id } = req.params;
     const { technicianId } = req.body;
     
-    // If technicianId is provided, validate it exists and is a technician
+    // If technicianId is provided, validate it exists and is a technician in the same company
     if (technicianId) {
       const technician = await userService.findById(technicianId);
       if (!technician) {
         throw new NotFoundError("Technician not found");
+      }
+      if ((technician.company_id as unknown as string) !== companyId) {
+        throw new BadRequestError("Technician must belong to the same company");
       }
       if (technician.role !== "technician" && technician.role !== "admin") {
         throw new BadRequestError("User must be a technician or admin to be assigned to a ticket");
       }
     }
     
-    const ticket = await ticketService.assignTechnician(id, technicianId || null);
+    const ticket = await ticketService.assignTechnician(id, technicianId || null, companyId);
     if (!ticket) {
       throw new NotFoundError("Ticket not found");
     }
@@ -215,10 +226,11 @@ router.post(
   "/:id/status",
   validate(updateStatusValidation),
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id } = req.params;
     const { status } = req.body;
     
-    const ticket = await ticketService.updateStatus(id, status);
+    const ticket = await ticketService.updateStatus(id, status, companyId);
     if (!ticket) {
       throw new NotFoundError("Ticket not found");
     }
@@ -235,10 +247,11 @@ router.post(
   "/:id/diagnostic-notes",
   validate(addDiagnosticNotesValidation),
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id } = req.params;
     const { notes } = req.body;
     
-    const ticket = await ticketService.addDiagnosticNotes(id, notes);
+    const ticket = await ticketService.addDiagnosticNotes(id, notes, companyId);
     if (!ticket) {
       throw new NotFoundError("Ticket not found");
     }
@@ -255,10 +268,11 @@ router.post(
   "/:id/repair-notes",
   validate(addRepairNotesValidation),
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id } = req.params;
     const { notes } = req.body;
     
-    const ticket = await ticketService.addRepairNotes(id, notes);
+    const ticket = await ticketService.addRepairNotes(id, notes, companyId);
     if (!ticket) {
       throw new NotFoundError("Ticket not found");
     }
@@ -274,8 +288,9 @@ router.post(
 router.delete(
   "/:id",
   asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
     const { id } = req.params;
-    const deleted = await ticketService.delete(id);
+    const deleted = await ticketService.delete(id, companyId);
     if (!deleted) {
       throw new NotFoundError("Ticket not found");
     }

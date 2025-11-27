@@ -34,6 +34,7 @@ export interface UpdateCustomerDto {
 export type Customer = Omit<
   CustomerTable,
   | "id"
+  | "company_id"
   | "first_name"
   | "last_name"
   | "zip_code"
@@ -52,6 +53,7 @@ export type Customer = Omit<
 // Helper function to convert DB row to Customer (snake_case to camelCase)
 function toCustomer(customer: {
   id: string;
+  company_id: string;
   first_name: string;
   last_name: string;
   email: string;
@@ -82,10 +84,11 @@ function toCustomer(customer: {
 }
 
 export class CustomerService {
-  async findAll(searchQuery?: string): Promise<Customer[]> {
+  async findAll(companyId: string, searchQuery?: string): Promise<Customer[]> {
     let query = db
       .selectFrom("customers")
       .selectAll()
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null);
 
     if (searchQuery) {
@@ -104,22 +107,24 @@ export class CustomerService {
     return customers.map(toCustomer);
   }
 
-  async findById(id: string): Promise<Customer | null> {
+  async findById(id: string, companyId: string): Promise<Customer | null> {
     const customer = await db
       .selectFrom("customers")
       .selectAll()
       .where("id", "=", id)
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null)
       .executeTakeFirst();
 
     return customer ? toCustomer(customer) : null;
   }
 
-  async create(data: CreateCustomerDto): Promise<Customer> {
+  async create(data: CreateCustomerDto, companyId: string): Promise<Customer> {
     const customer = await db
       .insertInto("customers")
       .values({
         id: uuidv4(),
+        company_id: companyId,
         first_name: data.firstName,
         last_name: data.lastName,
         email: data.email,
@@ -139,13 +144,14 @@ export class CustomerService {
     return toCustomer(customer);
   }
 
-  async update(id: string, data: UpdateCustomerDto): Promise<Customer | null> {
+  async update(id: string, data: UpdateCustomerDto, companyId: string): Promise<Customer | null> {
     let updateQuery = db
       .updateTable("customers")
       .set({
         updated_at: sql`now()`,
       })
       .where("id", "=", id)
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null);
 
     if (data.firstName !== undefined) {
@@ -183,7 +189,7 @@ export class CustomerService {
     return updated ? toCustomer(updated) : null;
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string, companyId: string): Promise<boolean> {
     const result = await db
       .updateTable("customers")
       .set({
@@ -191,6 +197,7 @@ export class CustomerService {
         updated_at: sql`now()`,
       })
       .where("id", "=", id)
+      .where("company_id", "=", companyId)
       .where("deleted_at", "is", null)
       .executeTakeFirst();
 

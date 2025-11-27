@@ -71,5 +71,13 @@ export const registerValidation = [
     .optional()
     .isBoolean()
     .withMessage("Active must be a boolean value"),
+  body("companyName")
+    .exists()
+    .withMessage("Company name is required")
+    .trim()
+    .notEmpty()
+    .withMessage("Company name is required")
+    .isLength({ min: 1, max: 255 })
+    .withMessage("Company name must be between 1 and 255 characters"),
 ];
 

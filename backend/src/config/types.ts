@@ -13,6 +13,7 @@ export type SoftDelete = ColumnType<
 
 // Database interface
 export interface Database {
+  companies: CompanyTable;
   customers: CustomerTable;
   inventory_items: InventoryItemTable;
   invoices: InvoiceTable;
@@ -22,8 +23,21 @@ export interface Database {
 }
 
 // Table definitions
+export interface CompanyTable {
+  id: UUID;
+  name: string;
+  subdomain: string | null;
+  plan: string;
+  status: string;
+  settings: Record<string, unknown> | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  deleted_at: SoftDelete;
+}
+
 export interface CustomerTable {
   id: UUID;
+  company_id: UUID;
   first_name: string;
   last_name: string;
   email: string;
@@ -40,6 +54,7 @@ export interface CustomerTable {
 
 export interface InventoryItemTable {
   id: UUID;
+  company_id: UUID;
   sku: string;
   name: string;
   description: string | null;
@@ -70,6 +85,7 @@ export type InvoiceStatus =
 
 export interface InvoiceTable {
   id: UUID;
+  company_id: UUID;
   invoice_number: string;
   customer_id: UUID;
   ticket_id: UUID | null;
@@ -116,6 +132,7 @@ export type TicketPriority = "low" | "medium" | "high" | "urgent";
 
 export interface TicketTable {
   id: UUID;
+  company_id: UUID;
   ticket_number: string;
   customer_id: UUID;
   technician_id: UUID | null;
@@ -139,6 +156,7 @@ export type UserRole = "admin" | "technician" | "frontdesk";
 
 export interface UserTable {
   id: UUID;
+  company_id: UUID;
   first_name: string;
   last_name: string;
   email: string;
@@ -150,11 +168,12 @@ export interface UserTable {
   deleted_at: SoftDelete;
 }
 
-// Extend Express Request interface to include user property
+// Extend Express Request interface to include user and companyId property
 declare global {
   namespace Express {
     interface Request {
       user?: UserWithoutPassword;
+      companyId?: string;
     }
   }
 }
