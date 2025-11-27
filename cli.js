@@ -657,6 +657,40 @@ program
     }
   });
 
+program
+  .command("demo")
+  .description("Start a Cloudflare tunnel for the frontend (for demos)")
+  .option("-p, --port <port>", "Frontend port (default: 3000)", "3000")
+  .action((options) => {
+    const demoScriptPath = path.join(process.cwd(), "demo.sh");
+    
+    if (!fs.existsSync(demoScriptPath)) {
+      log("demo.sh script not found", "red");
+      process.exit(1);
+    }
+
+    log("Starting Cloudflare tunnel for frontend demo...", "blue");
+    log("Make sure your frontend is running first!", "yellow");
+    
+    // Set the port environment variable and execute the demo script
+    const port = options.port || process.env.FRONTEND_PORT || "3000";
+    process.env.FRONTEND_PORT = port;
+    
+    try {
+      // Execute the demo script
+      execSync(`bash ${demoScriptPath}`, {
+        stdio: "inherit",
+        cwd: process.cwd(),
+      });
+    } catch (error) {
+      // Exit code 130 is Ctrl+C, which is expected
+      if (error.status !== 130) {
+        log(`Error running demo script: ${error.message}`, "red");
+        process.exit(1);
+      }
+    }
+  });
+
 // Parse command line arguments
 program.parse(process.argv);
 

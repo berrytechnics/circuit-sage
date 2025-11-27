@@ -19,11 +19,19 @@ A comprehensive management system for electronics repair businesses with ticketi
 ### Implemented Features
 
 - **Customer Management**: Full CRUD operations for customer profiles with search functionality
-- **Ticketing System**: Complete ticket management with automated ticket numbering, status tracking, and technician assignment
+- **Ticketing System**: Complete ticket management with:
+  - Automated ticket numbering
+  - Status tracking and updates
+  - Technician assignment/unassignment
+  - Priority management
+  - Diagnostic and repair notes
+  - Full UI integration
 - **Invoicing**: Invoice generation with automated invoice numbering, tax calculation, and payment tracking
 - **User Authentication**: JWT-based authentication with secure password hashing
 - **API Routes**: RESTful API endpoints for customers, tickets, invoices, and users
 - **Frontend UI**: Complete Next.js frontend with pages for customers, tickets, invoices, and dashboard
+- **Testing**: Comprehensive backend test suite with 40+ tests
+- **Demo Tools**: Cloudflare tunnel integration for easy frontend sharing
 
 ### Planned Features
 
@@ -185,6 +193,10 @@ npm run db:seed:undo        # Undo all database seeds
 npm run ci:backend          # Run backend CI checks (lint, typecheck, test)
 npm run ci:frontend         # Run frontend CI checks (lint, typecheck, build)
 npm run ci:all              # Run all CI checks
+
+# Demo Commands
+npm run demo                # Start Cloudflare tunnel for frontend demo
+npm run demo -- --port 3001 # Start demo tunnel with custom port
 ```
 
 ### Backend Development
@@ -284,6 +296,10 @@ npm run analyze
 - `POST /ticket` - Create new ticket
 - `PUT /ticket/:id` - Update ticket
 - `DELETE /ticket/:id` - Delete ticket (soft delete)
+- `POST /ticket/:id/assign` - Assign or unassign technician
+- `POST /ticket/:id/status` - Update ticket status
+- `POST /ticket/:id/diagnostic-notes` - Add diagnostic notes
+- `POST /ticket/:id/repair-notes` - Add repair notes
 
 ### Invoices
 - `GET /invoice` - List all invoices (with optional filters: customerId, status)
@@ -299,20 +315,25 @@ All endpoints (except `/user/register`, `/user/login`, and `/health`) require au
 
 ## Project Status
 
-**Current Progress: ~40% Complete**
+**Current Progress: ~45% Complete**
 
 ### Completed
 - ✅ Database schema for all core entities
 - ✅ Backend services and routes (customers, tickets, invoices, users)
+- ✅ Advanced ticket endpoints (assign, status, notes)
 - ✅ JWT authentication system
 - ✅ Frontend UI components and pages
-- ✅ API client functions
+- ✅ API client functions with full integration
 - ✅ Request validation
-- ✅ Test suite for backend routes
+- ✅ Comprehensive test suite for backend routes (40+ tests)
+- ✅ Ticket management UI fully functional
+- ✅ Customer management UI fully functional
+- ✅ Demo tunnel script for sharing frontend
 
 ### In Progress
 - 🟡 Role-based access control enforcement
-- 🟡 Frontend-backend integration testing
+- 🟡 Frontend-backend integration testing (end-to-end)
+- 🟡 Invoice advanced features (items management)
 - 🟡 Inventory management system
 
 ### Planned
