@@ -1,5 +1,5 @@
 import cors from "cors";
-import express, { Express, Request, Response } from "express";
+import express, { Express, NextFunction, Request, Response } from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import { HttpError } from "./config/errors";
@@ -31,8 +31,11 @@ app.use((req: Request, res: Response) => {
 });
 
 // Error handling middleware
-app.use((err: HttpError, req: Request, res: Response) => {
+app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
+  if (next) {
+    next();
+  }
   res.status(err.statusCode || 500).json({
     message: err.message || "Internal Server Error",
     ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
