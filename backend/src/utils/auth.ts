@@ -21,6 +21,7 @@ export async function verifyJWTToken(
     return user;
   } catch (error) {
     logger.error("Invalid JWT token:", error);
+    logger.error("Invalid JWT token:", error);
     return null;
   }
 }
