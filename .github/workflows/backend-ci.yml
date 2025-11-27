@@ -118,13 +118,15 @@ jobs:
           done
 
       - name: Run database migrations
+        env:
+          PGPASSWORD: ${{ env.DB_PASSWORD }}
         run: |
           # Install psql client for running migrations
           sudo apt-get update && sudo apt-get install -y postgresql-client
           # Run all SQL migrations in order
           for migration in database/migrations/*.sql; do
             echo "Running migration: $migration"
-            PGPASSWORD=${{ env.DB_PASSWORD }} psql -h localhost -U ${{ env.DB_USER }} -d ${{ env.DB_NAME }} -f "$migration" || true
+            psql -h localhost -U ${{ env.DB_USER }} -d ${{ env.DB_NAME }} -f "$migration" || true
           done
           echo "Migrations completed"
 
