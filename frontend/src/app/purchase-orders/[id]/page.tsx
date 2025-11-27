@@ -5,10 +5,8 @@ import {
   getPurchaseOrder,
   receivePurchaseOrder,
   PurchaseOrder,
-  PurchaseOrderItem,
 } from "@/lib/api/purchase-order.api";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function PurchaseOrderDetailPage({
@@ -16,10 +14,9 @@ export default function PurchaseOrderDetailPage({
 }: {
   params: { id: string };
 }) {
-  const router = useRouter();
   const [po, setPo] = useState<PurchaseOrder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [, setError] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [showReceiveForm, setShowReceiveForm] = useState(false);
   const [receivedQuantities, setReceivedQuantities] = useState<

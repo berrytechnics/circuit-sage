@@ -13,7 +13,6 @@ import { useEffect, useState } from "react";
 export default function NewPurchaseOrderPage() {
   const router = useRouter();
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 

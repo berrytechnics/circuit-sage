@@ -17,7 +17,7 @@ export default function InventoryDetailPage({
   const router = useRouter();
   const [item, setItem] = useState<InventoryItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [, setError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {

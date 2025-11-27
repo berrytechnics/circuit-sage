@@ -102,7 +102,7 @@ export default function SettingsPage() {
               No settings available
             </h3>
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              You don't have access to any settings at this time.
+              You don&apos;t have access to any settings at this time.
             </p>
           </div>
         )}

@@ -6,7 +6,6 @@ import {
   getInventoryItem,
   CreateInventoryItemData,
   UpdateInventoryItemData,
-  InventoryItem,
 } from "@/lib/api/inventory.api";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";

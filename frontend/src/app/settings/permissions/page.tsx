@@ -245,13 +245,13 @@ export default function PermissionsPage() {
       {canManage && hasChanges && (
         <div className="mt-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
           <p className="text-yellow-800 dark:text-yellow-200 text-sm">
-            You have unsaved changes. Click "Save Changes" to apply them.
+            You have unsaved changes. Click &quot;Save Changes&quot; to apply them.
           </p>
         </div>
       )}
       {!canManage && (
         <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-          <p>Note: This is a read-only view. You need "permissions.manage" permission to edit.</p>
+          <p>Note: This is a read-only view. You need &quot;permissions.manage&quot; permission to edit.</p>
         </div>
       )}
     </div>

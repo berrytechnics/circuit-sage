@@ -7,11 +7,9 @@ import {
 } from "@/lib/api/purchase-order.api";
 import { useUser } from "@/lib/UserContext";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 
 export default function PurchaseOrdersPage() {
-  const router = useRouter();
   const { hasPermission } = useUser();
   const [pos, setPos] = useState<PurchaseOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
