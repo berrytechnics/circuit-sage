@@ -2,6 +2,7 @@
 
 // components/Sidebar.tsx
 import { logout } from "@/lib/api";
+import { useTheme } from "@/lib/ThemeContext";
 import { useUser } from "@/lib/UserContext";
 import { cn } from "@/lib/utils";
 import {
@@ -10,7 +11,9 @@ import {
   ChartBarIcon,
   Cog6ToothIcon,
   DocumentTextIcon,
+  MoonIcon,
   ShoppingBagIcon,
+  SunIcon,
   TicketIcon,
   UsersIcon,
   XMarkIcon,
@@ -31,7 +34,7 @@ const SidebarLink = ({ href, icon, label, active }: SidebarLinkProps) => {
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-blue-100 ",
+        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-blue-100 dark:hover:bg-gray-800",
         active
           ? "bg-blue-100 text-gray-900 dark:bg-blue-800 dark:text-gray-50"
           : "text-gray-500 dark:text-gray-400"
@@ -48,6 +51,7 @@ export default function Sidebar() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const { user, isLoading, setUser } = useUser();
+  const { theme, toggleTheme } = useTheme();
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
@@ -104,7 +108,7 @@ export default function Sidebar() {
         <div className="lg:hidden fixed top-4 left-4 z-50">
           <button
             onClick={toggleSidebar}
-            className="p-2 rounded-md text-gray-500 hover:text-gray-900 focus:outline-none bg-white shadow"
+            className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none bg-white dark:bg-gray-900 shadow"
           >
             <Bars3Icon className="w-6 h-6" />
           </button>
@@ -121,14 +125,14 @@ export default function Sidebar() {
         {/* Minimal sidebar with auth links */}
         <aside
           className={cn(
-            "fixed top-0 left-0 z-40 h-screen w-64 border-r border-gray-200 bg-white transition-transform duration-300 ease-in-out",
+            "fixed top-0 left-0 z-40 h-screen w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 transition-transform duration-300 ease-in-out",
             isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           )}
         >
           <div className="flex flex-col h-full py-6 px-3">
             {/* Logo */}
             <div className="px-3 mb-6">
-              <h1 className="font-bold text-xl">Repair Manager</h1>
+              <h1 className="font-bold text-xl dark:text-gray-100">Repair Manager</h1>
             </div>
 
             <div className="flex flex-col flex-1 items-center justify-center space-y-4 px-3">
@@ -172,18 +176,18 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile hamburger menu button */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
-        <button
-          onClick={toggleSidebar}
-          className="p-2 rounded-md text-gray-500 hover:text-gray-900 focus:outline-none bg-white shadow"
-        >
-          {isOpen ? (
-            <XMarkIcon className="w-6 h-6" />
-          ) : (
-            <Bars3Icon className="w-6 h-6" />
-          )}
-        </button>
-      </div>
+        <div className="lg:hidden fixed top-4 left-4 z-50">
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none bg-white dark:bg-gray-900 shadow"
+          >
+            {isOpen ? (
+              <XMarkIcon className="w-6 h-6" />
+            ) : (
+              <Bars3Icon className="w-6 h-6" />
+            )}
+          </button>
+        </div>
 
       {/* Mobile overlay */}
       {isOpen && (
@@ -196,14 +200,14 @@ export default function Sidebar() {
       {/* Full sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-40 h-screen w-64 border-r border-gray-200 bg-white transition-transform duration-300 ease-in-out",
+          "fixed top-0 left-0 z-40 h-screen w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 transition-transform duration-300 ease-in-out",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         <div className="flex flex-col h-full py-6 px-3">
           {/* Logo */}
           <div className="px-3 mb-6">
-            <h1 className="font-bold text-xl">Repair Manager</h1>
+            <h1 className="font-bold text-xl dark:text-gray-100">Repair Manager</h1>
           </div>
 
           {/* Navigation */}
@@ -222,29 +226,45 @@ export default function Sidebar() {
           </nav>
 
           {/* User profile */}
-          <div className="mt-auto pt-4 border-t border-gray-200">
+          <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="px-3">
               <div className="flex items-center py-2">
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                  <span className="text-sm font-medium text-blue-700">
+                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
                     {getUserInitials()}
                   </span>
                 </div>
                 <div className="ml-3 overflow-hidden">
-                  <p className="text-sm font-medium truncate">
+                  <p className="text-sm font-medium truncate dark:text-gray-100">
                     {user?.firstName} {user?.lastName}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                     {user?.email}
                   </p>
-                  <p className="text-xs text-gray-500 capitalize">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
                     {user?.role}
                   </p>
                 </div>
               </div>
               <button
+                onClick={toggleTheme}
+                className="w-full mt-2 flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                {theme === "dark" ? (
+                  <>
+                    <SunIcon className="w-5 h-5" />
+                    <span>Light Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <MoonIcon className="w-5 h-5" />
+                    <span>Dark Mode</span>
+                  </>
+                )}
+              </button>
+              <button
                 onClick={handleLogout}
-                className="w-full mt-2 flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                className="w-full mt-2 flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
               >
                 <ArrowRightEndOnRectangleIcon className="w-5 h-5" />
                 <span>Logout</span>

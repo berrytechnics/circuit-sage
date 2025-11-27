@@ -289,24 +289,24 @@ export default function TicketForm({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-          <p className="mt-2 text-gray-700">Loading ticket data...</p>
+          <p className="mt-2 text-gray-700 dark:text-gray-300">Loading ticket data...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-3xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {isEditMode ? "Edit Ticket" : "Create New Repair Ticket"}
             </h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {isEditMode
                 ? "Update ticket information"
                 : "Create a new repair ticket for a customer"}
@@ -319,40 +319,40 @@ export default function TicketForm({
                 ? router.push(`/tickets/${ticketId}`)
                 : router.push("/tickets")
             }
-            className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
           >
             Cancel
           </button>
         </div>
 
         {submitError && (
-          <div className="mb-6 p-3 bg-red-50 text-red-700 rounded-md border border-red-200">
+          <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md border border-red-200 dark:border-red-800">
             {submitError}
           </div>
         )}
 
-        <div className="bg-white shadow rounded-lg">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
           <form onSubmit={handleSubmit} className="p-6">
             <div className="space-y-6">
               {/* Customer Selection Section */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
                   Customer Information
                 </h3>
 
                 {!showCustomerSearch && selectedCustomer ? (
-                  <div className="mb-4 p-4 border border-gray-200 rounded-md bg-gray-50">
+                  <div className="mb-4 p-4 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-700/50">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="text-base font-medium text-gray-900">
+                        <h4 className="text-base font-medium text-gray-900 dark:text-gray-100">
                           {selectedCustomer.firstName}{" "}
                           {selectedCustomer.lastName}
                         </h4>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           {selectedCustomer.email}
                         </p>
                         {selectedCustomer.phone && (
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
                             {selectedCustomer.phone}
                           </p>
                         )}
@@ -360,7 +360,7 @@ export default function TicketForm({
                       <button
                         type="button"
                         onClick={() => setShowCustomerSearch(true)}
-                        className="text-sm text-blue-600 hover:text-blue-500"
+                        className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
                       >
                         Change Customer
                       </button>
@@ -370,7 +370,7 @@ export default function TicketForm({
                   <div className="mb-4">
                     <label
                       htmlFor="customerSearch"
-                      className="block text-sm font-medium text-gray-700 mb-1"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                     >
                       Search for a customer *
                     </label>
@@ -384,7 +384,7 @@ export default function TicketForm({
                             setCustomerSearchQuery(e.target.value)
                           }
                           placeholder="Search by name, email, or phone"
-                          className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                          className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         />
                       </div>
                       <button
@@ -400,31 +400,31 @@ export default function TicketForm({
                     </div>
 
                     {errors.customerId && (
-                      <p className="mt-2 text-sm text-red-600">
+                      <p className="mt-2 text-sm text-red-600 dark:text-red-400">
                         {errors.customerId}
                       </p>
                     )}
 
                     {customers.length > 0 && (
-                      <div className="mt-2 max-h-48 overflow-y-auto border border-gray-200 rounded-md">
-                        <ul className="divide-y divide-gray-200">
+                      <div className="mt-2 max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-md">
+                        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                           {customers.map((customer) => (
                             <li
                               key={customer.id}
-                              className="p-3 hover:bg-gray-50 cursor-pointer"
+                              className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
                               onClick={() => selectCustomer(customer)}
                             >
                               <div className="flex justify-between">
                                 <div>
-                                  <p className="text-sm font-medium text-gray-900">
+                                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                     {customer.firstName} {customer.lastName}
                                   </p>
-                                  <p className="text-xs text-gray-500">
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
                                     {customer.email}
                                   </p>
                                 </div>
                                 {customer.phone && (
-                                  <p className="text-xs text-gray-500">
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
                                     {customer.phone}
                                   </p>
                                 )}
@@ -439,7 +439,7 @@ export default function TicketForm({
                       <button
                         type="button"
                         onClick={() => router.push("/customers/new")}
-                        className="text-blue-600 hover:text-blue-500"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
                       >
                         + Create New Customer
                       </button>
@@ -450,14 +450,14 @@ export default function TicketForm({
 
               {/* Device Information Section */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
                   Device Information
                 </h3>
                 <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
                   <div>
                     <label
                       htmlFor="deviceType"
-                      className="block text-sm font-medium text-gray-700"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
                       Device Type *
                     </label>
@@ -469,14 +469,14 @@ export default function TicketForm({
                         value={formData.deviceType}
                         onChange={handleChange}
                         placeholder="e.g. Smartphone, Laptop, Tablet"
-                        className={`block w-full rounded-md ${
+                        className={`block w-full rounded-md dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 dark:border-gray-600 ${
                           errors.deviceType
-                            ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                            ? "border-red-300 dark:border-red-600 text-red-900 dark:text-red-400 placeholder-red-300 dark:placeholder-red-500 focus:border-red-500 focus:ring-red-500"
                             : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                         } shadow-sm sm:text-sm`}
                       />
                       {errors.deviceType && (
-                        <p className="mt-2 text-sm text-red-600">
+                        <p className="mt-2 text-sm text-red-600 dark:text-red-400">
                           {errors.deviceType}
                         </p>
                       )}
@@ -486,7 +486,7 @@ export default function TicketForm({
                   <div>
                     <label
                       htmlFor="deviceBrand"
-                      className="block text-sm font-medium text-gray-700"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
                       Brand
                     </label>
@@ -498,7 +498,7 @@ export default function TicketForm({
                         value={formData.deviceBrand || ""}
                         onChange={handleChange}
                         placeholder="e.g. Apple, Samsung, Dell"
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                       />
                     </div>
                   </div>
@@ -506,7 +506,7 @@ export default function TicketForm({
                   <div>
                     <label
                       htmlFor="deviceModel"
-                      className="block text-sm font-medium text-gray-700"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
                       Model
                     </label>
@@ -518,7 +518,7 @@ export default function TicketForm({
                         value={formData.deviceModel || ""}
                         onChange={handleChange}
                         placeholder="e.g. iPhone 14 Pro, Galaxy S22"
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                       />
                     </div>
                   </div>
@@ -526,7 +526,7 @@ export default function TicketForm({
                   <div>
                     <label
                       htmlFor="serialNumber"
-                      className="block text-sm font-medium text-gray-700"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
                       Serial Number
                     </label>
@@ -537,7 +537,7 @@ export default function TicketForm({
                         id="serialNumber"
                         value={formData.serialNumber || ""}
                         onChange={handleChange}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                       />
                     </div>
                   </div>
@@ -546,14 +546,14 @@ export default function TicketForm({
 
               {/* Repair Details Section */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
                   Repair Details
                 </h3>
                 <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                   <div className="sm:col-span-3">
                     <label
                       htmlFor="priority"
-                      className="block text-sm font-medium text-gray-700"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
                       Priority
                     </label>
@@ -563,7 +563,7 @@ export default function TicketForm({
                         name="priority"
                         value={formData.priority}
                         onChange={handleChange}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                       >
                         <option value="low">Low</option>
                         <option value="medium">Medium</option>
@@ -576,7 +576,7 @@ export default function TicketForm({
                   <div className="sm:col-span-3">
                     <label
                       htmlFor="technicianId"
-                      className="block text-sm font-medium text-gray-700"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
                       Assign Technician
                     </label>
@@ -586,7 +586,7 @@ export default function TicketForm({
                         name="technicianId"
                         value={formData.technicianId || ""}
                         onChange={handleChange}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                       >
                         <option value="">Select a technician</option>
                         {technicians.map((technician) => (
@@ -601,7 +601,7 @@ export default function TicketForm({
                   <div className="sm:col-span-6">
                     <label
                       htmlFor="issueDescription"
-                      className="block text-sm font-medium text-gray-700"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
                       Issue Description *
                     </label>
@@ -613,14 +613,14 @@ export default function TicketForm({
                         value={formData.issueDescription}
                         onChange={handleChange}
                         placeholder="Describe the issue with the device"
-                        className={`block w-full rounded-md ${
+                        className={`block w-full rounded-md dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 ${
                           errors.issueDescription
-                            ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                            ? "border-red-300 dark:border-red-600 text-red-900 dark:text-red-400 placeholder-red-300 dark:placeholder-red-500 focus:border-red-500 focus:ring-red-500"
+                            : "border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500"
                         } shadow-sm sm:text-sm`}
                       ></textarea>
                       {errors.issueDescription && (
-                        <p className="mt-2 text-sm text-red-600">
+                        <p className="mt-2 text-sm text-red-600 dark:text-red-400">
                           {errors.issueDescription}
                         </p>
                       )}
@@ -629,8 +629,8 @@ export default function TicketForm({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-500">
+              <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Fields marked with * are required
                 </p>
                 <div className="flex space-x-3">
@@ -654,7 +654,7 @@ export default function TicketForm({
                         }
                         setErrors({});
                       }}
-                      className="rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      className="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-4 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
                     >
                       Reset
                     </button>
@@ -662,7 +662,7 @@ export default function TicketForm({
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-75"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-75"
                   >
                     {isSubmitting
                       ? isEditMode

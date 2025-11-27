@@ -96,11 +96,11 @@ export default function InvoicesListPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="sm:flex sm:items-center sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Invoices</h1>
-          <p className="mt-2 text-sm text-gray-700">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Invoices</h1>
+          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
             Manage and track all your invoices
           </p>
         </div>
@@ -108,7 +108,7 @@ export default function InvoicesListPage() {
           <button
             type="button"
             onClick={() => router.push("/invoices/new")}
-            className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
           >
             Create Invoice
           </button>
@@ -116,7 +116,7 @@ export default function InvoicesListPage() {
       </div>
 
       {/* Search */}
-      <div className="bg-white shadow rounded-lg p-4 mb-6">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-6">
         <form onSubmit={handleSearch} className="sm:flex sm:items-center">
           <div className="w-full sm:max-w-xs">
             <label htmlFor="search" className="sr-only">
@@ -127,7 +127,7 @@ export default function InvoicesListPage() {
                 type="text"
                 name="search"
                 id="search"
-                className="block w-full rounded-md border-gray-300 pr-10 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 pr-10 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 placeholder="Search by invoice number, customer, or amount"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -162,15 +162,15 @@ export default function InvoicesListPage() {
 
       {/* Error Message */}
       {error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md border border-red-200">
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md border border-red-200 dark:border-red-800">
           {error}
         </div>
       )}
 
       {/* Invoices List */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-md">
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
         {isLoading ? (
-          <div className="p-6 text-center text-gray-500">
+          <div className="p-6 text-center text-gray-500 dark:text-gray-400">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent mb-3"></div>
             <p>Loading invoices...</p>
           </div>

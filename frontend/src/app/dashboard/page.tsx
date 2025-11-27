@@ -98,28 +98,28 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-          <p className="mt-2 text-gray-700">Loading dashboard data...</p>
+          <p className="mt-2 text-gray-700 dark:text-gray-300">Loading dashboard data...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       <main className="py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Overview of your repair business
             </p>
           </div>
 
           {error && (
-            <div className="mb-6 p-3 bg-red-50 text-red-700 rounded-md border border-red-200">
+            <div className="mb-6 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md border border-red-200 dark:border-red-800">
               {error}
             </div>
           )}
@@ -127,7 +127,7 @@ export default function DashboardPage() {
           {/* Dashboard Content */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {/* Tickets Card */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 bg-blue-500 rounded-md p-3">
@@ -147,11 +147,11 @@ export default function DashboardPage() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                         Active Tickets
                       </dt>
                       <dd>
-                        <div className="text-lg font-medium text-gray-900">
+                        <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
                           {activeTickets.length}
                         </div>
                       </dd>
@@ -159,11 +159,11 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-4 py-4 sm:px-6">
+              <div className="bg-gray-50 dark:bg-gray-700/50 px-4 py-4 sm:px-6">
                 <div className="text-sm">
                   <Link
                     href="/tickets"
-                    className="font-medium text-blue-600 hover:text-blue-500"
+                    className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
                   >
                     View all<span className="sr-only"> tickets</span>
                   </Link>
@@ -172,7 +172,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Customers Card */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 bg-green-500 rounded-md p-3">
@@ -192,11 +192,11 @@ export default function DashboardPage() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                         Total Customers
                       </dt>
                       <dd>
-                        <div className="text-lg font-medium text-gray-900">
+                        <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
                           {customers.length}
                         </div>
                       </dd>
@@ -204,11 +204,11 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-4 py-4 sm:px-6">
+              <div className="bg-gray-50 dark:bg-gray-700/50 px-4 py-4 sm:px-6">
                 <div className="text-sm">
                   <Link
                     href="/customers"
-                    className="font-medium text-blue-600 hover:text-blue-500"
+                    className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
                   >
                     View all<span className="sr-only"> customers</span>
                   </Link>
@@ -217,7 +217,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Inventory Card */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 bg-yellow-500 rounded-md p-3">
@@ -237,11 +237,11 @@ export default function DashboardPage() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                         Low Stock Items
                       </dt>
                       <dd>
-                        <div className="text-lg font-medium text-gray-900">
+                        <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
                           {lowStockItems}
                         </div>
                       </dd>
@@ -249,11 +249,11 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-4 py-4 sm:px-6">
+              <div className="bg-gray-50 dark:bg-gray-700/50 px-4 py-4 sm:px-6">
                 <div className="text-sm">
                   <Link
                     href="/inventory"
-                    className="font-medium text-blue-600 hover:text-blue-500"
+                    className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
                   >
                     View all<span className="sr-only"> inventory</span>
                   </Link>
@@ -262,7 +262,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Revenue Card */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 bg-purple-500 rounded-md p-3">
@@ -282,11 +282,11 @@ export default function DashboardPage() {
                   </div>
                   <div className="ml-5 w-0 flex-1">
                     <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
+                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                         Monthly Revenue
                       </dt>
                       <dd>
-                        <div className="text-lg font-medium text-gray-900">
+                        <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
                           {monthlyRevenue}
                         </div>
                       </dd>
@@ -294,11 +294,11 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-4 py-4 sm:px-6">
+              <div className="bg-gray-50 dark:bg-gray-700/50 px-4 py-4 sm:px-6">
                 <div className="text-sm">
                   <Link
                     href="/invoices"
-                    className="font-medium text-blue-600 hover:text-blue-500"
+                    className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
                   >
                     View all<span className="sr-only"> invoices</span>
                   </Link>
@@ -309,16 +309,16 @@ export default function DashboardPage() {
 
           {/* Recent Activity */}
           <div className="mt-8">
-            <h2 className="text-lg font-medium text-gray-900">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
               Recent Activity
             </h2>
-            <div className="mt-4 bg-white shadow overflow-hidden sm:rounded-md">
+            <div className="mt-4 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
               {tickets.length === 0 ? (
-                <div className="p-6 text-center text-gray-500">
+                <div className="p-6 text-center text-gray-500 dark:text-gray-400">
                   No tickets found in the system.
                 </div>
               ) : (
-                <ul role="list" className="divide-y divide-gray-200">
+                <ul role="list" className="divide-y divide-gray-200 dark:divide-gray-700">
                   {tickets
                     .sort(
                       (a, b) =>
@@ -329,16 +329,16 @@ export default function DashboardPage() {
                     .map((ticket) => (
                       <li key={ticket.id}>
                         <Link href={`/tickets/${ticket.id}`}>
-                          <div className="px-4 py-4 sm:px-6 hover:bg-gray-50">
+                          <div className="px-4 py-4 sm:px-6 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                             <div className="flex items-center justify-between">
-                              <p className="text-sm font-medium text-blue-600 truncate">
+                              <p className="text-sm font-medium text-blue-600 dark:text-blue-400 truncate">
                                 {ticket.ticketNumber}
                               </p>
                               <div className="ml-2 flex-shrink-0 flex">
                                 <p
                                   className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
                                     ticket.status
-                                  )}`}
+                                  )} dark:opacity-90`}
                                 >
                                   {ticket.status
                                     .replace("_", " ")
@@ -350,7 +350,7 @@ export default function DashboardPage() {
                             </div>
                             <div className="mt-2 sm:flex sm:justify-between">
                               <div className="sm:flex">
-                                <p className="flex items-center text-sm text-gray-500">
+                                <p className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                                   {ticket.deviceType}{" "}
                                   {ticket.deviceBrand && ticket.deviceModel
                                     ? `${ticket.deviceBrand} ${ticket.deviceModel}`
@@ -359,12 +359,12 @@ export default function DashboardPage() {
                                       ""}
                                 </p>
                               </div>
-                              <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                              <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400 sm:mt-0">
                                 <p>Updated {formatTimeAgo(ticket.updatedAt)}</p>
                               </div>
                             </div>
                             <div className="mt-2">
-                              <p className="text-sm text-gray-500 truncate">
+                              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                                 {ticket.customer
                                   ? `${ticket.customer.firstName} ${ticket.customer.lastName}`
                                   : "Unknown Customer"}

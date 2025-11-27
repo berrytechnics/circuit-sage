@@ -131,11 +131,11 @@ export default function TicketsListPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="sm:flex sm:items-center sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Repair Tickets</h1>
-          <p className="mt-2 text-sm text-gray-700">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Repair Tickets</h1>
+          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
             Manage and track all repair tickets in the system
           </p>
         </div>
@@ -143,7 +143,7 @@ export default function TicketsListPage() {
           <button
             type="button"
             onClick={() => router.push("/tickets/new")}
-            className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
           >
             Create Ticket
           </button>
@@ -151,7 +151,7 @@ export default function TicketsListPage() {
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white shadow rounded-lg p-4 mb-6">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-6">
         <div className="sm:flex sm:items-center sm:justify-between gap-4">
           <div className="flex-1">
             <input
@@ -159,14 +159,14 @@ export default function TicketsListPage() {
               placeholder="Search tickets..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              className="block w-full appearance-none rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 px-3 py-2 placeholder-gray-400 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
             />
           </div>
           <div className="mt-3 sm:mt-0 sm:flex sm:items-center gap-3">
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              className="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
             >
               <option value="">All Statuses</option>
               <option value="new">New</option>
@@ -193,37 +193,37 @@ export default function TicketsListPage() {
 
       {/* Error Message */}
       {error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md border border-red-200">
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-md border border-red-200 dark:border-red-800">
           {error}
         </div>
       )}
 
       {/* Tickets List */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-md">
+      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
         {isLoading ? (
-          <div className="p-6 text-center text-gray-500">
+          <div className="p-6 text-center text-gray-500 dark:text-gray-400">
             Loading tickets...
           </div>
         ) : filteredTickets.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
+          <div className="p-6 text-center text-gray-500 dark:text-gray-400">
             No tickets found. {searchQuery && "Try adjusting your search."}
           </div>
         ) : (
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
             {filteredTickets.map((ticket) => (
               <li key={ticket.id}>
                 <Link href={`/tickets/${ticket.id}`}>
-                  <div className="block hover:bg-gray-50 px-4 py-4 sm:px-6">
+                  <div className="block hover:bg-gray-50 dark:hover:bg-gray-700/50 px-4 py-4 sm:px-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
-                        <p className="text-sm font-medium text-blue-600 truncate">
+                        <p className="text-sm font-medium text-blue-600 dark:text-blue-400 truncate">
                           {ticket.ticketNumber}
                         </p>
                         <div className="ml-4 flex-shrink-0 flex">
                           <p
                             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
                               ticket.status
-                            )}`}
+                            )} dark:opacity-90`}
                           >
                             {ticket.status
                               .replace("_", " ")
@@ -234,14 +234,14 @@ export default function TicketsListPage() {
                           <p
                             className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getPriorityColor(
                               ticket.priority
-                            )}`}
+                            )} dark:opacity-90`}
                           >
                             {ticket.priority.charAt(0).toUpperCase() +
                               ticket.priority.slice(1)}
                           </p>
                         </div>
                       </div>
-                      <div className="ml-2 flex-shrink-0 flex flex-col sm:flex-row sm:items-center text-sm text-gray-500">
+                      <div className="ml-2 flex-shrink-0 flex flex-col sm:flex-row sm:items-center text-sm text-gray-500 dark:text-gray-400">
                         <p className="sm:mr-4">
                           <span className="font-medium">Created:</span>{" "}
                           {formatDate(ticket.createdAt)}
@@ -250,17 +250,17 @@ export default function TicketsListPage() {
                     </div>
                     <div className="mt-2 sm:flex sm:justify-between">
                       <div className="sm:flex">
-                        <p className="flex items-center text-sm text-gray-500">
+                        <p className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                           <span className="font-medium mr-1">Customer:</span>
                           {ticket.customer.firstName} {ticket.customer.lastName}
                         </p>
-                        <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                        <p className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400 sm:mt-0 sm:ml-6">
                           <span className="font-medium mr-1">Device:</span>
                           {ticket.deviceType} {ticket.deviceBrand}{" "}
                           {ticket.deviceModel}
                         </p>
                       </div>
-                      <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                      <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400 sm:mt-0">
                         <span className="font-medium mr-1">Technician:</span>
                         {ticket.technician
                           ? `${ticket.technician.firstName} ${ticket.technician.lastName}`
@@ -268,7 +268,7 @@ export default function TicketsListPage() {
                       </div>
                     </div>
                     <div className="mt-2">
-                      <p className="text-sm text-gray-500 line-clamp-1">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
                         <span className="font-medium">Issue:</span>{" "}
                         {ticket.issueDescription}
                       </p>

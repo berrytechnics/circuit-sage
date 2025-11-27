@@ -1,5 +1,6 @@
 // app/layout.tsx
 import Sidebar from "@/components/Sidebar";
+import { ThemeProvider } from "@/lib/ThemeContext";
 import { UserProvider } from "@/lib/UserContext";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -26,12 +27,14 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body
         className={`min-h-screen bg-background font-sans antialiased ${inter.variable}`}
       >
-        <div className="relative flex min-h-screen">
-          <UserProvider>
-            <Sidebar />
-            <main className="flex-1 p-4 lg:p-8 lg:ml-64">{children}</main>
-          </UserProvider>
-        </div>
+        <ThemeProvider>
+          <div className="relative flex min-h-screen bg-background">
+            <UserProvider>
+              <Sidebar />
+              <main className="flex-1 p-4 lg:p-8 lg:ml-64 bg-background">{children}</main>
+            </UserProvider>
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );

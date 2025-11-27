@@ -87,11 +87,11 @@ export default function CustomersListPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="sm:flex sm:items-center sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-          <p className="mt-2 text-sm text-gray-700">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Customers</h1>
+          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
             Manage customer information and repair history
           </p>
         </div>
@@ -99,7 +99,7 @@ export default function CustomersListPage() {
           <button
             type="button"
             onClick={() => router.push("/customers/new")}
-            className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
           >
             Add Customer
           </button>
@@ -107,7 +107,7 @@ export default function CustomersListPage() {
       </div>
 
       {/* Search */}
-      <div className="bg-white shadow rounded-lg p-4 mb-6">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-6">
         <form onSubmit={handleSearch} className="sm:flex sm:items-center">
           <div className="w-full sm:max-w-xs">
             <label htmlFor="search" className="sr-only">
@@ -118,7 +118,7 @@ export default function CustomersListPage() {
                 type="text"
                 name="search"
                 id="search"
-                className="block w-full rounded-md border-gray-300 pr-10 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 pr-10 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 placeholder="Search by name, email, or phone"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
