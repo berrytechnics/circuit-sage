@@ -48,3 +48,4 @@ export function requireTechnicianOrAbove(): RequestHandler {
   return requireRole(["admin", "manager", "technician"]);
 }
 
+
