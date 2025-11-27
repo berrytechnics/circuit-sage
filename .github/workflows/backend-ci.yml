@@ -142,11 +142,24 @@ jobs:
             echo "Running migration: $(basename $migration)"
             echo "Full path: $migration"
             echo "========================================="
-            if psql -h localhost -U ${{ env.DB_USER }} -d ${{ env.DB_NAME }} -f "$migration" -v ON_ERROR_STOP=1 2>&1; then
+            OUTPUT=$(psql -h localhost -U ${{ env.DB_USER }} -d ${{ env.DB_NAME }} -f "$migration" -v ON_ERROR_STOP=1 2>&1)
+            EXIT_CODE=$?
+            echo "$OUTPUT"
+            if [ $EXIT_CODE -eq 0 ]; then
               echo "✓ Migration $(basename $migration) completed successfully"
               MIGRATION_COUNT=$((MIGRATION_COUNT + 1))
+              # After base schema, verify tables were created
+              if [[ "$migration" == *"base-schema"* ]]; then
+                echo "Verifying base tables were created..."
+                TABLE_CHECK=$(psql -h localhost -U ${{ env.DB_USER }} -d ${{ env.DB_NAME }} -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('users', 'customers', 'tickets', 'invoices', 'inventory_items');")
+                echo "Base tables found: $TABLE_CHECK"
+                if [ "$TABLE_CHECK" -lt 5 ]; then
+                  echo "ERROR: Base schema migration did not create all required tables!"
+                  exit 1
+                fi
+              fi
             else
-              echo "✗ Migration $(basename $migration) failed"
+              echo "✗ Migration $(basename $migration) failed with exit code $EXIT_CODE"
               exit 1
             fi
           done
