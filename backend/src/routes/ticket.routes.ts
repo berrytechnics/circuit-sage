@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import {
     NotFoundError,
+    BadRequestError,
 } from "../config/errors";
 import { TicketStatus } from "../config/types";
 import { validateRequest } from "../middlewares/auth.middleware";
@@ -12,6 +13,10 @@ import { asyncHandler } from "../utils/asyncHandler";
 import {
     createTicketValidation,
     updateTicketValidation,
+    assignTechnicianValidation,
+    updateStatusValidation,
+    addDiagnosticNotesValidation,
+    addRepairNotesValidation,
 } from "../validators/ticket.validator";
 
 // Helper function to format user for response (same as in user.routes.ts)
@@ -153,6 +158,115 @@ router.put(
       throw new NotFoundError("Ticket not found");
     }
     res.json({ success: true, data: ticket });
+  })
+);
+
+// POST /ticket/:id/assign - Assign technician to ticket
+router.post(
+  "/:id/assign",
+  validate(assignTechnicianValidation),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { technicianId } = req.body;
+    
+    // If technicianId is provided, validate it exists and is a technician
+    if (technicianId) {
+      const technician = await userService.findById(technicianId);
+      if (!technician) {
+        throw new NotFoundError("Technician not found");
+      }
+      if (technician.role !== "technician" && technician.role !== "admin") {
+        throw new BadRequestError("User must be a technician or admin to be assigned to a ticket");
+      }
+    }
+    
+    const ticket = await ticketService.assignTechnician(id, technicianId || null);
+    if (!ticket) {
+      throw new NotFoundError("Ticket not found");
+    }
+
+    // Populate technician data if assigned
+    let technician = null;
+    if (ticket.technicianId) {
+      technician = await userService.findById(ticket.technicianId);
+    }
+
+    const formattedTechnician = technician ? formatUserForResponse(technician) : null;
+
+    res.json({
+      success: true,
+      data: {
+        ...ticket,
+        technician: formattedTechnician
+          ? {
+              id: formattedTechnician.id,
+              firstName: formattedTechnician.firstName,
+              lastName: formattedTechnician.lastName,
+              email: formattedTechnician.email,
+            }
+          : undefined,
+      },
+    });
+  })
+);
+
+// POST /ticket/:id/status - Update ticket status
+router.post(
+  "/:id/status",
+  validate(updateStatusValidation),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    const ticket = await ticketService.updateStatus(id, status);
+    if (!ticket) {
+      throw new NotFoundError("Ticket not found");
+    }
+
+    res.json({
+      success: true,
+      data: ticket,
+    });
+  })
+);
+
+// POST /ticket/:id/diagnostic-notes - Add diagnostic notes
+router.post(
+  "/:id/diagnostic-notes",
+  validate(addDiagnosticNotesValidation),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { notes } = req.body;
+    
+    const ticket = await ticketService.addDiagnosticNotes(id, notes);
+    if (!ticket) {
+      throw new NotFoundError("Ticket not found");
+    }
+
+    res.json({
+      success: true,
+      data: ticket,
+    });
+  })
+);
+
+// POST /ticket/:id/repair-notes - Add repair notes
+router.post(
+  "/:id/repair-notes",
+  validate(addRepairNotesValidation),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { notes } = req.body;
+    
+    const ticket = await ticketService.addRepairNotes(id, notes);
+    if (!ticket) {
+      throw new NotFoundError("Ticket not found");
+    }
+
+    res.json({
+      success: true,
+      data: ticket,
+    });
   })
 );
 

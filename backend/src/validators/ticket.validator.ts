@@ -157,3 +157,62 @@ export const updateTicketValidation = [
     .withMessage("Completed date must be a valid ISO 8601 date"),
 ];
 
+/**
+ * Validation rules for assigning a technician to a ticket
+ */
+export const assignTechnicianValidation = [
+  body("technicianId")
+    .optional({ values: "falsy" })
+    .custom((value) => {
+      // If empty string, null, or undefined, skip validation (allows unassigning)
+      if (!value || value === "") {
+        return true;
+      }
+      // Otherwise, validate as UUID
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(value)) {
+        throw new Error("Technician ID must be a valid UUID");
+      }
+      return true;
+    }),
+];
+
+/**
+ * Validation rules for updating ticket status
+ */
+export const updateStatusValidation = [
+  body("status")
+    .exists()
+    .withMessage("Status is required")
+    .isIn(["new", "assigned", "in_progress", "on_hold", "completed", "cancelled"])
+    .withMessage("Status must be one of: new, assigned, in_progress, on_hold, completed, cancelled"),
+];
+
+/**
+ * Validation rules for adding diagnostic notes
+ */
+export const addDiagnosticNotesValidation = [
+  body("notes")
+    .exists()
+    .withMessage("Notes are required")
+    .trim()
+    .notEmpty()
+    .withMessage("Notes cannot be empty")
+    .isLength({ min: 1, max: 10000 })
+    .withMessage("Notes must be between 1 and 10000 characters"),
+];
+
+/**
+ * Validation rules for adding repair notes
+ */
+export const addRepairNotesValidation = [
+  body("notes")
+    .exists()
+    .withMessage("Notes are required")
+    .trim()
+    .notEmpty()
+    .withMessage("Notes cannot be empty")
+    .isLength({ min: 1, max: 10000 })
+    .withMessage("Notes must be between 1 and 10000 characters"),
+];
+

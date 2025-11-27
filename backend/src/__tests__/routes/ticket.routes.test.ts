@@ -470,5 +470,579 @@ describe("Ticket Routes", () => {
       expect(response.body.error.message).toBe("Ticket not found");
     });
   });
+
+  describe("POST /api/tickets/:id/assign", () => {
+    it("should assign technician to ticket successfully", async () => {
+      const mockTechnician = {
+        id: TECHNICIAN_ID,
+        firstName: "Jane",
+        lastName: "Smith",
+        email: "jane@example.com",
+        role: "technician" as const,
+        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockUpdatedTicket = {
+        id: TICKET_ID_1,
+        ticketNumber: "TKT-12345678-001",
+        customerId: CUSTOMER_ID_1,
+        technicianId: TECHNICIAN_ID,
+        status: "assigned" as const,
+        priority: "high" as const,
+        deviceType: "Smartphone",
+        deviceBrand: "Apple",
+        deviceModel: "iPhone 13",
+        serialNumber: "SN123456",
+        issueDescription: "Screen cracked",
+        diagnosticNotes: null,
+        repairNotes: null,
+        estimatedCompletionDate: null,
+        completedDate: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockedUserService.findById.mockResolvedValue(mockTechnician);
+      mockedTicketService.assignTechnician.mockResolvedValue(mockUpdatedTicket);
+
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/assign`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ technicianId: TECHNICIAN_ID });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.technicianId).toBe(TECHNICIAN_ID);
+      expect(response.body.data.technician).toBeDefined();
+      expect(response.body.data.technician.id).toBe(TECHNICIAN_ID);
+      expect(mockedTicketService.assignTechnician).toHaveBeenCalledWith(
+        TICKET_ID_1,
+        TECHNICIAN_ID
+      );
+    });
+
+    it("should unassign technician when technicianId is null", async () => {
+      const mockUpdatedTicket = {
+        id: TICKET_ID_1,
+        ticketNumber: "TKT-12345678-001",
+        customerId: CUSTOMER_ID_1,
+        technicianId: null,
+        status: "new" as const,
+        priority: "high" as const,
+        deviceType: "Smartphone",
+        deviceBrand: "Apple",
+        deviceModel: "iPhone 13",
+        serialNumber: "SN123456",
+        issueDescription: "Screen cracked",
+        diagnosticNotes: null,
+        repairNotes: null,
+        estimatedCompletionDate: null,
+        completedDate: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockedTicketService.assignTechnician.mockResolvedValue(mockUpdatedTicket);
+
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/assign`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ technicianId: null });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.technicianId).toBeNull();
+      expect(mockedTicketService.assignTechnician).toHaveBeenCalledWith(
+        TICKET_ID_1,
+        null
+      );
+    });
+
+    it("should return 404 when ticket not found", async () => {
+      const mockTechnician = {
+        id: TECHNICIAN_ID,
+        firstName: "Jane",
+        lastName: "Smith",
+        email: "jane@example.com",
+        role: "technician" as const,
+        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockedUserService.findById.mockResolvedValue(mockTechnician);
+      mockedTicketService.assignTechnician.mockResolvedValue(null);
+
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/assign`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ technicianId: TECHNICIAN_ID });
+
+      expect(response.status).toBe(404);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.message).toBe("Ticket not found");
+    });
+
+    it("should return 404 when technician not found", async () => {
+      mockedUserService.findById.mockResolvedValue(null);
+
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/assign`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ technicianId: TECHNICIAN_ID });
+
+      expect(response.status).toBe(404);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.message).toBe("Technician not found");
+    });
+
+    it("should return 400 when user is not a technician or admin", async () => {
+      const mockFrontdeskUser = {
+        id: TECHNICIAN_ID,
+        firstName: "Jane",
+        lastName: "Smith",
+        email: "jane@example.com",
+        role: "frontdesk" as const,
+        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockedUserService.findById.mockResolvedValue(mockFrontdeskUser);
+
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/assign`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ technicianId: TECHNICIAN_ID });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.message).toBe(
+        "User must be a technician or admin to be assigned to a ticket"
+      );
+    });
+
+    it("should allow admin to be assigned", async () => {
+      const mockAdmin = {
+        id: TECHNICIAN_ID,
+        firstName: "Admin",
+        lastName: "User",
+        email: "admin@example.com",
+        role: "admin" as const,
+        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockUpdatedTicket = {
+        id: TICKET_ID_1,
+        ticketNumber: "TKT-12345678-001",
+        customerId: CUSTOMER_ID_1,
+        technicianId: TECHNICIAN_ID,
+        status: "assigned" as const,
+        priority: "high" as const,
+        deviceType: "Smartphone",
+        deviceBrand: "Apple",
+        deviceModel: "iPhone 13",
+        serialNumber: "SN123456",
+        issueDescription: "Screen cracked",
+        diagnosticNotes: null,
+        repairNotes: null,
+        estimatedCompletionDate: null,
+        completedDate: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockedUserService.findById.mockResolvedValue(mockAdmin);
+      mockedTicketService.assignTechnician.mockResolvedValue(mockUpdatedTicket);
+
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/assign`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ technicianId: TECHNICIAN_ID });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+    });
+  });
+
+  describe("POST /api/tickets/:id/status", () => {
+    it("should update ticket status successfully", async () => {
+      const mockUpdatedTicket = {
+        id: TICKET_ID_1,
+        ticketNumber: "TKT-12345678-001",
+        customerId: CUSTOMER_ID_1,
+        technicianId: TECHNICIAN_ID,
+        status: "completed" as const,
+        priority: "high" as const,
+        deviceType: "Smartphone",
+        deviceBrand: "Apple",
+        deviceModel: "iPhone 13",
+        serialNumber: "SN123456",
+        issueDescription: "Screen cracked",
+        diagnosticNotes: null,
+        repairNotes: null,
+        estimatedCompletionDate: null,
+        completedDate: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockedTicketService.updateStatus.mockResolvedValue(mockUpdatedTicket);
+
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/status`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ status: "completed" });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.status).toBe("completed");
+      expect(mockedTicketService.updateStatus).toHaveBeenCalledWith(
+        TICKET_ID_1,
+        "completed"
+      );
+    });
+
+    it("should return 404 when ticket not found", async () => {
+      mockedTicketService.updateStatus.mockResolvedValue(null);
+
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/status`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ status: "completed" });
+
+      expect(response.status).toBe(404);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.message).toBe("Ticket not found");
+    });
+
+    it("should return 400 for invalid status", async () => {
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/status`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ status: "invalid_status" });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.message).toBe("Validation failed");
+    });
+
+    it("should return 400 for missing status", async () => {
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/status`)
+        .set("Authorization", "Bearer valid-token")
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.message).toBe("Validation failed");
+    });
+
+    it("should accept all valid status values", async () => {
+      const validStatuses = ["new", "assigned", "in_progress", "on_hold", "completed", "cancelled"];
+
+      for (const status of validStatuses) {
+        const mockUpdatedTicket = {
+          id: TICKET_ID_1,
+          ticketNumber: "TKT-12345678-001",
+          customerId: CUSTOMER_ID_1,
+          technicianId: null,
+          status: status as const,
+          priority: "medium" as const,
+          deviceType: "Smartphone",
+          deviceBrand: null,
+          deviceModel: null,
+          serialNumber: null,
+          issueDescription: "Test",
+          diagnosticNotes: null,
+          repairNotes: null,
+          estimatedCompletionDate: null,
+          completedDate: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        mockedTicketService.updateStatus.mockResolvedValue(mockUpdatedTicket);
+
+        const response = await request(app)
+          .post(`/api/tickets/${TICKET_ID_1}/status`)
+          .set("Authorization", "Bearer valid-token")
+          .send({ status });
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.status).toBe(status);
+      }
+    });
+  });
+
+  describe("POST /api/tickets/:id/diagnostic-notes", () => {
+    it("should add diagnostic notes to ticket successfully", async () => {
+      const mockTicketWithNotes = {
+        id: TICKET_ID_1,
+        ticketNumber: "TKT-12345678-001",
+        customerId: CUSTOMER_ID_1,
+        technicianId: TECHNICIAN_ID,
+        status: "in_progress" as const,
+        priority: "high" as const,
+        deviceType: "Smartphone",
+        deviceBrand: "Apple",
+        deviceModel: "iPhone 13",
+        serialNumber: "SN123456",
+        issueDescription: "Screen cracked",
+        diagnosticNotes: "Initial diagnostic: Screen needs replacement",
+        repairNotes: null,
+        estimatedCompletionDate: null,
+        completedDate: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      // Mock findById to return ticket with no existing notes
+      mockedTicketService.findById.mockResolvedValue({
+        ...mockTicketWithNotes,
+        diagnosticNotes: null,
+      });
+      mockedTicketService.addDiagnosticNotes.mockResolvedValue(mockTicketWithNotes);
+
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/diagnostic-notes`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ notes: "Initial diagnostic: Screen needs replacement" });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.diagnosticNotes).toBe("Initial diagnostic: Screen needs replacement");
+      expect(mockedTicketService.addDiagnosticNotes).toHaveBeenCalledWith(
+        TICKET_ID_1,
+        "Initial diagnostic: Screen needs replacement"
+      );
+    });
+
+    it("should append diagnostic notes to existing notes", async () => {
+      const existingTicket = {
+        id: TICKET_ID_1,
+        ticketNumber: "TKT-12345678-001",
+        customerId: CUSTOMER_ID_1,
+        technicianId: TECHNICIAN_ID,
+        status: "in_progress" as const,
+        priority: "high" as const,
+        deviceType: "Smartphone",
+        deviceBrand: "Apple",
+        deviceModel: "iPhone 13",
+        serialNumber: "SN123456",
+        issueDescription: "Screen cracked",
+        diagnosticNotes: "Initial check completed",
+        repairNotes: null,
+        estimatedCompletionDate: null,
+        completedDate: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockUpdatedTicket = {
+        ...existingTicket,
+        diagnosticNotes: "Initial check completed\n\nFollow-up: Battery also needs replacement",
+      };
+
+      mockedTicketService.findById.mockResolvedValue(existingTicket);
+      mockedTicketService.addDiagnosticNotes.mockResolvedValue(mockUpdatedTicket);
+
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/diagnostic-notes`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ notes: "Follow-up: Battery also needs replacement" });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.diagnosticNotes).toContain("Initial check completed");
+      expect(response.body.data.diagnosticNotes).toContain("Follow-up: Battery also needs replacement");
+    });
+
+    it("should return 404 when ticket not found", async () => {
+      mockedTicketService.findById.mockResolvedValue(null);
+      mockedTicketService.addDiagnosticNotes.mockResolvedValue(null);
+
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/diagnostic-notes`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ notes: "Test notes" });
+
+      expect(response.status).toBe(404);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.message).toBe("Ticket not found");
+    });
+
+    it("should return 400 for missing notes", async () => {
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/diagnostic-notes`)
+        .set("Authorization", "Bearer valid-token")
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.message).toBe("Validation failed");
+    });
+
+    it("should return 400 for empty notes", async () => {
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/diagnostic-notes`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ notes: "   " });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.message).toBe("Validation failed");
+    });
+
+    it("should return 400 for notes exceeding max length", async () => {
+      const longNotes = "a".repeat(10001);
+
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/diagnostic-notes`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ notes: longNotes });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.message).toBe("Validation failed");
+    });
+  });
+
+  describe("POST /api/tickets/:id/repair-notes", () => {
+    it("should add repair notes to ticket successfully", async () => {
+      const mockTicketWithNotes = {
+        id: TICKET_ID_1,
+        ticketNumber: "TKT-12345678-001",
+        customerId: CUSTOMER_ID_1,
+        technicianId: TECHNICIAN_ID,
+        status: "in_progress" as const,
+        priority: "high" as const,
+        deviceType: "Smartphone",
+        deviceBrand: "Apple",
+        deviceModel: "iPhone 13",
+        serialNumber: "SN123456",
+        issueDescription: "Screen cracked",
+        diagnosticNotes: null,
+        repairNotes: "Screen replaced successfully",
+        estimatedCompletionDate: null,
+        completedDate: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      // Mock findById to return ticket with no existing notes
+      mockedTicketService.findById.mockResolvedValue({
+        ...mockTicketWithNotes,
+        repairNotes: null,
+      });
+      mockedTicketService.addRepairNotes.mockResolvedValue(mockTicketWithNotes);
+
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/repair-notes`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ notes: "Screen replaced successfully" });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.repairNotes).toBe("Screen replaced successfully");
+      expect(mockedTicketService.addRepairNotes).toHaveBeenCalledWith(
+        TICKET_ID_1,
+        "Screen replaced successfully"
+      );
+    });
+
+    it("should append repair notes to existing notes", async () => {
+      const existingTicket = {
+        id: TICKET_ID_1,
+        ticketNumber: "TKT-12345678-001",
+        customerId: CUSTOMER_ID_1,
+        technicianId: TECHNICIAN_ID,
+        status: "in_progress" as const,
+        priority: "high" as const,
+        deviceType: "Smartphone",
+        deviceBrand: "Apple",
+        deviceModel: "iPhone 13",
+        serialNumber: "SN123456",
+        issueDescription: "Screen cracked",
+        diagnosticNotes: null,
+        repairNotes: "Screen replaced",
+        estimatedCompletionDate: null,
+        completedDate: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const mockUpdatedTicket = {
+        ...existingTicket,
+        repairNotes: "Screen replaced\n\nBattery also replaced",
+      };
+
+      mockedTicketService.findById.mockResolvedValue(existingTicket);
+      mockedTicketService.addRepairNotes.mockResolvedValue(mockUpdatedTicket);
+
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/repair-notes`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ notes: "Battery also replaced" });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.repairNotes).toContain("Screen replaced");
+      expect(response.body.data.repairNotes).toContain("Battery also replaced");
+    });
+
+    it("should return 404 when ticket not found", async () => {
+      mockedTicketService.findById.mockResolvedValue(null);
+      mockedTicketService.addRepairNotes.mockResolvedValue(null);
+
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/repair-notes`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ notes: "Test notes" });
+
+      expect(response.status).toBe(404);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.message).toBe("Ticket not found");
+    });
+
+    it("should return 400 for missing notes", async () => {
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/repair-notes`)
+        .set("Authorization", "Bearer valid-token")
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.message).toBe("Validation failed");
+    });
+
+    it("should return 400 for empty notes", async () => {
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/repair-notes`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ notes: "   " });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.message).toBe("Validation failed");
+    });
+
+    it("should return 400 for notes exceeding max length", async () => {
+      const longNotes = "a".repeat(10001);
+
+      const response = await request(app)
+        .post(`/api/tickets/${TICKET_ID_1}/repair-notes`)
+        .set("Authorization", "Bearer valid-token")
+        .send({ notes: longNotes });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.message).toBe("Validation failed");
+    });
+  });
 });
 

@@ -282,6 +282,88 @@ export class TicketService {
 
     return !!result;
   }
+
+  async assignTechnician(id: string, technicianId: string | null): Promise<Ticket | null> {
+    const updated = await db
+      .updateTable("tickets")
+      .set({
+        technician_id: technicianId,
+        updated_at: sql`now()`,
+      })
+      .where("id", "=", id)
+      .where("deleted_at", "is", null)
+      .returningAll()
+      .executeTakeFirst();
+
+    return updated ? toTicket(updated) : null;
+  }
+
+  async updateStatus(id: string, status: TicketStatus): Promise<Ticket | null> {
+    const updated = await db
+      .updateTable("tickets")
+      .set({
+        status: status,
+        updated_at: sql`now()`,
+      })
+      .where("id", "=", id)
+      .where("deleted_at", "is", null)
+      .returningAll()
+      .executeTakeFirst();
+
+    return updated ? toTicket(updated) : null;
+  }
+
+  async addDiagnosticNotes(id: string, notes: string): Promise<Ticket | null> {
+    // Get current ticket to append or replace notes
+    const current = await this.findById(id);
+    if (!current) {
+      return null;
+    }
+
+    // Append new notes to existing notes (if any)
+    const updatedNotes = current.diagnosticNotes
+      ? `${current.diagnosticNotes}\n\n${notes}`
+      : notes;
+
+    const updated = await db
+      .updateTable("tickets")
+      .set({
+        diagnostic_notes: updatedNotes,
+        updated_at: sql`now()`,
+      })
+      .where("id", "=", id)
+      .where("deleted_at", "is", null)
+      .returningAll()
+      .executeTakeFirst();
+
+    return updated ? toTicket(updated) : null;
+  }
+
+  async addRepairNotes(id: string, notes: string): Promise<Ticket | null> {
+    // Get current ticket to append or replace notes
+    const current = await this.findById(id);
+    if (!current) {
+      return null;
+    }
+
+    // Append new notes to existing notes (if any)
+    const updatedNotes = current.repairNotes
+      ? `${current.repairNotes}\n\n${notes}`
+      : notes;
+
+    const updated = await db
+      .updateTable("tickets")
+      .set({
+        repair_notes: updatedNotes,
+        updated_at: sql`now()`,
+      })
+      .where("id", "=", id)
+      .where("deleted_at", "is", null)
+      .returningAll()
+      .executeTakeFirst();
+
+    return updated ? toTicket(updated) : null;
+  }
 }
 
 export default new TicketService();
