@@ -2,6 +2,7 @@
 import { sql } from "kysely";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "../config/connection";
+import { ROLE_PERMISSIONS } from "../config/permissions";
 import { UserRole } from "../config/types";
 
 class PermissionService {
@@ -115,18 +116,11 @@ class PermissionService {
       return;
     }
 
-    // Import default permissions from config
-    // Note: We need to access the internal ROLE_PERMISSIONS constant
-    // Since it's not exported, we'll use the getPermissionsMatrix fallback approach
-    // or call the database function if available
-    
     // Try to use the database function first (if migration has run)
     try {
       await sql`SELECT initialize_company_permissions(${companyId})`.execute(db);
     } catch {
       // If function doesn't exist, manually insert from config
-      const { ROLE_PERMISSIONS } = await import("../config/permissions.js");
-      
       // Insert all default permissions for this company
       const inserts: Array<{ id: string; company_id: string; role: string; permission: string }> = [];
       
