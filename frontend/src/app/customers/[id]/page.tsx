@@ -120,10 +120,10 @@ export default function CustomerDetailPage({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-          <p className="mt-2 text-gray-700">Loading customer details...</p>
+          <p className="mt-2 text-gray-700 dark:text-gray-300">Loading customer details...</p>
         </div>
       </div>
     );
@@ -131,13 +131,13 @@ export default function CustomerDetailPage({
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-4xl mx-auto bg-white shadow rounded-lg p-6">
-          <h1 className="text-xl font-bold text-red-600">Error</h1>
-          <p className="mt-2 text-gray-700">{error}</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+          <h1 className="text-xl font-bold text-red-600 dark:text-red-400">Error</h1>
+          <p className="mt-2 text-gray-700 dark:text-gray-300">{error}</p>
           <button
             onClick={() => router.push("/customers")}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-blue-500"
           >
             Back to Customers
           </button>
@@ -148,17 +148,17 @@ export default function CustomerDetailPage({
 
   if (!customer) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-4xl mx-auto bg-white shadow rounded-lg p-6">
-          <h1 className="text-xl font-bold text-gray-900">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
             Customer Not Found
           </h1>
-          <p className="mt-2 text-gray-700">
+          <p className="mt-2 text-gray-700 dark:text-gray-300">
             The requested customer could not be found.
           </p>
           <button
             onClick={() => router.push("/customers")}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-blue-500"
           >
             Back to Customers
           </button>
@@ -168,34 +168,34 @@ export default function CustomerDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header with actions */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {customer.firstName} {customer.lastName}
             </h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Customer since {formatDate(customer.createdAt)}
             </p>
           </div>
           <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
             <button
               onClick={() => router.push("/customers")}
-              className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
             >
               Back to List
             </button>
             <button
               onClick={() => router.push(`/customers/${customer.id}/edit`)}
-              className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
             >
               Edit Customer
             </button>
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="inline-flex items-center justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              className="inline-flex items-center justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
             >
               Delete
             </button>
@@ -206,15 +206,15 @@ export default function CustomerDetailPage({
         {showDeleteConfirm && (
           <div className="fixed inset-0 overflow-y-auto z-50 flex items-center justify-center">
             <div className="fixed inset-0 bg-black opacity-30"></div>
-            <div className="relative bg-white rounded-lg max-w-md w-full p-6 shadow-xl">
-              <h3 className="text-lg font-medium text-gray-900">
+            <div className="relative bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6 shadow-xl">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                 Delete Customer
               </h3>
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                 Are you sure you want to delete {customer.firstName}{" "}
                 {customer.lastName}? This action cannot be undone.
                 {tickets.length > 0 && (
-                  <span className="block mt-2 font-medium text-red-600">
+                  <span className="block mt-2 font-medium text-red-600 dark:text-red-400">
                     Warning: This customer has {tickets.length} active tickets.
                   </span>
                 )}
@@ -224,7 +224,7 @@ export default function CustomerDetailPage({
                   type="button"
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={isDeleting}
-                  className="inline-flex justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-blue-500"
                 >
                   Cancel
                 </button>
@@ -232,7 +232,7 @@ export default function CustomerDetailPage({
                   type="button"
                   onClick={handleDeleteCustomer}
                   disabled={isDeleting}
-                  className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  className="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-red-500"
                 >
                   {isDeleting ? "Deleting..." : "Delete"}
                 </button>
@@ -244,31 +244,31 @@ export default function CustomerDetailPage({
         {/* Main content */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Left column - Customer info */}
-          <div className="md:col-span-2 bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
+          <div className="md:col-span-2 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+            <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
                 Customer Information
               </h3>
             </div>
-            <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
+            <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:p-6">
               <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
                 <div className="sm:col-span-1">
-                  <dt className="text-sm font-medium text-gray-500">
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Full name
                   </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                     {customer.firstName} {customer.lastName}
                   </dd>
                 </div>
 
                 <div className="sm:col-span-1">
-                  <dt className="text-sm font-medium text-gray-500">
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Email address
                   </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                     <a
                       href={`mailto:${customer.email}`}
-                      className="text-blue-600 hover:text-blue-500"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
                     >
                       {customer.email}
                     </a>
@@ -276,26 +276,26 @@ export default function CustomerDetailPage({
                 </div>
 
                 <div className="sm:col-span-1">
-                  <dt className="text-sm font-medium text-gray-500">
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Phone number
                   </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                     {customer.phone ? (
                       <a
                         href={`tel:${customer.phone}`}
-                        className="text-blue-600 hover:text-blue-500"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
                       >
                         {customer.phone}
                       </a>
                     ) : (
-                      <span className="text-gray-500 italic">Not provided</span>
+                      <span className="text-gray-500 dark:text-gray-400 italic">Not provided</span>
                     )}
                   </dd>
                 </div>
 
                 <div className="sm:col-span-2">
-                  <dt className="text-sm font-medium text-gray-500">Address</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Address</dt>
+                  <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                     {customer.address ? (
                       <div>
                         <p>{customer.address}</p>
@@ -311,7 +311,7 @@ export default function CustomerDetailPage({
                         )}
                       </div>
                     ) : (
-                      <span className="text-gray-500 italic">
+                      <span className="text-gray-500 dark:text-gray-400 italic">
                         No address provided
                       </span>
                     )}
@@ -320,8 +320,8 @@ export default function CustomerDetailPage({
 
                 {customer.notes && (
                   <div className="sm:col-span-2">
-                    <dt className="text-sm font-medium text-gray-500">Notes</dt>
-                    <dd className="mt-1 text-sm text-gray-900 whitespace-pre-line">
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Notes</dt>
+                    <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 whitespace-pre-line">
                       {customer.notes}
                     </dd>
                   </div>
@@ -330,13 +330,13 @@ export default function CustomerDetailPage({
             </div>
 
             {/* Quick actions */}
-            <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 sm:px-6">
+            <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700 sm:px-6">
               <div className="flex items-center space-x-4">
                 <button
                   onClick={() =>
                     router.push(`/tickets/new?customerId=${customer.id}`)
                   }
-                  className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-500"
+                  className="inline-flex items-center text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -356,7 +356,7 @@ export default function CustomerDetailPage({
                 </button>
                 <a
                   href={`mailto:${customer.email}`}
-                  className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-500"
+                  className="inline-flex items-center text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -377,7 +377,7 @@ export default function CustomerDetailPage({
                 {customer.phone && (
                   <a
                     href={`tel:${customer.phone}`}
-                    className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-500"
+                    className="inline-flex items-center text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -401,12 +401,12 @@ export default function CustomerDetailPage({
           </div>
 
           {/* Right column - Customer tickets */}
-          <div className="md:col-span-1 bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
+          <div className="md:col-span-1 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+            <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
                 Customer Tickets
               </h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">
+              <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
                 {tickets.length === 0
                   ? "No tickets found for this customer"
                   : `${tickets.length} ticket${
@@ -415,20 +415,20 @@ export default function CustomerDetailPage({
               </p>
             </div>
             {tickets.length > 0 ? (
-              <ul className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+              <ul className="divide-y divide-gray-200 dark:divide-gray-700 max-h-96 overflow-y-auto">
                 {tickets.map((ticket) => (
                   <li key={ticket.id}>
                     <Link href={`/tickets/${ticket.id}`}>
-                      <div className="block hover:bg-gray-50 px-4 py-4 cursor-pointer">
+                      <div className="block hover:bg-gray-50 dark:hover:bg-gray-700/50 px-4 py-4 cursor-pointer">
                         <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium text-blue-600 truncate">
+                          <p className="text-sm font-medium text-blue-600 dark:text-blue-400 truncate">
                             {ticket.ticketNumber}
                           </p>
                           <div className="ml-2 flex-shrink-0 flex">
                             <p
                               className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
                                 ticket.status
-                              )}`}
+                              )} dark:opacity-90`}
                             >
                               {ticket.status
                                 .replace("_", " ")
@@ -439,15 +439,15 @@ export default function CustomerDetailPage({
                           </div>
                         </div>
                         <div className="mt-2">
-                          <p className="text-sm text-gray-600 line-clamp-1">
+                          <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-1">
                             {ticket.deviceType} {ticket.deviceBrand}{" "}
                             {ticket.deviceModel}
                           </p>
-                          <p className="text-sm text-gray-500 line-clamp-1 mt-1">
+                          <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 mt-1">
                             {ticket.issueDescription}
                           </p>
                         </div>
-                        <div className="mt-2 text-sm text-gray-500">
+                        <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                           <p>Created: {formatDate(ticket.createdAt)}</p>
                         </div>
                       </div>
@@ -457,26 +457,26 @@ export default function CustomerDetailPage({
               </ul>
             ) : (
               <div className="px-4 py-5 sm:p-6 text-center">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   No repair tickets for this customer yet
                 </p>
                 <button
                   onClick={() =>
                     router.push(`/tickets/new?customerId=${customer.id}`)
                   }
-                  className="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-blue-500"
                 >
                   Create First Ticket
                 </button>
               </div>
             )}
             {tickets.length > 0 && (
-              <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 text-right sm:px-6">
+              <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700 text-right sm:px-6">
                 <button
                   onClick={() =>
                     router.push(`/tickets/new?customerId=${customer.id}`)
                   }
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-blue-500"
                 >
                   Create New Ticket
                 </button>
