@@ -53,9 +53,11 @@ let accessToken: string | null = null;
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
+    // Get token from variable or localStorage (in case it was updated elsewhere)
+    const token = accessToken || (typeof window !== "undefined" ? localStorage.getItem("accessToken") : null);
     // Add auth token to headers if available
-    if (accessToken && config.headers) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
