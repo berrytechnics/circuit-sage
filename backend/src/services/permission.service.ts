@@ -123,7 +123,7 @@ class PermissionService {
     // Try to use the database function first (if migration has run)
     try {
       await sql`SELECT initialize_company_permissions(${companyId})`.execute(db);
-    } catch (error) {
+    } catch {
       // If function doesn't exist, manually insert from config
       const { ROLE_PERMISSIONS } = await import("../config/permissions");
       

@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import { NotFoundError } from "../config/errors";
+import { PurchaseOrderStatus } from "../config/types";
 import { validateRequest } from "../middlewares/auth.middleware";
 import { requireManagerOrAdmin, requireRole } from "../middlewares/rbac.middleware";
 import { requireTenantContext } from "../middlewares/tenant.middleware";
@@ -23,9 +24,9 @@ router.get(
   "/",
   asyncHandler(async (req: Request, res: Response) => {
     const companyId = req.companyId!;
-    const status = req.query.status as string | undefined;
+    const status = req.query.status as PurchaseOrderStatus | undefined;
     const searchQuery = req.query.query as string | undefined;
-    const pos = await purchaseOrderService.findAll(companyId, status as any, searchQuery);
+    const pos = await purchaseOrderService.findAll(companyId, status, searchQuery);
     res.json({ success: true, data: pos });
   })
 );
