@@ -17,13 +17,10 @@ import {
   InvoiceItem,
 } from "@/lib/api/invoice.api";
 
-// Types for form state and validation
-export interface InvoiceItem {
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  type: "part" | "service" | "other";
-}
+// Type for new items (before they're saved to the database)
+type NewInvoiceItem = Omit<InvoiceItem, "id" | "invoiceId" | "createdAt" | "updatedAt"> & {
+  discountPercent?: number;
+};
 
 interface InvoiceFormState {
   customerId: string;
@@ -65,7 +62,7 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   const [submitError, setSubmitError] = useState("");
 
   // New item state
-  const [newItem, setNewItem] = useState<Omit<InvoiceItem, "id" | "invoiceId" | "createdAt" | "updatedAt"> & { discountPercent?: number }>({
+  const [newItem, setNewItem] = useState<NewInvoiceItem>({
     description: "",
     quantity: 1,
     unitPrice: 0,
@@ -215,12 +212,13 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
         // Refresh invoice data
         const response = await getInvoiceById(invoiceId);
         if (response.data) {
+          const invoice = response.data;
           setFormData((prevState) => ({
             ...prevState,
-            invoiceItems: response.data.invoiceItems || [],
-            subtotal: response.data.subtotal,
-            taxRate: response.data.taxRate,
-            discountAmount: response.data.discountAmount,
+            invoiceItems: invoice.invoiceItems || [],
+            subtotal: invoice.subtotal,
+            taxRate: invoice.taxRate,
+            discountAmount: invoice.discountAmount,
           }));
         }
       } catch (error) {
@@ -233,9 +231,17 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       }
     } else {
       // In create mode, add to local state
+      // Convert NewInvoiceItem to InvoiceItem with temporary id fields
+      const tempItem: InvoiceItem = {
+        ...newItem,
+        id: `temp-${Date.now()}`,
+        invoiceId: "",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
       setFormData((prevState) => ({
         ...prevState,
-        invoiceItems: [...prevState.invoiceItems, newItem],
+        invoiceItems: [...prevState.invoiceItems, tempItem],
       }));
     }
 
@@ -259,12 +265,13 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
         // Refresh invoice data
         const response = await getInvoiceById(invoiceId);
         if (response.data) {
+          const invoice = response.data;
           setFormData((prevState) => ({
             ...prevState,
-            invoiceItems: response.data.invoiceItems || [],
-            subtotal: response.data.subtotal,
-            taxRate: response.data.taxRate,
-            discountAmount: response.data.discountAmount,
+            invoiceItems: invoice.invoiceItems || [],
+            subtotal: invoice.subtotal,
+            taxRate: invoice.taxRate,
+            discountAmount: invoice.discountAmount,
           }));
         }
       } catch (error) {
@@ -434,7 +441,7 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
 
           {/* Existing Items List */}
           {formData.invoiceItems.map((item, index) => {
-            const itemId = (item as InvoiceItem).id;
+            const itemId = item.id;
             return (
               <div
                 key={itemId || index}
