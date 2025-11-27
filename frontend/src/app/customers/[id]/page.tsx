@@ -1,10 +1,10 @@
 "use client";
 
 import {
-  Customer,
-  deleteCustomer,
-  getCustomerById,
-  getCustomerTickets,
+    Customer,
+    deleteCustomer,
+    getCustomerById,
+    getCustomerTickets,
 } from "@/lib/api/customer.api";
 import { Invoice, getInvoicesByCustomer } from "@/lib/api/invoice.api";
 import { Ticket } from "@/lib/api/ticket.api";

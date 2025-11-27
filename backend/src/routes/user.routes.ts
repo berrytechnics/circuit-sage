@@ -3,8 +3,8 @@ import {
   BadRequestError,
   UnauthorizedError,
 } from "../config/errors";
-import { validate } from "../middlewares/validation.middleware";
 import { validateRequest } from "../middlewares/auth.middleware";
+import { validate } from "../middlewares/validation.middleware";
 import userService, { UserWithoutPassword } from "../services/user.service";
 import { asyncHandler } from "../utils/asyncHandler";
 import { generateNewJWTToken } from "../utils/auth";

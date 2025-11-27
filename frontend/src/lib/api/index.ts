@@ -64,6 +64,70 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Helper function to extract error message from API response
+export const getErrorMessage = (error: unknown): string => {
+  if (error && typeof error === "object" && "response" in error) {
+    const axiosError = error as AxiosError<ApiResponse<unknown>>;
+    
+    // Check if it's an API error response with our format
+    if (axiosError.response?.data) {
+      const apiError = axiosError.response.data;
+      
+      // If it's our API error format
+      if (!apiError.success && apiError.error) {
+        // If there are validation errors, combine them
+        if (apiError.error.errors) {
+          const errorMessages = Object.values(apiError.error.errors);
+          return errorMessages.length > 0 
+            ? errorMessages.join(", ")
+            : apiError.error.message;
+        }
+        return apiError.error.message;
+      }
+    }
+    
+    // Handle HTTP status codes
+    if (axiosError.response?.status) {
+      switch (axiosError.response.status) {
+        case 400:
+          return "Invalid request. Please check your input and try again.";
+        case 401:
+          return "You are not authorized. Please log in again.";
+        case 403:
+          return "You don't have permission to perform this action.";
+        case 404:
+          return "The requested resource was not found.";
+        case 409:
+          return "A conflict occurred. The resource may have been modified.";
+        case 422:
+          return "Validation failed. Please check your input.";
+        case 500:
+          return "Server error. Please try again later.";
+        case 503:
+          return "Service temporarily unavailable. Please try again later.";
+        default:
+          return axiosError.message || "An unexpected error occurred.";
+      }
+    }
+    
+    // Network errors
+    if (axiosError.code === "ECONNABORTED") {
+      return "Request timeout. Please try again.";
+    }
+    if (axiosError.code === "ERR_NETWORK") {
+      return "Network error. Please check your connection and try again.";
+    }
+  }
+  
+  // If it's a regular Error object
+  if (error instanceof Error) {
+    return error.message;
+  }
+  
+  // Fallback
+  return "An unexpected error occurred. Please try again.";
+};
+
 // Response interceptor
 api.interceptors.response.use(
   (response) => response,
@@ -92,7 +156,14 @@ api.interceptors.response.use(
       }
     }
 
-    return Promise.reject(error);
+    // Enhance error with user-friendly message
+    const friendlyError = new Error(getErrorMessage(error));
+    (friendlyError as any).response = error.response;
+    (friendlyError as any).request = error.request;
+    (friendlyError as any).config = error.config;
+    (friendlyError as any).isAxiosError = true;
+    
+    return Promise.reject(friendlyError);
   }
 );
 

@@ -2,10 +2,12 @@
 
 import {
   Invoice,
+  InvoiceItem,
   addInvoiceItem,
   getInvoiceById,
   markInvoiceAsPaid,
   removeInvoiceItem,
+  updateInvoiceItem,
 } from "@/lib/api/invoice.api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,6 +25,7 @@ export default function InvoiceDetailPage({
   const [isAddingItem, setIsAddingItem] = useState(false);
   const [showMarkPaidModal, setShowMarkPaidModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   // New item form state
   const [newItem, setNewItem] = useState({
@@ -31,7 +34,15 @@ export default function InvoiceDetailPage({
     unitPrice: 0,
     discountPercent: 0,
     type: "service" as "part" | "service" | "other",
-    inventoryItemId: "",
+  });
+
+  // Edit item form state
+  const [editingItem, setEditingItem] = useState({
+    description: "",
+    quantity: 1,
+    unitPrice: 0,
+    discountPercent: 0,
+    type: "service" as "part" | "service" | "other",
   });
 
   // Fetch invoice data
@@ -97,7 +108,6 @@ export default function InvoiceDetailPage({
         unitPrice: newItem.unitPrice,
         discountPercent: newItem.discountPercent || undefined,
         type: newItem.type,
-        inventoryItemId: newItem.inventoryItemId || undefined,
       });
       await refreshInvoice();
       setNewItem({
@@ -106,14 +116,77 @@ export default function InvoiceDetailPage({
         unitPrice: 0,
         discountPercent: 0,
         type: "service",
-        inventoryItemId: "",
       });
       setIsAddingItem(false);
     } catch (err) {
       console.error("Error adding item:", err);
-      alert(
-        err instanceof Error ? err.message : "Failed to add item. Please try again."
-      );
+      const errorMessage = err instanceof Error ? err.message : "Failed to add item. Please try again.";
+      setError(errorMessage);
+      alert(errorMessage);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Handle edit item
+  const handleStartEdit = (item: InvoiceItem) => {
+    setEditingItemId(item.id);
+    setEditingItem({
+      description: item.description,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      discountPercent: item.discountPercent || 0,
+      type: item.type,
+    });
+  };
+
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    setEditingItemId(null);
+    setEditingItem({
+      description: "",
+      quantity: 1,
+      unitPrice: 0,
+      discountPercent: 0,
+      type: "service",
+    });
+  };
+
+  // Handle update item
+  const handleUpdateItem = async (itemId: string) => {
+    if (!invoice) return;
+
+    if (!editingItem.description.trim()) {
+      alert("Description is required");
+      return;
+    }
+
+    if (editingItem.quantity <= 0) {
+      alert("Quantity must be greater than 0");
+      return;
+    }
+
+    if (editingItem.unitPrice < 0) {
+      alert("Unit price cannot be negative");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      await updateInvoiceItem(invoice.id, itemId, {
+        description: editingItem.description,
+        quantity: editingItem.quantity,
+        unitPrice: editingItem.unitPrice,
+        discountPercent: editingItem.discountPercent || undefined,
+        type: editingItem.type,
+      });
+      await refreshInvoice();
+      handleCancelEdit();
+    } catch (err) {
+      console.error("Error updating item:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to update item. Please try again.";
+      setError(errorMessage);
+      alert(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -133,9 +206,9 @@ export default function InvoiceDetailPage({
       await refreshInvoice();
     } catch (err) {
       console.error("Error deleting item:", err);
-      alert(
-        err instanceof Error ? err.message : "Failed to delete item. Please try again."
-      );
+      const errorMessage = err instanceof Error ? err.message : "Failed to delete item. Please try again.";
+      setError(errorMessage);
+      alert(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -157,11 +230,11 @@ export default function InvoiceDetailPage({
       setShowMarkPaidModal(false);
     } catch (err) {
       console.error("Error marking invoice as paid:", err);
-      alert(
-        err instanceof Error
-          ? err.message
-          : "Failed to mark invoice as paid. Please try again."
-      );
+      const errorMessage = err instanceof Error
+        ? err.message
+        : "Failed to mark invoice as paid. Please try again.";
+      setError(errorMessage);
+      alert(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -494,31 +567,113 @@ export default function InvoiceDetailPage({
                 {invoice.invoiceItems && invoice.invoiceItems.length > 0 ? (
                   invoice.invoiceItems.map((item) => (
                     <tr key={item.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                        {item.description}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {item.quantity}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        ${Number(item.unitPrice).toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {item.discountPercent ? `${item.discountPercent}%` : "-"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                        ${(Number(item.quantity) * Number(item.unitPrice) * (1 - (Number(item.discountPercent) || 0) / 100)).toFixed(2)}
-                      </td>
-                      {canEdit && (
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button
-                            onClick={() => handleDeleteItem(item.id)}
-                            disabled={isProcessing}
-                            className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 disabled:opacity-50"
-                          >
-                            Delete
-                          </button>
-                        </td>
+                      {editingItemId === item.id ? (
+                        <>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <input
+                              type="text"
+                              value={editingItem.description}
+                              onChange={(e) =>
+                                setEditingItem({ ...editingItem, description: e.target.value })
+                              }
+                              className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                              placeholder="Description"
+                            />
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <input
+                              type="number"
+                              min="1"
+                              value={editingItem.quantity}
+                              onChange={(e) =>
+                                setEditingItem({ ...editingItem, quantity: Number(e.target.value) })
+                              }
+                              className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            />
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={editingItem.unitPrice}
+                              onChange={(e) =>
+                                setEditingItem({ ...editingItem, unitPrice: Number(e.target.value) })
+                              }
+                              className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            />
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="0.01"
+                              value={editingItem.discountPercent}
+                              onChange={(e) =>
+                                setEditingItem({ ...editingItem, discountPercent: Number(e.target.value) })
+                              }
+                              className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            />
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                            ${(Number(editingItem.quantity) * Number(editingItem.unitPrice) * (1 - (Number(editingItem.discountPercent) || 0) / 100)).toFixed(2)}
+                          </td>
+                          {canEdit && (
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                              <button
+                                onClick={() => handleUpdateItem(item.id)}
+                                disabled={isProcessing}
+                                className="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 disabled:opacity-50"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={handleCancelEdit}
+                                disabled={isProcessing}
+                                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 disabled:opacity-50"
+                              >
+                                Cancel
+                              </button>
+                            </td>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                            {item.description}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            {item.quantity}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            ${Number(item.unitPrice).toFixed(2)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            {item.discountPercent ? `${item.discountPercent}%` : "-"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                            ${(Number(item.quantity) * Number(item.unitPrice) * (1 - (Number(item.discountPercent) || 0) / 100)).toFixed(2)}
+                          </td>
+                          {canEdit && (
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                              <button
+                                onClick={() => handleStartEdit(item)}
+                                disabled={isProcessing || editingItemId !== null}
+                                className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 disabled:opacity-50"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteItem(item.id)}
+                                disabled={isProcessing || editingItemId !== null}
+                                className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 disabled:opacity-50"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          )}
+                        </>
                       )}
                     </tr>
                   ))
