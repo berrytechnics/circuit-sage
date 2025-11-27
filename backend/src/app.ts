@@ -21,6 +21,7 @@ app.use(morgan("dev"));
 
 // Routes - all routes are prefixed with /api
 app.use("/api/auth", userRoutes);
+app.use("/api/users", userRoutes); // Also mount user routes at /api/users for technicians endpoint
 app.use("/api/customers", customerRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/invoices", invoiceRoutes);

@@ -26,9 +26,19 @@ export const createTicketValidation = [
     .isLength({ min: 1, max: 10000 })
     .withMessage("Issue description must be between 1 and 10000 characters"),
   body("technicianId")
-    .optional()
-    .isUUID()
-    .withMessage("Technician ID must be a valid UUID"),
+    .optional({ values: "falsy" })
+    .custom((value) => {
+      // If empty string, null, or undefined, skip validation
+      if (!value || value === "") {
+        return true;
+      }
+      // Otherwise, validate as UUID
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(value)) {
+        throw new Error("Technician ID must be a valid UUID");
+      }
+      return true;
+    }),
   body("status")
     .optional()
     .isIn(["new", "assigned", "in_progress", "on_hold", "completed", "cancelled"])
@@ -77,9 +87,19 @@ export const updateTicketValidation = [
     .isUUID()
     .withMessage("Customer ID must be a valid UUID"),
   body("technicianId")
-    .optional()
-    .isUUID()
-    .withMessage("Technician ID must be a valid UUID"),
+    .optional({ values: "falsy" })
+    .custom((value) => {
+      // If empty string, null, or undefined, skip validation
+      if (!value || value === "") {
+        return true;
+      }
+      // Otherwise, validate as UUID
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(value)) {
+        throw new Error("Technician ID must be a valid UUID");
+      }
+      return true;
+    }),
   body("status")
     .optional()
     .isIn(["new", "assigned", "in_progress", "on_hold", "completed", "cancelled"])

@@ -207,6 +207,28 @@ export class UserService {
     // Remove password and return user
     return toUserWithoutPassword(user);
   }
+
+  async findTechnicians(): Promise<UserWithoutPassword[]> {
+    const users = await db
+      .selectFrom("users")
+      .select([
+        "id",
+        "first_name",
+        "last_name",
+        "email",
+        "role",
+        "active",
+        "created_at",
+        "updated_at",
+        "deleted_at",
+      ])
+      .where("role", "=", "technician")
+      .where("deleted_at", "is", null)
+      .where("active", "=", true)
+      .execute();
+
+    return users.map(toUserWithoutPassword);
+  }
 }
 
 export default new UserService();

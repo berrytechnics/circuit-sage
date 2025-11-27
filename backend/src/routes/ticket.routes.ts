@@ -6,11 +6,32 @@ import { TicketStatus } from "../config/types";
 import { validateRequest } from "../middlewares/auth.middleware";
 import { validate } from "../middlewares/validation.middleware";
 import ticketService from "../services/ticket.service";
+import customerService from "../services/customer.service";
+import userService, { UserWithoutPassword } from "../services/user.service";
 import { asyncHandler } from "../utils/asyncHandler";
 import {
     createTicketValidation,
     updateTicketValidation,
 } from "../validators/ticket.validator";
+
+// Helper function to format user for response (same as in user.routes.ts)
+function formatUserForResponse(user: UserWithoutPassword) {
+  const userWithSnakeCase = user as unknown as {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    role: string;
+  };
+  
+  return {
+    id: userWithSnakeCase.id,
+    firstName: userWithSnakeCase.first_name,
+    lastName: userWithSnakeCase.last_name,
+    email: userWithSnakeCase.email,
+    role: userWithSnakeCase.role,
+  };
+}
 
 const router = express.Router();
 
@@ -27,7 +48,42 @@ router.get(
       customerId,
       status
     );
-    res.json({ success: true, data: tickets });
+
+    // Populate customer and technician data for each ticket
+    const ticketsWithRelations = await Promise.all(
+      tickets.map(async (ticket) => {
+        const customer = await customerService.findById(ticket.customerId);
+        let technician = null;
+        if (ticket.technicianId) {
+          technician = await userService.findById(ticket.technicianId);
+        }
+
+        const formattedTechnician = technician ? formatUserForResponse(technician) : null;
+
+        return {
+          ...ticket,
+          customer: customer
+            ? {
+                id: customer.id,
+                firstName: customer.firstName,
+                lastName: customer.lastName,
+                email: customer.email,
+                phone: customer.phone || undefined,
+              }
+            : null,
+          technician: formattedTechnician
+            ? {
+                id: formattedTechnician.id,
+                firstName: formattedTechnician.firstName,
+                lastName: formattedTechnician.lastName,
+                email: formattedTechnician.email,
+              }
+            : undefined,
+        };
+      })
+    );
+
+    res.json({ success: true, data: ticketsWithRelations });
   })
 );
 
@@ -40,7 +96,39 @@ router.get(
     if (!ticket) {
       throw new NotFoundError("Ticket not found");
     }
-    res.json({ success: true, data: ticket });
+
+    // Populate customer and technician data
+    const customer = await customerService.findById(ticket.customerId);
+    let technician = null;
+    if (ticket.technicianId) {
+      technician = await userService.findById(ticket.technicianId);
+    }
+
+    // Format the response with customer and technician
+    const formattedTechnician = technician ? formatUserForResponse(technician) : null;
+    
+    const response = {
+      ...ticket,
+      customer: customer
+        ? {
+            id: customer.id,
+            firstName: customer.firstName,
+            lastName: customer.lastName,
+            email: customer.email,
+            phone: customer.phone || undefined,
+          }
+        : null,
+      technician: formattedTechnician
+        ? {
+            id: formattedTechnician.id,
+            firstName: formattedTechnician.firstName,
+            lastName: formattedTechnician.lastName,
+            email: formattedTechnician.email,
+          }
+        : undefined,
+    };
+
+    res.json({ success: true, data: response });
   })
 );
 

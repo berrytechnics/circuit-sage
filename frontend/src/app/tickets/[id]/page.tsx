@@ -176,19 +176,19 @@ export default function TicketDetailPage({
   const getStatusColor = (status: string) => {
     switch (status) {
       case "new":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
       case "assigned":
-        return "bg-purple-100 text-purple-800";
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
       case "in_progress":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
       case "on_hold":
-        return "bg-orange-100 text-orange-800";
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300";
       case "completed":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
       case "cancelled":
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
     }
   };
 
@@ -196,15 +196,15 @@ export default function TicketDetailPage({
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "low":
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
       case "medium":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
       case "high":
-        return "bg-orange-100 text-orange-800";
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300";
       case "urgent":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
     }
   };
 
@@ -224,10 +224,10 @@ export default function TicketDetailPage({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-          <p className="mt-2 text-gray-700">Loading ticket details...</p>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
+          <p className="mt-2 text-gray-700 dark:text-gray-300">Loading ticket details...</p>
         </div>
       </div>
     );
@@ -235,13 +235,13 @@ export default function TicketDetailPage({
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-4xl mx-auto bg-white shadow rounded-lg p-6">
-          <h1 className="text-xl font-bold text-red-600">Error</h1>
-          <p className="mt-2 text-gray-700">{error}</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+          <h1 className="text-xl font-bold text-red-600 dark:text-red-400">Error</h1>
+          <p className="mt-2 text-gray-700 dark:text-gray-300">{error}</p>
           <button
             onClick={() => router.push("/tickets")}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-blue-500"
           >
             Back to Tickets
           </button>
@@ -252,15 +252,15 @@ export default function TicketDetailPage({
 
   if (!ticket) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-4xl mx-auto bg-white shadow rounded-lg p-6">
-          <h1 className="text-xl font-bold text-gray-900">Ticket Not Found</h1>
-          <p className="mt-2 text-gray-700">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Ticket Not Found</h1>
+          <p className="mt-2 text-gray-700 dark:text-gray-300">
             The requested ticket could not be found.
           </p>
           <button
             onClick={() => router.push("/tickets")}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-blue-500"
           >
             Back to Tickets
           </button>
@@ -270,13 +270,13 @@ export default function TicketDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header with actions */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
           <div>
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {ticket.ticketNumber}
               </h1>
               <span
@@ -296,20 +296,20 @@ export default function TicketDetailPage({
                   ticket.priority.slice(1)}
               </span>
             </div>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Created on {formatDate(ticket.createdAt)}
             </p>
           </div>
           <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
             <button
               onClick={() => router.push("/tickets")}
-              className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
             >
               Back to List
             </button>
             <button
               onClick={() => router.push(`/tickets/${ticket.id}/edit`)}
-              className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 dark:bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
             >
               Edit Ticket
             </button>
@@ -319,56 +319,56 @@ export default function TicketDetailPage({
         {/* Main content */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Left column - Ticket details */}
-          <div className="md:col-span-2 bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
+          <div className="md:col-span-2 bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+            <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
                 Ticket Details
               </h3>
             </div>
-            <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
+            <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:p-6">
               <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <dt className="text-sm font-medium text-gray-500">
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Issue Description
                   </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                     {ticket.issueDescription}
                   </dd>
                 </div>
 
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Device Type
                   </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                     {ticket.deviceType}
                   </dd>
                 </div>
 
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Brand / Model
                   </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                     {ticket.deviceBrand ? ticket.deviceBrand : "N/A"}
                     {ticket.deviceModel ? ` / ${ticket.deviceModel}` : ""}
                   </dd>
                 </div>
 
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Serial Number
                   </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                     {ticket.serialNumber || "N/A"}
                   </dd>
                 </div>
 
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Estimated Completion
                   </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                     {ticket.estimatedCompletionDate
                       ? formatDate(ticket.estimatedCompletionDate)
                       : "Not set"}
@@ -376,10 +376,10 @@ export default function TicketDetailPage({
                 </div>
 
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">
+                  <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Completed Date
                   </dt>
-                  <dd className="mt-1 text-sm text-gray-900">
+                  <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                     {ticket.completedDate
                       ? formatDate(ticket.completedDate)
                       : "N/A"}
@@ -389,14 +389,14 @@ export default function TicketDetailPage({
             </div>
 
             {/* Notes section */}
-            <div className="px-4 py-5 sm:px-6 border-t border-gray-200">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
+            <div className="px-4 py-5 sm:px-6 border-t border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
                 Notes
               </h3>
 
               {/* Note tabs */}
               <div className="mt-4">
-                <div className="border-b border-gray-200">
+                <div className="border-b border-gray-200 dark:border-gray-700">
                   <div className="sm:flex sm:items-baseline">
                     <div className="mt-4 sm:mt-0 sm:flex-1 pb-1">
                       <div className="sm:hidden">
@@ -405,7 +405,7 @@ export default function TicketDetailPage({
                         </label>
                         <select
                           id="note-tabs"
-                          className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                          className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-blue-500 dark:focus:border-blue-500 sm:text-sm rounded-md"
                           value={noteType}
                           onChange={(e) =>
                             setNoteType(
@@ -423,8 +423,8 @@ export default function TicketDetailPage({
                             onClick={() => setNoteType("diagnostic")}
                             className={`${
                               noteType === "diagnostic"
-                                ? "border-blue-500 text-blue-600"
-                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                                ? "border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-400"
+                                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
                             } whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm`}
                           >
                             Diagnostic Notes
@@ -433,8 +433,8 @@ export default function TicketDetailPage({
                             onClick={() => setNoteType("repair")}
                             className={`${
                               noteType === "repair"
-                                ? "border-blue-500 text-blue-600"
-                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                                ? "border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-400"
+                                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
                             } whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm`}
                           >
                             Repair Notes
@@ -450,7 +450,7 @@ export default function TicketDetailPage({
                   {noteType === "diagnostic" ? (
                     <div>
                       {diagnosticNotes.length === 0 ? (
-                        <p className="text-sm text-gray-500 italic">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 italic">
                           No diagnostic notes yet
                         </p>
                       ) : (
@@ -458,17 +458,17 @@ export default function TicketDetailPage({
                           {diagnosticNotes.map((note, index) => (
                             <li
                               key={index}
-                              className="bg-gray-50 p-3 rounded-md"
+                              className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-md"
                             >
                               <div className="flex justify-between items-start">
-                                <p className="text-sm font-medium text-gray-900">
+                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                   {note.userName}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
                                   {formatDate(note.date)}
                                 </p>
                               </div>
-                              <p className="mt-1 text-sm text-gray-600">
+                              <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
                                 {note.note}
                               </p>
                             </li>
@@ -479,7 +479,7 @@ export default function TicketDetailPage({
                   ) : (
                     <div>
                       {repairNotes.length === 0 ? (
-                        <p className="text-sm text-gray-500 italic">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 italic">
                           No repair notes yet
                         </p>
                       ) : (
@@ -487,17 +487,17 @@ export default function TicketDetailPage({
                           {repairNotes.map((note, index) => (
                             <li
                               key={index}
-                              className="bg-gray-50 p-3 rounded-md"
+                              className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-md"
                             >
                               <div className="flex justify-between items-start">
-                                <p className="text-sm font-medium text-gray-900">
+                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                   {note.userName}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
                                   {formatDate(note.date)}
                                 </p>
                               </div>
-                              <p className="mt-1 text-sm text-gray-600">
+                              <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
                                 {note.note}
                               </p>
                             </li>
@@ -512,7 +512,7 @@ export default function TicketDetailPage({
                     <div>
                       <label
                         htmlFor="new-note"
-                        className="block text-sm font-medium text-gray-700"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
                         Add{" "}
                         {noteType === "diagnostic" ? "Diagnostic" : "Repair"}{" "}
@@ -522,7 +522,7 @@ export default function TicketDetailPage({
                         id="new-note"
                         name="new-note"
                         rows={3}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 dark:focus:border-blue-500 focus:ring-blue-500 dark:focus:ring-blue-500 sm:text-sm"
                         placeholder="Enter your note here..."
                         value={newNote}
                         onChange={(e) => setNewNote(e.target.value)}
@@ -532,7 +532,7 @@ export default function TicketDetailPage({
                       <button
                         type="submit"
                         disabled={isUpdating || !newNote}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-blue-500 disabled:opacity-50"
                       >
                         {isUpdating ? "Adding..." : "Add Note"}
                       </button>
@@ -546,80 +546,88 @@ export default function TicketDetailPage({
           {/* Right column - Customer and Actions */}
           <div className="md:col-span-1 space-y-6">
             {/* Customer info */}
-            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-              <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
+            <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+              <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
                   Customer
                 </h3>
               </div>
-              <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
-                <div className="flex items-center space-x-3">
-                  <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-lg font-medium text-gray-500">
-                      {ticket.customer.firstName.charAt(0)}
-                      {ticket.customer.lastName.charAt(0)}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {ticket.customer.firstName} {ticket.customer.lastName}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {ticket.customer.email}
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  {ticket.customer.phone && (
-                    <p className="text-sm text-gray-500">
-                      <span className="font-medium">Phone:</span>{" "}
-                      {ticket.customer.phone}
-                    </p>
-                  )}
-                </div>
-                <div className="mt-3">
-                  <button
-                    onClick={() =>
-                      router.push(`/customers/${ticket.customer.id}`)
-                    }
-                    className="text-sm font-medium text-blue-600 hover:text-blue-500"
-                  >
-                    View Customer Details
-                  </button>
-                </div>
+              <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:p-6">
+                {ticket.customer ? (
+                  <>
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                        <span className="text-lg font-medium text-gray-500 dark:text-gray-300">
+                          {ticket.customer.firstName?.charAt(0) || "?"}
+                          {ticket.customer.lastName?.charAt(0) || ""}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {ticket.customer.firstName} {ticket.customer.lastName}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {ticket.customer.email}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      {ticket.customer.phone && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <span className="font-medium">Phone:</span>{" "}
+                          {ticket.customer.phone}
+                        </p>
+                      )}
+                    </div>
+                    <div className="mt-3">
+                      <button
+                        onClick={() =>
+                          router.push(`/customers/${ticket.customer.id}`)
+                        }
+                        className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        View Customer Details
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                    Customer information not available
+                  </p>
+                )}
               </div>
             </div>
 
             {/* Technician info */}
-            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-              <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
+            <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+              <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
                   Technician
                 </h3>
               </div>
-              <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
+              <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:p-6">
                 {ticket.technician ? (
                   <div>
                     <div className="flex items-center space-x-3">
-                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                        <span className="text-lg font-medium text-blue-600">
-                          {ticket.technician.firstName.charAt(0)}
-                          {ticket.technician.lastName.charAt(0)}
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                        <span className="text-lg font-medium text-blue-600 dark:text-blue-400">
+                          {ticket.technician.firstName?.charAt(0) || "?"}
+                          {ticket.technician.lastName?.charAt(0) || ""}
                         </span>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {ticket.technician.firstName}{" "}
                           {ticket.technician.lastName}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           {ticket.technician.email}
                         </p>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500 italic">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">
                     No technician assigned
                   </p>
                 )}
@@ -628,7 +636,7 @@ export default function TicketDetailPage({
                 <div className="mt-4">
                   <label
                     htmlFor="technician"
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                   >
                     {ticket.technician
                       ? "Reassign Technician"
@@ -638,7 +646,7 @@ export default function TicketDetailPage({
                     <select
                       id="technician"
                       name="technician"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 dark:focus:border-blue-500 focus:ring-blue-500 dark:focus:ring-blue-500 sm:text-sm"
                       value={selectedTechnicianId}
                       onChange={(e) => setSelectedTechnicianId(e.target.value)}
                     >
@@ -653,7 +661,7 @@ export default function TicketDetailPage({
                       type="button"
                       onClick={handleAssignTechnician}
                       disabled={isUpdating || !selectedTechnicianId}
-                      className="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                      className="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-blue-500 disabled:opacity-50"
                     >
                       {isUpdating ? "Assigning..." : "Assign"}
                     </button>
@@ -663,16 +671,16 @@ export default function TicketDetailPage({
             </div>
 
             {/* Status actions */}
-            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-              <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
+            <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
+              <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
                   Status
                 </h3>
               </div>
-              <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
+              <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:p-6">
                 <label
                   htmlFor="status"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
                   Update Status
                 </label>
@@ -680,7 +688,7 @@ export default function TicketDetailPage({
                   <select
                     id="status"
                     name="status"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 dark:focus:border-blue-500 focus:ring-blue-500 dark:focus:ring-blue-500 sm:text-sm"
                     value={selectedStatus}
                     onChange={(e) => setSelectedStatus(e.target.value)}
                   >
@@ -695,7 +703,7 @@ export default function TicketDetailPage({
                     type="button"
                     onClick={handleStatusUpdate}
                     disabled={isUpdating || selectedStatus === ticket.status}
-                    className="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                    className="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-blue-500 disabled:opacity-50"
                   >
                     {isUpdating ? "Updating..." : "Update"}
                   </button>

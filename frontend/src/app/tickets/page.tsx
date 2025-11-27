@@ -70,19 +70,19 @@ export default function TicketsListPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "new":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
       case "assigned":
-        return "bg-purple-100 text-purple-800";
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
       case "in_progress":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
       case "on_hold":
-        return "bg-orange-100 text-orange-800";
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300";
       case "completed":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
       case "cancelled":
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
     }
   };
 
@@ -90,15 +90,15 @@ export default function TicketsListPage() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "low":
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
       case "medium":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
       case "high":
-        return "bg-orange-100 text-orange-800";
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300";
       case "urgent":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
     }
   };
 
@@ -119,8 +119,8 @@ export default function TicketsListPage() {
     const query = searchQuery.toLowerCase();
     return (
       ticket.ticketNumber.toLowerCase().includes(query) ||
-      ticket.customer.firstName.toLowerCase().includes(query) ||
-      ticket.customer.lastName.toLowerCase().includes(query) ||
+      (ticket.customer?.firstName?.toLowerCase().includes(query)) ||
+      (ticket.customer?.lastName?.toLowerCase().includes(query)) ||
       ticket.deviceType.toLowerCase().includes(query) ||
       (ticket.deviceBrand &&
         ticket.deviceBrand.toLowerCase().includes(query)) ||
@@ -179,7 +179,7 @@ export default function TicketsListPage() {
             <select
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
-              className="mt-3 sm:mt-0 rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              className="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 py-2 pl-3 pr-10 text-sm focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500"
             >
               <option value="">All Priorities</option>
               <option value="low">Low</option>
@@ -223,7 +223,7 @@ export default function TicketsListPage() {
                           <p
                             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
                               ticket.status
-                            )} dark:opacity-90`}
+                            )}`}
                           >
                             {ticket.status
                               .replace("_", " ")
@@ -234,7 +234,7 @@ export default function TicketsListPage() {
                           <p
                             className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getPriorityColor(
                               ticket.priority
-                            )} dark:opacity-90`}
+                            )}`}
                           >
                             {ticket.priority.charAt(0).toUpperCase() +
                               ticket.priority.slice(1)}
@@ -252,7 +252,9 @@ export default function TicketsListPage() {
                       <div className="sm:flex">
                         <p className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                           <span className="font-medium mr-1">Customer:</span>
-                          {ticket.customer.firstName} {ticket.customer.lastName}
+                          {ticket.customer
+                            ? `${ticket.customer.firstName} ${ticket.customer.lastName}`
+                            : "Unknown"}
                         </p>
                         <p className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400 sm:mt-0 sm:ml-6">
                           <span className="font-medium mr-1">Device:</span>
@@ -263,7 +265,7 @@ export default function TicketsListPage() {
                       <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400 sm:mt-0">
                         <span className="font-medium mr-1">Technician:</span>
                         {ticket.technician
-                          ? `${ticket.technician.firstName} ${ticket.technician.lastName}`
+                          ? `${ticket.technician.firstName || ""} ${ticket.technician.lastName || ""}`.trim() || "Unknown"
                           : "Unassigned"}
                       </div>
                     </div>

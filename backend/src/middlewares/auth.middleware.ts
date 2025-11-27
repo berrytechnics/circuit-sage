@@ -10,7 +10,13 @@ export async function validateRequest(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  const token = req.headers.authorization?.slice(7);
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    res.status(401).json({ message: "Invalid token" });
+    return;
+  }
+
+  const token = authHeader.slice(7);
   if (!token) {
     res.status(401).json({ message: "Invalid token" });
     return;

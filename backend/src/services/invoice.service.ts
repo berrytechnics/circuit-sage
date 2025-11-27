@@ -20,7 +20,6 @@ export interface CreateInvoiceDto {
   notes?: string | null;
   paymentMethod?: string | null;
   paymentReference?: string | null;
-  paymentNotes?: string | null;
 }
 
 export interface UpdateInvoiceDto {
@@ -38,7 +37,6 @@ export interface UpdateInvoiceDto {
   notes?: string | null;
   paymentMethod?: string | null;
   paymentReference?: string | null;
-  paymentNotes?: string | null;
 }
 
 // Output type - converts snake_case to camelCase
@@ -57,7 +55,6 @@ export type Invoice = Omit<
   | "total_amount"
   | "payment_method"
   | "payment_reference"
-  | "payment_notes"
   | "created_at"
   | "updated_at"
   | "deleted_at"
@@ -75,7 +72,6 @@ export type Invoice = Omit<
   totalAmount: number;
   paymentMethod: string | null;
   paymentReference: string | null;
-  paymentNotes: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -98,7 +94,6 @@ function toInvoice(invoice: {
   notes: string | null;
   payment_method: string | null;
   payment_reference: string | null;
-  payment_notes: string | null;
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
@@ -120,7 +115,6 @@ function toInvoice(invoice: {
     notes: invoice.notes,
     paymentMethod: invoice.payment_method,
     paymentReference: invoice.payment_reference,
-    paymentNotes: invoice.payment_notes,
     createdAt: invoice.created_at,
     updatedAt: invoice.updated_at,
   };
@@ -207,7 +201,6 @@ export class InvoiceService {
         notes: data.notes || null,
         payment_method: data.paymentMethod || null,
         payment_reference: data.paymentReference || null,
-        payment_notes: data.paymentNotes || null,
         created_at: sql`now()`,
         updated_at: sql`now()`,
         deleted_at: null,
@@ -274,9 +267,6 @@ export class InvoiceService {
     }
     if (data.paymentReference !== undefined) {
       updateQuery = updateQuery.set({ payment_reference: data.paymentReference || null });
-    }
-    if (data.paymentNotes !== undefined) {
-      updateQuery = updateQuery.set({ payment_notes: data.paymentNotes || null });
     }
 
     const updated = await updateQuery

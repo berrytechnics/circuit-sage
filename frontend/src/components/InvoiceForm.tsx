@@ -291,8 +291,8 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   // Prevent rendering if loading initial data in edit mode
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 dark:border-blue-500"></div>
       </div>
     );
   }
@@ -300,12 +300,12 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   // Render form
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">
+      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">
         {isEditMode ? "Edit Invoice" : "Create New Invoice"}
       </h1>
 
       {submitError && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-4">
           {submitError}
         </div>
       )}
@@ -315,7 +315,7 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
         <div>
           <label
             htmlFor="customerId"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
             Customer *
           </label>
@@ -324,8 +324,8 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             name="customerId"
             value={formData.customerId}
             onChange={handleInputChange}
-            className={`mt-1 block w-full rounded-md ${
-              errors.customerId ? "border-red-500" : "border-gray-300"
+            className={`mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 py-2 pl-3 pr-10 text-sm focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500 ${
+              errors.customerId ? "border-red-500 dark:border-red-500" : ""
             }`}
           >
             <option value="">Select a customer</option>
@@ -336,7 +336,7 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             ))}
           </select>
           {errors.customerId && (
-            <p className="text-red-500 text-sm mt-1">{errors.customerId}</p>
+            <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.customerId}</p>
           )}
         </div>
 
@@ -344,7 +344,7 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
         <div>
           <label
             htmlFor="ticketId"
-            className="block text-sm font-medium text-gray-700"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
             Related Ticket (Optional)
           </label>
@@ -353,7 +353,7 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             name="ticketId"
             value={formData.ticketId || ""}
             onChange={handleInputChange}
-            className="mt-1 block w-full rounded-md border-gray-300"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 py-2 pl-3 pr-10 text-sm focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500"
           >
             <option value="">Select a ticket</option>
             {tickets.map((ticket) => (
@@ -366,24 +366,24 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
 
         {/* Invoice Items Section */}
         <div>
-          <h3 className="text-lg font-medium mb-4">Invoice Items</h3>
+          <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-gray-100">Invoice Items</h3>
 
           {/* Existing Items List */}
           {formData.invoiceItems.map((item, index) => (
             <div
               key={index}
-              className="flex justify-between items-center bg-gray-100 p-3 rounded mb-2"
+              className="flex justify-between items-center bg-gray-100 dark:bg-gray-700/50 p-3 rounded mb-2"
             >
               <div>
-                <p>{item.description}</p>
-                <p className="text-sm text-gray-600">
+                <p className="text-gray-900 dark:text-gray-100">{item.description}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   {item.quantity} × ${item.unitPrice.toFixed(2)} ({item.type})
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => removeInvoiceItem(index)}
-                className="text-red-600 hover:text-red-800"
+                className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
               >
                 Remove
               </button>
@@ -398,7 +398,7 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               placeholder="Description"
               value={newItem.description}
               onChange={handleNewItemChange}
-              className="col-span-2 border rounded p-2"
+              className="col-span-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 rounded p-2 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500"
             />
             <input
               type="number"
@@ -406,13 +406,13 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               placeholder="Quantity"
               value={newItem.quantity}
               onChange={handleNewItemChange}
-              className="border rounded p-2"
+              className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 rounded p-2 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500"
             />
             <select
               name="type"
               value={newItem.type}
               onChange={handleNewItemChange}
-              className="border rounded p-2"
+              className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded p-2 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500"
             >
               <option value="service">Service</option>
               <option value="part">Part</option>
@@ -426,50 +426,50 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               placeholder="Unit Price"
               value={newItem.unitPrice}
               onChange={handleNewItemChange}
-              className="col-span-3 border rounded p-2"
+              className="col-span-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 rounded p-2 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500"
             />
             <button
               type="button"
               onClick={addInvoiceItem}
-              className="bg-blue-500 text-white rounded p-2"
+              className="bg-blue-500 dark:bg-blue-700 text-white rounded p-2 hover:bg-blue-600 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500"
             >
               Add Item
             </button>
           </div>
           {errors.invoiceItems && (
-            <p className="text-red-500 text-sm mt-1">{errors.invoiceItems}</p>
+            <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.invoiceItems}</p>
           )}
         </div>
 
         {/* Financial Details */}
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="block">Subtotal</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Subtotal</label>
             <input
               type="number"
               readOnly
               value={subtotal}
-              className="w-full border rounded p-2 bg-gray-100"
+              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded p-2 bg-gray-100 dark:bg-gray-800"
             />
           </div>
           <div>
-            <label className="block">Tax Rate (%)</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tax Rate (%)</label>
             <input
               type="number"
               name="taxRate"
               value={formData.taxRate}
               onChange={handleInputChange}
-              className="w-full border rounded p-2"
+              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 rounded p-2 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500"
             />
           </div>
           <div>
-            <label className="block">Discount</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Discount</label>
             <input
               type="number"
               name="discountAmount"
               value={formData.discountAmount}
               onChange={handleInputChange}
-              className="w-full border rounded p-2"
+              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 rounded p-2 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500"
             />
           </div>
         </div>
@@ -477,12 +477,12 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
         {/* Total and Status */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block">Status</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
             <select
               name="status"
               value={formData.status}
               onChange={handleInputChange}
-              className="w-full border rounded p-2"
+              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded p-2 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500"
             >
               <option value="draft">Draft</option>
               <option value="issued">Issued</option>
@@ -492,25 +492,25 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
             </select>
           </div>
           <div>
-            <label className="block">Total Amount</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Total Amount</label>
             <input
               type="number"
               readOnly
               value={total}
-              className="w-full border rounded p-2 bg-gray-100 font-bold"
+              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded p-2 bg-gray-100 font-bold"
             />
           </div>
         </div>
 
         {/* Notes */}
         <div>
-          <label className="block mb-2">Additional Notes</label>
+          <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Additional Notes</label>
           <textarea
             name="notes"
             value={formData.notes || ""}
             onChange={handleInputChange}
             rows={4}
-            className="w-full border rounded p-2"
+            className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 rounded p-2 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500"
             placeholder="Optional additional information"
           ></textarea>
         </div>
@@ -520,14 +520,14 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           <button
             type="button"
             onClick={() => router.push("/invoices")}
-            className="border rounded p-2 hover:bg-gray-100"
+            className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-blue-500 text-white rounded p-2 hover:bg-blue-600 disabled:opacity-50"
+            className="bg-blue-500 dark:bg-blue-700 text-white rounded p-2 hover:bg-blue-600 dark:hover:bg-blue-600 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500"
           >
             {isEditMode
               ? isSubmitting

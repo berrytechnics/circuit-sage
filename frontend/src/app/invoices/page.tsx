@@ -3,7 +3,7 @@
 import { Invoice, getInvoices } from "@/lib/api/invoice.api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 export default function InvoicesListPage() {
   const router = useRouter();
@@ -14,7 +14,7 @@ export default function InvoicesListPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Function to fetch all invoices
-  const fetchAllInvoices = async () => {
+  const fetchAllInvoices = useCallback(async () => {
     try {
       const response = await getInvoices();
       if (response.data) {
@@ -31,12 +31,12 @@ export default function InvoicesListPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // Initial load
   useEffect(() => {
     fetchAllInvoices();
-  }, []);
+  }, [fetchAllInvoices]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +55,7 @@ export default function InvoicesListPage() {
         `${invoice.customer?.firstName} ${invoice.customer?.lastName}`
           .toLowerCase()
           .includes(lowercaseQuery) ||
-        invoice.totalAmount.toString().includes(lowercaseQuery)
+        (invoice.totalAmount?.toString() || "0").includes(lowercaseQuery)
     );
 
     setInvoices(filteredInvoices);
@@ -221,7 +221,7 @@ export default function InvoicesListPage() {
                       <div className="ml-2 flex flex-col sm:flex-row sm:items-end text-sm text-gray-500">
                         <div className="sm:mr-4">
                           <span className="font-medium">
-                            ${invoice.totalAmount.toFixed(2)}
+                            ${Number(invoice.totalAmount || 0).toFixed(2)}
                           </span>
                         </div>
                         <div

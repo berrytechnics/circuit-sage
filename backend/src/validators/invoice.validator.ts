@@ -64,11 +64,6 @@ export const createInvoiceValidation = [
     .trim()
     .isLength({ max: 100 })
     .withMessage("Payment reference must not exceed 100 characters"),
-  body("paymentNotes")
-    .optional()
-    .trim()
-    .isLength({ max: 10000 })
-    .withMessage("Payment notes must not exceed 10000 characters"),
 ];
 
 /**
@@ -134,10 +129,5 @@ export const updateInvoiceValidation = [
     .trim()
     .isLength({ max: 100 })
     .withMessage("Payment reference must not exceed 100 characters"),
-  body("paymentNotes")
-    .optional()
-    .trim()
-    .isLength({ max: 10000 })
-    .withMessage("Payment notes must not exceed 10000 characters"),
 ];
 

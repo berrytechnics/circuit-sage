@@ -85,7 +85,6 @@ export interface InvoiceTable {
   notes: string | null;
   payment_method: string | null;
   payment_reference: string | null;
-  payment_notes: string | null;
   created_at: Timestamp;
   updated_at: Timestamp;
   deleted_at: SoftDelete;

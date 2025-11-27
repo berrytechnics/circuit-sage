@@ -72,41 +72,23 @@ api.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // If 401 and not already retrying, try to refresh token
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // If 401 or 403 (unauthorized/forbidden), token is invalid or expired
+    // Since there's no refresh endpoint yet, redirect to login (but not if already on login page)
+    if (
+      (error.response?.status === 401 || error.response?.status === 403) &&
+      !originalRequest._retry
+    ) {
       originalRequest._retry = true;
 
-      try {
-        // Get refresh token from local storage
-        const refreshToken = localStorage.getItem("refreshToken");
-
-        if (!refreshToken) {
-          throw new Error("No refresh token available");
+      // Logout
+      logout();
+      
+      // Redirect to login page if we're in the browser and not already on login/register pages
+      if (typeof window !== "undefined") {
+        const currentPath = window.location.pathname;
+        if (currentPath !== "/login" && currentPath !== "/register") {
+          window.location.href = "/login";
         }
-
-        // Attempt to refresh token
-        const response = await axios.post<
-          ApiResponse<{ accessToken: string; refreshToken: string }>
-        >(`${getBaseURL()}/auth/refresh`, { refreshToken });
-
-        if (response.data.success && response.data.data) {
-          // Update tokens
-          const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-            response.data.data;
-          accessToken = newAccessToken;
-          localStorage.setItem("refreshToken", newRefreshToken);
-
-          // Retry original request
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-          }
-
-          return axios(originalRequest);
-        }
-      } catch (err) {
-        console.error(err);
-        // If refresh fails, logout user
-        logout();
       }
     }
 
@@ -169,9 +151,10 @@ export const getCurrentUser = async (): Promise<User> => {
 
 export const logout = (): void => {
   accessToken = null;
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-  // Redirect to login or handle in UI
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+  }
 };
 
 // User/Technician API functions

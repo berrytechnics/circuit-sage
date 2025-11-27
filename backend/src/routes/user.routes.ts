@@ -96,4 +96,18 @@ router.get(
   })
 );
 
+router.get(
+  "/technicians",
+  validateRequest,
+  asyncHandler(async (req: Request, res: Response) => {
+    const technicians = await userService.findTechnicians();
+    const formattedTechnicians = technicians.map(formatUserForResponse);
+    
+    res.json({
+      success: true,
+      data: formattedTechnicians,
+    });
+  })
+);
+
 export default router;
