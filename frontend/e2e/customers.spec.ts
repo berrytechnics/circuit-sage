@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('Customer CRUD Operations', () => {
   // Note: These tests assume the backend is running and accessible

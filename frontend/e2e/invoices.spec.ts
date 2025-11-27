@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('Invoice CRUD Operations', () => {
   test('should display invoices list page', async ({ page }) => {

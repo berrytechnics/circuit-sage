@@ -27,6 +27,7 @@
     "management"
   ],
   "author": "J. Kyle Berry",
+  "license": "UNLICENSED",
   "dependencies": {
     "commander": "^11.0.0",
     "fs-extra": "^11.3.0"
