@@ -41,6 +41,12 @@ export const PERMISSIONS = {
   PURCHASE_ORDERS_CANCEL: "purchaseOrders.cancel",
   PURCHASE_ORDERS_DELETE: "purchaseOrders.delete",
 
+  // Inventory Transfer permissions
+  INVENTORY_TRANSFERS_READ: "inventoryTransfers.read",
+  INVENTORY_TRANSFERS_CREATE: "inventoryTransfers.create",
+  INVENTORY_TRANSFERS_COMPLETE: "inventoryTransfers.complete",
+  INVENTORY_TRANSFERS_CANCEL: "inventoryTransfers.cancel",
+
   // Invitation permissions
   INVITATIONS_READ: "invitations.read",
   INVITATIONS_CREATE: "invitations.create",
@@ -98,6 +104,12 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     PERMISSIONS.PURCHASE_ORDERS_CANCEL,
     PERMISSIONS.PURCHASE_ORDERS_DELETE,
 
+    // Inventory Transfers - all permissions
+    PERMISSIONS.INVENTORY_TRANSFERS_READ,
+    PERMISSIONS.INVENTORY_TRANSFERS_CREATE,
+    PERMISSIONS.INVENTORY_TRANSFERS_COMPLETE,
+    PERMISSIONS.INVENTORY_TRANSFERS_CANCEL,
+
     // Invitations - all permissions
     PERMISSIONS.INVITATIONS_READ,
     PERMISSIONS.INVITATIONS_CREATE,
@@ -140,6 +152,12 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     PERMISSIONS.PURCHASE_ORDERS_RECEIVE,
     PERMISSIONS.PURCHASE_ORDERS_CANCEL,
 
+    // Inventory Transfers - all permissions
+    PERMISSIONS.INVENTORY_TRANSFERS_READ,
+    PERMISSIONS.INVENTORY_TRANSFERS_CREATE,
+    PERMISSIONS.INVENTORY_TRANSFERS_COMPLETE,
+    PERMISSIONS.INVENTORY_TRANSFERS_CANCEL,
+
     // Settings
     PERMISSIONS.SETTINGS_ACCESS,
   ],
@@ -163,6 +181,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 
     // Purchase Orders - read only
     PERMISSIONS.PURCHASE_ORDERS_READ,
+
+    // Inventory Transfers - read only
+    PERMISSIONS.INVENTORY_TRANSFERS_READ,
 
     // Settings
     PERMISSIONS.SETTINGS_ACCESS,

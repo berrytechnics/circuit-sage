@@ -6,6 +6,7 @@ import { useTheme } from "@/lib/ThemeContext";
 import { useUser } from "@/lib/UserContext";
 import { cn } from "@/lib/utils";
 import {
+    ArrowPathIcon,
     ArrowRightEndOnRectangleIcon,
     Bars3Icon,
     ChartBarIcon,
@@ -102,6 +103,12 @@ export default function Sidebar() {
       label: "Inventory",
       icon: <ShoppingBagIcon className="w-6 h-6" />,
       permission: "inventory.read",
+    },
+    {
+      href: "/inventory-transfers",
+      label: "Inventory Transfers",
+      icon: <ArrowPathIcon className="w-6 h-6" />,
+      permission: "inventoryTransfers.read",
     },
     {
       href: "/purchase-orders",

@@ -607,7 +607,7 @@ npm run ci:all
 
 ## Project Status
 
-**Current Progress: ~67% Complete**
+**Current Progress: ~80% Complete**
 
 ### Completed Features
 - ✅ Multi-tenant architecture with company/location support
@@ -616,6 +616,8 @@ npm run ci:all
 - ✅ Invoicing with line items and payment tracking
 - ✅ Inventory management
 - ✅ Purchase orders
+- ✅ Inventory transfers (location-to-location transfers with two-step workflow)
+- ✅ Asset management (customer device tracking)
 - ✅ Role-based access control (RBAC)
 - ✅ User authentication and authorization
 - ✅ Comprehensive backend test suite (118+ tests)
@@ -623,12 +625,13 @@ npm run ci:all
 
 ### In Progress
 - 🟡 Frontend unit testing
+- 🟡 Reporting and analytics (basic placeholders exist)
 
 ### Planned Features
 - ⏳ Diagnostic checklist system
 - ⏳ Communication tools (email/SMS)
 - ⏳ Payment processing integration
-- ⏳ Reporting and analytics
+- ⏳ Advanced reporting and analytics
 
 See `planning/progress/` for detailed progress reports.
 
