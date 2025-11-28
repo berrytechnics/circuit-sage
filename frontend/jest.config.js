@@ -1,3 +1,17 @@
+// Patch module system before Jest loads to fix strip-ansi compatibility
+const Module = require('module')
+const originalRequire = Module.prototype.require
+Module.prototype.require = function (id, ...args) {
+  if (id === 'strip-ansi') {
+    try {
+      return require('strip-ansi-cjs')
+    } catch {
+      return originalRequire.apply(this, [id, ...args])
+    }
+  }
+  return originalRequire.apply(this, [id, ...args])
+}
+
 const nextJest = require('next/jest')
 
 const createJestConfig = nextJest({
@@ -12,6 +26,8 @@ const customJestConfig = {
   testEnvironment: 'jest-environment-jsdom',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    // Map strip-ansi to CommonJS version for Jest's internal dependencies
+    '^strip-ansi$': require.resolve('strip-ansi-cjs'),
   },
   testMatch: [
     '**/__tests__/**/*.test.[jt]s?(x)',

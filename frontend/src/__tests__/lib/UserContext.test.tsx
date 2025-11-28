@@ -48,9 +48,9 @@ const TestComponent = () => {
 describe('UserContext', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    // Clear localStorage mocks
-    ;(global.localStorage.getItem as jest.Mock).mockReturnValue(null)
-    ;(global.sessionStorage.getItem as jest.Mock).mockReturnValue(null)
+    // Reset localStorage mocks
+    ;(global.localStorage.getItem as jest.Mock).mockReset().mockReturnValue(null)
+    ;(global.sessionStorage.getItem as jest.Mock).mockReset().mockReturnValue(null)
   })
 
   describe('when user is authenticated', () => {
