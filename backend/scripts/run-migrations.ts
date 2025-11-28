@@ -27,6 +27,16 @@ async function runMigrations() {
   const client = await pool.connect();
   
   try {
+    // Enable UUID extension first (required for migrations)
+    console.log("Enabling UUID extension...");
+    try {
+      await client.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
+      console.log("✓ UUID extension enabled");
+    } catch (error) {
+      // Extension might already exist or might not be available
+      console.log("⚠ UUID extension check:", error instanceof Error ? error.message : String(error));
+    }
+    
     // Get migration directory (relative to project root or from current location)
     // Try multiple possible locations for migrations
     let migrationsDir = join(__dirname, "../../database/migrations");
