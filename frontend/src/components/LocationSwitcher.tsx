@@ -34,7 +34,7 @@ export default function LocationSwitcher() {
   };
 
   const currentLocation = availableLocations.find(
-    (loc) => loc.id === (user as any)?.currentLocationId
+    (loc) => loc.id === user?.currentLocationId
   );
 
   if (availableLocations.length === 0 && !userLoading) {
@@ -102,14 +102,14 @@ export default function LocationSwitcher() {
                   type="button"
                   onClick={() => handleLocationChange(location.id)}
                   className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 focus:outline-none focus:bg-gray-100 ${
-                    location.id === (user as any)?.currentLocationId
+                    location.id === user?.currentLocationId
                       ? "bg-blue-50 text-blue-700 font-medium"
                       : "text-gray-700"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span>{location.name}</span>
-                    {location.id === (user as any)?.currentLocationId && (
+                    {location.id === user?.currentLocationId && (
                       <svg
                         className="w-4 h-4 text-blue-600"
                         fill="currentColor"

@@ -131,7 +131,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       try {
         setIsLoading(true);
         await fetchUser();
-      } catch (err) {
+      } catch {
         // Error handling is done in fetchUser
       } finally {
         setIsLoading(false);

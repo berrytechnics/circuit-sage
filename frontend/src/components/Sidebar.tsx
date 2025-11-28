@@ -72,7 +72,15 @@ export default function Sidebar() {
   };
 
   // Define all navigation items with their required permissions
-  const allNavigationItems = [
+  interface NavigationItem {
+    href: string;
+    label: string;
+    icon: React.ReactNode;
+    permission: string;
+    adminOnly?: boolean;
+  }
+
+  const allNavigationItems: NavigationItem[] = [
     {
       href: "/dashboard",
       label: "Dashboard",
@@ -128,7 +136,7 @@ export default function Sidebar() {
   const navigation = allNavigationItems.filter((item) => {
     if (!user) return false;
     // Check admin-only items
-    if ((item as any).adminOnly && user.role !== "admin") {
+    if (item.adminOnly && user.role !== "admin") {
       return false;
     }
     return hasPermission(item.permission);

@@ -2,7 +2,6 @@
 
 import {
   CreateLocationData,
-  Location,
   UpdateLocationData,
   createLocation,
   getLocationById,
