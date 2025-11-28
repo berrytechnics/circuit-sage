@@ -4,7 +4,7 @@
 **/logs
 frontend/.next
 backend/tests/Flashpost-tests
-backend/dist
+**/dist
 .DS_Store
 **/planning
 **/logs
