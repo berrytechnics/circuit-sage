@@ -26,12 +26,31 @@ const nextConfig = {
     // number of pages that should be kept simultaneously without being disposed
     pagesBufferLength: 2,
   },
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     // Explicitly configure path aliases for webpack
     config.resolve.alias = {
       ...config.resolve.alias,
       "@": path.resolve(__dirname, "src"),
     };
+
+    // Handle react-pdf dependencies for client-side only
+    if (!isServer) {
+      // Add fallbacks for Node.js modules that react-pdf uses but aren't in browser
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        canvas: false,
+        fs: false,
+        stream: false,
+        path: false,
+      };
+    }
+
+    // Ensure @react-pdf/renderer is properly resolved
+    config.resolve.modules = [
+      ...(config.resolve.modules || []),
+      path.resolve(__dirname, "node_modules"),
+    ];
+
     return config;
   },
 };

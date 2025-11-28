@@ -10,6 +10,7 @@ import {
     updateInvoiceItem,
 } from "@/lib/api/invoice.api";
 import { useUser } from "@/lib/UserContext";
+import { generateInvoicePDF } from "@/lib/utils/pdfGenerator";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -28,6 +29,7 @@ export default function InvoiceDetailPage({
   const [showMarkPaidModal, setShowMarkPaidModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   // New item form state
   const [newItem, setNewItem] = useState({
@@ -249,6 +251,25 @@ export default function InvoiceDetailPage({
     }
   };
 
+  // Handle PDF generation
+  const handleGeneratePDF = async () => {
+    if (!invoice) return;
+
+    setIsGeneratingPDF(true);
+    try {
+      await generateInvoicePDF(invoice);
+    } catch (err) {
+      console.error("Error generating PDF:", err);
+      const errorMessage = err instanceof Error
+        ? err.message
+        : "Failed to generate PDF. Please try again.";
+      setError(errorMessage);
+      alert(errorMessage);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
   // Format date
   const formatDate = (dateString?: string) => {
     if (!dateString) return "N/A";
@@ -361,6 +382,13 @@ export default function InvoiceDetailPage({
               className="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
             >
               Back to List
+            </button>
+            <button
+              onClick={handleGeneratePDF}
+              disabled={isGeneratingPDF || !invoice}
+              className="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50"
+            >
+              {isGeneratingPDF ? "Generating..." : "Generate PDF"}
             </button>
             {canEdit && (
               <button
