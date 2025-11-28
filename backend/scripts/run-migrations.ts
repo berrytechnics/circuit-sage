@@ -66,10 +66,15 @@ async function runMigrations() {
       try {
         await client.query(sql);
         console.log(`✓ Migration ${file} completed successfully`);
-      } catch (error) {
-        // If it's a "relation already exists" error, that's okay (idempotent)
-        if (error instanceof Error && error.message.includes("already exists")) {
-          console.log(`⚠ Migration ${file} skipped (already applied)`);
+      } catch (error: any) {
+        // Handle idempotent errors - migrations that can be safely skipped if already applied
+        const isIdempotentError = 
+          (error instanceof Error && error.message.includes("already exists")) ||
+          (error?.code === "23505") || // Unique constraint violation (duplicate key)
+          (error?.code === "42P07"); // Duplicate table/relation
+        
+        if (isIdempotentError) {
+          console.log(`⚠ Migration ${file} skipped (already applied or duplicate)`);
         } else {
           console.error(`✗ Migration ${file} failed:`, error);
           throw error;

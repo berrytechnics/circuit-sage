@@ -1,6 +1,7 @@
 // src/db/connection.ts
 import { Kysely, PostgresDialect, sql } from "kysely";
-import { Pool } from "pg";
+import pkg from "pg";
+const { Pool } = pkg;
 import logger from "./logger.js";
 import { Database } from "./types.js";
 
