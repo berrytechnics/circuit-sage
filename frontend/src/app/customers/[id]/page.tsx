@@ -1,5 +1,6 @@
 "use client";
 
+import { Asset, getAssetsByCustomer } from "@/lib/api/asset.api";
 import {
     Customer,
     deleteCustomer,
@@ -8,9 +9,8 @@ import {
 } from "@/lib/api/customer.api";
 import { Invoice, getInvoicesByCustomer } from "@/lib/api/invoice.api";
 import { Ticket } from "@/lib/api/ticket.api";
-import { Asset, getAssetsByCustomer } from "@/lib/api/asset.api";
-import { formatStatus, getStatusColor } from "@/lib/utils/ticketUtils";
 import { useUser } from "@/lib/UserContext";
+import { formatStatus, getStatusColor } from "@/lib/utils/ticketUtils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
