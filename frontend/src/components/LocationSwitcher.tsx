@@ -49,9 +49,9 @@ export default function LocationSwitcher() {
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         disabled={isLoading}
-        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <span className="text-gray-500">Location:</span>
+        <span className="text-gray-500 dark:text-gray-400">Location:</span>
         <span className="font-semibold">
           {isLoading
             ? "Loading..."
@@ -75,7 +75,7 @@ export default function LocationSwitcher() {
       </button>
 
       {error && (
-        <div className="absolute top-full left-0 mt-1 w-64 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-xs z-50">
+        <div className="absolute top-full left-0 mt-1 w-64 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-3 py-2 rounded text-xs z-50">
           {error}
         </div>
       )}
@@ -86,13 +86,13 @@ export default function LocationSwitcher() {
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+          <div className="absolute top-full left-0 mt-1 w-64 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
             {isLoading ? (
-              <div className="px-4 py-2 text-sm text-gray-500">
+              <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
                 Loading locations...
               </div>
             ) : availableLocations.length === 0 ? (
-              <div className="px-4 py-2 text-sm text-gray-500">
+              <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
                 No locations available
               </div>
             ) : (
@@ -101,17 +101,17 @@ export default function LocationSwitcher() {
                   key={location.id}
                   type="button"
                   onClick={() => handleLocationChange(location.id)}
-                  className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 focus:outline-none focus:bg-gray-100 ${
+                  className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700 ${
                     location.id === user?.currentLocationId
-                      ? "bg-blue-50 text-blue-700 font-medium"
-                      : "text-gray-700"
+                      ? "bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200 font-medium"
+                      : "text-gray-700 dark:text-gray-300"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span>{location.name}</span>
                     {location.id === user?.currentLocationId && (
                       <svg
-                        className="w-4 h-4 text-blue-600"
+                        className="w-4 h-4 text-blue-600 dark:text-blue-400"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
