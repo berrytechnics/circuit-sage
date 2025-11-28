@@ -8,7 +8,7 @@ if (typeof process !== 'undefined' && process.version.startsWith('v23')) {
   // Suppress the error for Node 23 - tests will work in CI with Node 22
   const originalError = console.error
   console.error = (...args: unknown[]) => {
-    if (args[0]?.includes?.('stripAnsi is not a function')) {
+    if (typeof args[0] === 'string' && args[0].includes('stripAnsi is not a function')) {
       return
     }
     originalError(...args)
@@ -53,8 +53,10 @@ const localStorageMock = {
   setItem: jest.fn(),
   removeItem: jest.fn(),
   clear: jest.fn(),
+  length: 0,
+  key: jest.fn(),
 }
-global.localStorage = localStorageMock as Storage
+global.localStorage = localStorageMock as unknown as Storage
 
 // Mock window.sessionStorage
 const sessionStorageMock = {
@@ -62,6 +64,8 @@ const sessionStorageMock = {
   setItem: jest.fn(),
   removeItem: jest.fn(),
   clear: jest.fn(),
+  length: 0,
+  key: jest.fn(),
 }
-global.sessionStorage = sessionStorageMock as Storage
+global.sessionStorage = sessionStorageMock as unknown as Storage
 
