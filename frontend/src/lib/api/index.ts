@@ -54,8 +54,11 @@ let accessToken: string | null = null;
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    // Get token from variable or localStorage (in case it was updated elsewhere)
-    const token = accessToken || (typeof window !== "undefined" ? localStorage.getItem("accessToken") : null);
+    // Get token from variable, localStorage, or sessionStorage (in case it was updated elsewhere)
+    let token = accessToken;
+    if (!token && typeof window !== "undefined") {
+      token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+    }
     // Add auth token to headers if available
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -190,7 +193,8 @@ api.interceptors.response.use(
 
 // Auth functions
 export const login = async (
-  credentials: LoginCredentials
+  credentials: LoginCredentials,
+  rememberMe: boolean = true
 ): Promise<AuthResponse> => {
   const response = await api.post<ApiResponse<AuthResponse>>(
     "/auth/login",
@@ -200,8 +204,23 @@ export const login = async (
   if (response.data.success && response.data.data) {
     const { accessToken: token, refreshToken } = response.data.data;
     accessToken = token;
-    localStorage.setItem("accessToken", token);
-    localStorage.setItem("refreshToken", refreshToken);
+    
+    // Store tokens based on remember me preference
+    // localStorage persists across browser sessions
+    // sessionStorage clears when browser tab/window closes
+    const storage = rememberMe ? localStorage : sessionStorage;
+    storage.setItem("accessToken", token);
+    storage.setItem("refreshToken", refreshToken);
+    
+    // Clear the other storage type to avoid conflicts
+    if (rememberMe) {
+      sessionStorage.removeItem("accessToken");
+      sessionStorage.removeItem("refreshToken");
+    } else {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+    }
+    
     return response.data.data;
   }
 
@@ -215,7 +234,8 @@ export const register = async (
     companyName?: string;
     invitationToken?: string;
     role?: string;
-  }
+  },
+  rememberMe: boolean = true
 ): Promise<AuthResponse> => {
   const response = await api.post<ApiResponse<AuthResponse>>(
     "/auth/register",
@@ -225,8 +245,21 @@ export const register = async (
   if (response.data.success && response.data.data) {
     const { accessToken: token, refreshToken } = response.data.data;
     accessToken = token;
-    localStorage.setItem("accessToken", token);
-    localStorage.setItem("refreshToken", refreshToken);
+    
+    // Store tokens based on remember me preference
+    const storage = rememberMe ? localStorage : sessionStorage;
+    storage.setItem("accessToken", token);
+    storage.setItem("refreshToken", refreshToken);
+    
+    // Clear the other storage type to avoid conflicts
+    if (rememberMe) {
+      sessionStorage.removeItem("accessToken");
+      sessionStorage.removeItem("refreshToken");
+    } else {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+    }
+    
     return response.data.data;
   }
 
@@ -246,8 +279,11 @@ export const getCurrentUser = async (): Promise<User> => {
 export const logout = (): void => {
   accessToken = null;
   if (typeof window !== "undefined") {
+    // Clear tokens from both storage types
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("accessToken");
+    sessionStorage.removeItem("refreshToken");
   }
 };
 
@@ -301,9 +337,9 @@ export const updateRolePermissions = async (
   }
 };
 
-// Set token from storage on init
+// Set token from storage on init (check both localStorage and sessionStorage)
 if (typeof window !== "undefined") {
-  const savedToken = localStorage.getItem("accessToken");
+  const savedToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
   if (savedToken) {
     accessToken = savedToken;
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { login } from "@/lib/api";
+import { getCurrentUser, login } from "@/lib/api";
 import { useUser } from "@/lib/UserContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { setUser } = useUser();
@@ -20,8 +21,14 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const { user } = await login({ email, password });
-      setUser(user);
+      // Login to get the token (pass rememberMe preference)
+      await login({ email, password }, rememberMe);
+      
+      // Fetch the full user profile with permissions
+      const userWithPermissions = await getCurrentUser();
+      setUser(userWithPermissions);
+      
+      // Now redirect to dashboard
       router.push("/dashboard");
     } catch (err) {
       console.error("Login error:", err);
@@ -109,6 +116,8 @@ export default function LoginPage() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-500"
                 />
                 <label

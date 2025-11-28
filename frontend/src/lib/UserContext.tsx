@@ -46,15 +46,27 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
         return;
       }
 
-      // Only try to fetch user if there's a token
-      const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+      // Only try to fetch user if there's a token (check both localStorage and sessionStorage)
+      const token = typeof window !== "undefined" 
+        ? (localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken"))
+        : null;
       if (!token) {
         setIsLoading(false);
         setUser(null);
         return;
       }
 
+      // If we already have a user with permissions, don't refetch unnecessarily
+      // This prevents race conditions when navigating after login
+      // Note: We access 'user' from closure - this is safe because we only check it
+      // at the start of the effect, and the effect runs when pathname changes
+      if (user && user.permissions && user.permissions.length > 0) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
+        setIsLoading(true);
         const userData = await getCurrentUser();
         setUser(userData);
       } catch (err) {
@@ -62,10 +74,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
         if (err && typeof err === "object" && "response" in err) {
           const axiosError = err as { response?: { status?: number } };
           if (axiosError.response?.status === 401 || axiosError.response?.status === 403) {
-            // Clear invalid token
+            // Clear invalid token from both storage types
             if (typeof window !== "undefined") {
               localStorage.removeItem("accessToken");
               localStorage.removeItem("refreshToken");
+              sessionStorage.removeItem("accessToken");
+              sessionStorage.removeItem("refreshToken");
             }
           }
         }
@@ -76,6 +90,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     };
 
     fetchUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   // Permission checking helpers

@@ -1,6 +1,6 @@
 "use client";
 
-import { register } from "@/lib/api";
+import { getCurrentUser, register } from "@/lib/api";
 import { useUser } from "@/lib/UserContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -38,7 +38,8 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const { user } = await register({
+      // Register to get the token
+      await register({
         firstName,
         lastName,
         email,
@@ -47,7 +48,12 @@ export default function RegisterPage() {
           ? { companyName }
           : { invitationToken }),
       });
-      setUser(user);
+      
+      // Fetch the full user profile with permissions
+      const userWithPermissions = await getCurrentUser();
+      setUser(userWithPermissions);
+      
+      // Now redirect to dashboard
       router.push("/dashboard");
     } catch (err) {
       console.error("Registration error:", err);
