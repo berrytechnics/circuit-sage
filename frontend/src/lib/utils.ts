@@ -57,7 +57,8 @@ export function formatPhoneNumber(phoneNumber: string): string {
  * Truncate text with ellipsis
  */
 export function truncateText(text: string, maxLength: number = 100): string {
-  if (!text || text.length <= maxLength) return text;
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
   return `${text.slice(0, maxLength)}...`;
 }
 

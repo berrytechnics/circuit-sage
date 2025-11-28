@@ -57,15 +57,21 @@ describe('LocationForm', () => {
       const nameInput = screen.getByLabelText(/name/i)
       await user.type(nameInput, 'Test Location')
 
-      const emailInput = screen.getByLabelText(/email/i)
+      const emailInput = screen.getByLabelText(/email/i) as HTMLInputElement
+      await user.clear(emailInput)
       await user.type(emailInput, 'invalid-email')
+      
+      // Wait for state to update
+      await waitFor(() => {
+        expect(emailInput.value).toBe('invalid-email')
+      })
 
       const submitButton = screen.getByRole('button', { name: /create location|update location/i })
       await user.click(submitButton)
 
       await waitFor(() => {
-        expect(screen.getByText(/valid email address/i)).toBeInTheDocument()
-      })
+        expect(screen.getByText(/please enter a valid email address/i)).toBeInTheDocument()
+      }, { timeout: 3000 })
     })
 
     it('validates phone format', async () => {

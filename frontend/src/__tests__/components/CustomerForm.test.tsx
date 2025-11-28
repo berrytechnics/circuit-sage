@@ -79,21 +79,27 @@ describe('CustomerForm', () => {
       const user = userEvent.setup()
       render(<CustomerForm />)
 
-      const emailInput = screen.getByLabelText(/email/i)
-      await user.type(emailInput, 'invalid-email')
-
       const firstNameInput = screen.getByLabelText(/first name/i)
       await user.type(firstNameInput, 'John')
 
       const lastNameInput = screen.getByLabelText(/last name/i)
       await user.type(lastNameInput, 'Doe')
 
+      const emailInput = screen.getByLabelText(/email/i) as HTMLInputElement
+      await user.clear(emailInput)
+      await user.type(emailInput, 'invalid-email')
+      
+      // Wait for state to update
+      await waitFor(() => {
+        expect(emailInput.value).toBe('invalid-email')
+      })
+
       const submitButton = screen.getByRole('button', { name: /create customer|save/i })
       await user.click(submitButton)
 
       await waitFor(() => {
-        expect(screen.getByText(/valid email address/i)).toBeInTheDocument()
-      })
+        expect(screen.getByText(/please enter a valid email address/i)).toBeInTheDocument()
+      }, { timeout: 3000 })
     })
 
     it('validates phone format', async () => {
