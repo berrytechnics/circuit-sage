@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  CreateLocationData,
-  UpdateLocationData,
-  createLocation,
-  getLocationById,
-  updateLocation,
+    CreateLocationData,
+    UpdateLocationData,
+    createLocation,
+    getLocationById,
+    updateLocation,
 } from "@/lib/api/location.api";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";

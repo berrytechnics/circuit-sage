@@ -3,11 +3,11 @@
 
 import { usePathname } from "next/navigation";
 import React, {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
+    createContext,
+    ReactNode,
+    useContext,
+    useEffect,
+    useState,
 } from "react";
 import { getCurrentUser, User } from "./api";
 import { getCurrentUserLocations, setCurrentLocation } from "./api/location.api";
