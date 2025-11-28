@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import CustomerForm from '@/components/CustomerForm'
 import * as customerApi from '@/lib/api/customer.api'
@@ -77,7 +77,7 @@ describe('CustomerForm', () => {
 
     it('validates email format', async () => {
       const user = userEvent.setup()
-      render(<CustomerForm />)
+      const { container } = render(<CustomerForm />)
 
       const firstNameInput = screen.getByLabelText(/first name/i)
       await user.type(firstNameInput, 'John')
@@ -94,12 +94,17 @@ describe('CustomerForm', () => {
         expect(emailInput.value).toBe('invalid-email')
       })
 
-      const submitButton = screen.getByRole('button', { name: /create customer|save/i })
-      await user.click(submitButton)
+      // Submit the form directly
+      const form = container.querySelector('form')
+      expect(form).toBeInTheDocument()
+      fireEvent.submit(form!)
 
       await waitFor(() => {
         expect(screen.getByText(/please enter a valid email address/i)).toBeInTheDocument()
       }, { timeout: 3000 })
+      
+      // Verify API was not called
+      expect(mockedCustomerApi.createCustomer).not.toHaveBeenCalled()
     })
 
     it('validates phone format', async () => {
