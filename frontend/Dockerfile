@@ -5,7 +5,7 @@ FROM base AS deps
 WORKDIR /app
 
 # Copy package files
-COPY package.json yarn.lock* ./
+COPY frontend/package.json frontend/yarn.lock* ./
 
 # Install dependencies with cache optimization
 RUN yarn install --frozen-lockfile --network-timeout 600000
@@ -14,7 +14,7 @@ RUN yarn install --frozen-lockfile --network-timeout 600000
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY frontend/ .
 
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED 1

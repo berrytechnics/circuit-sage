@@ -605,6 +605,39 @@ npm run ci:frontend
 npm run ci:all
 ```
 
+## Deployment
+
+CircuitSage can be deployed to various platforms. For sandbox/client testing, we recommend Render's free tier.
+
+### Quick Deployment to Render
+
+1. **Prerequisites**: GitHub account, Render account
+2. **Follow the guide**: See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions
+3. **Quick steps**:
+   - Push code to GitHub
+   - Connect Render to your repository
+   - Render will auto-detect `render.yaml` and create services
+   - Run database migrations
+   - Access your deployed application
+
+### Deployment Files
+
+- `render.yaml` - Render service definitions (database, backend, frontend)
+- `.renderignore` - Files excluded from deployment
+- `DEPLOYMENT.md` - Complete deployment guide with troubleshooting
+
+### Environment Variables
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md#environment-variables-reference) for complete environment variable documentation.
+
+### Cost
+
+- **Free tier**: $0/month (services spin down after inactivity)
+- **PostgreSQL**: Free for 90 days, then $7/month
+- **Total**: $0-7/month for sandbox/testing
+
+For production deployments, see [DEPLOYMENT.md](./DEPLOYMENT.md) for paid tier options and alternatives.
+
 ## Project Status
 
 **Current Progress: ~80% Complete**
@@ -642,6 +675,7 @@ This project is proprietary software. All rights reserved.
 ## Additional Resources
 
 - [QUICK_START.md](./QUICK_START.md) - User-focused quick start guide
+- [DEPLOYMENT.md](./DEPLOYMENT.md) - Deployment guide for sandbox/production
 - [TESTING_METHODOLOGY.md](./TESTING_METHODOLOGY.md) - Testing guidelines and practices
 - `planning/MVP.md` - MVP specification
 - `planning/PLAN.md` - Development roadmap

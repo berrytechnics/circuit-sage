@@ -1,0 +1,65 @@
+services:
+  # PostgreSQL Database
+  - type: pspg
+    name: circuit-sage-db
+    plan: free
+    databaseName: repair_business
+    user: repair_admin
+
+  # Backend API Service
+  - type: web
+    name: circuit-sage-api
+    env: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: DB_HOST
+        fromDatabase:
+          name: circuit-sage-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: circuit-sage-db
+          property: port
+      - key: DB_USER
+        fromDatabase:
+          name: circuit-sage-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: circuit-sage-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: circuit-sage-db
+          property: database
+      - key: JWT_SECRET
+        generateValue: true
+      - key: IS_DOCKER
+        value: "true"
+    buildCommand: yarn install --frozen-lockfile && yarn build
+    # Migrations will run on first startup via a startup script or manually
+    startCommand: yarn start
+
+  # Frontend Web Service
+  - type: web
+    name: circuit-sage-frontend
+    env: docker
+    plan: free
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        # Set this manually after backend is deployed
+        # Format: https://circuit-sage-api.onrender.com/api
+        value: https://circuit-sage-api.onrender.com/api
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+

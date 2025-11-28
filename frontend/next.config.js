@@ -10,7 +10,7 @@ const path = require("path");
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  // output: "standalone", // Disabled due to build issues - can be re-enabled if needed
+  output: "standalone", // Required for production Docker builds
   experimental: {
     outputFileTracingRoot: path.resolve(__dirname),
     memoryBasedWorkersCount: true,

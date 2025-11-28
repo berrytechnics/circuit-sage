@@ -22,8 +22,17 @@ async function runMigrations() {
   const client = await pool.connect();
   
   try {
-    // Get migration directory (relative to project root)
-    const migrationsDir = join(__dirname, "../../database/migrations");
+    // Get migration directory (relative to project root or from current location)
+    // Try multiple possible locations for migrations
+    let migrationsDir = join(__dirname, "../../database/migrations");
+    if (!require("fs").existsSync(migrationsDir)) {
+      // Try from backend directory
+      migrationsDir = join(__dirname, "../database/migrations");
+      if (!require("fs").existsSync(migrationsDir)) {
+        // Try absolute path from app root
+        migrationsDir = join(process.cwd(), "database/migrations");
+      }
+    }
     
     // Get all SQL migration files and sort them
     const files = readdirSync(migrationsDir)
