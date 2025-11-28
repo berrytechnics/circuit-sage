@@ -90,7 +90,7 @@ export default function TransferForm() {
     } else {
       setAvailableQuantity(null);
     }
-  }, [formData.inventoryItemId, inventoryItems]);
+  }, [formData.inventoryItemId, formData.quantity, inventoryItems]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
