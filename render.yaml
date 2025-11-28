@@ -43,7 +43,7 @@ services:
         value: "true"
     buildCommand: yarn install --frozen-lockfile && yarn build
     # Migrations will run on first startup via a startup script or manually
-    startCommand: yarn start
+    # Start command is defined in Dockerfile CMD/ENTRYPOINT
 
   # Frontend Web Service
   - type: web
