@@ -40,3 +40,18 @@ export const revenueOverTimeValidation = [
     .withMessage("groupBy must be one of: day, week, month"),
 ];
 
+export const reportDateRangeValidation = [
+  query("locationId")
+    .optional()
+    .isUUID()
+    .withMessage("locationId must be a valid UUID"),
+  query("startDate")
+    .optional()
+    .isISO8601()
+    .withMessage("startDate must be a valid ISO 8601 date string"),
+  query("endDate")
+    .optional()
+    .isISO8601()
+    .withMessage("endDate must be a valid ISO 8601 date string"),
+];
+

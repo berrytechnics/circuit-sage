@@ -87,6 +87,12 @@ export default function Sidebar() {
       permission: "settings.access", // All authenticated users have this
     },
     {
+      href: "/reporting",
+      label: "Reports",
+      icon: <ChartBarIcon className="w-6 h-6" />,
+      permission: "settings.access", // All authenticated users have this
+    },
+    {
       href: "/tickets",
       label: "Tickets",
       icon: <TicketIcon className="w-6 h-6" />,

@@ -13,6 +13,35 @@ export interface RevenueDataPoint {
   revenue: number;
 }
 
+export interface StatusDistribution {
+  status: string;
+  count: number;
+}
+
+export interface PriorityDistribution {
+  priority: string;
+  count: number;
+}
+
+export interface RevenueByLocation {
+  locationId: string | null;
+  locationName: string;
+  revenue: number;
+}
+
+export interface TechnicianPerformance {
+  technicianId: string;
+  technicianName: string;
+  ticketsCompleted: number;
+  averageCompletionDays: number | null;
+}
+
+export interface InvoiceStatusBreakdown {
+  status: string;
+  count: number;
+  totalAmount: number;
+}
+
 // Reporting API functions
 export const getDashboardStats = async (
   locationId?: string | null,
@@ -69,6 +98,157 @@ export const getRevenueOverTime = async (
 
   throw new Error(
     response.data.error?.message || "Failed to fetch revenue data"
+  );
+};
+
+export const getTicketStatusDistribution = async (
+  locationId?: string | null,
+  startDate?: string,
+  endDate?: string
+): Promise<ApiResponse<StatusDistribution[]>> => {
+  const params = new URLSearchParams();
+  if (locationId !== undefined && locationId !== null) {
+    params.append("locationId", locationId);
+  }
+  if (startDate) {
+    params.append("startDate", startDate);
+  }
+  if (endDate) {
+    params.append("endDate", endDate);
+  }
+
+  const url = params.toString()
+    ? `/reporting/ticket-status-distribution?${params.toString()}`
+    : "/reporting/ticket-status-distribution";
+
+  const response = await api.get<ApiResponse<StatusDistribution[]>>(url);
+
+  if (response.data.success) {
+    return response.data;
+  }
+
+  throw new Error(
+    response.data.error?.message || "Failed to fetch ticket status distribution"
+  );
+};
+
+export const getTicketPriorityDistribution = async (
+  locationId?: string | null,
+  startDate?: string,
+  endDate?: string
+): Promise<ApiResponse<PriorityDistribution[]>> => {
+  const params = new URLSearchParams();
+  if (locationId !== undefined && locationId !== null) {
+    params.append("locationId", locationId);
+  }
+  if (startDate) {
+    params.append("startDate", startDate);
+  }
+  if (endDate) {
+    params.append("endDate", endDate);
+  }
+
+  const url = params.toString()
+    ? `/reporting/ticket-priority-distribution?${params.toString()}`
+    : "/reporting/ticket-priority-distribution";
+
+  const response = await api.get<ApiResponse<PriorityDistribution[]>>(url);
+
+  if (response.data.success) {
+    return response.data;
+  }
+
+  throw new Error(
+    response.data.error?.message || "Failed to fetch ticket priority distribution"
+  );
+};
+
+export const getRevenueByLocation = async (
+  startDate?: string,
+  endDate?: string
+): Promise<ApiResponse<RevenueByLocation[]>> => {
+  const params = new URLSearchParams();
+  if (startDate) {
+    params.append("startDate", startDate);
+  }
+  if (endDate) {
+    params.append("endDate", endDate);
+  }
+
+  const url = params.toString()
+    ? `/reporting/revenue-by-location?${params.toString()}`
+    : "/reporting/revenue-by-location";
+
+  const response = await api.get<ApiResponse<RevenueByLocation[]>>(url);
+
+  if (response.data.success) {
+    return response.data;
+  }
+
+  throw new Error(
+    response.data.error?.message || "Failed to fetch revenue by location"
+  );
+};
+
+export const getTechnicianPerformance = async (
+  locationId?: string | null,
+  startDate?: string,
+  endDate?: string
+): Promise<ApiResponse<TechnicianPerformance[]>> => {
+  const params = new URLSearchParams();
+  if (locationId !== undefined && locationId !== null) {
+    params.append("locationId", locationId);
+  }
+  if (startDate) {
+    params.append("startDate", startDate);
+  }
+  if (endDate) {
+    params.append("endDate", endDate);
+  }
+
+  const url = params.toString()
+    ? `/reporting/technician-performance?${params.toString()}`
+    : "/reporting/technician-performance";
+
+  const response = await api.get<ApiResponse<TechnicianPerformance[]>>(url);
+
+  if (response.data.success) {
+    return response.data;
+  }
+
+  throw new Error(
+    response.data.error?.message || "Failed to fetch technician performance"
+  );
+};
+
+export const getInvoiceStatusBreakdown = async (
+  locationId?: string | null,
+  startDate?: string,
+  endDate?: string
+): Promise<ApiResponse<InvoiceStatusBreakdown[]>> => {
+  const params = new URLSearchParams();
+  if (locationId !== undefined && locationId !== null) {
+    params.append("locationId", locationId);
+  }
+  if (startDate) {
+    params.append("startDate", startDate);
+  }
+  if (endDate) {
+    params.append("endDate", endDate);
+  }
+
+  const url = params.toString()
+    ? `/reporting/invoice-status-breakdown?${params.toString()}`
+    : "/reporting/invoice-status-breakdown";
+
+  const response = await api.get<ApiResponse<InvoiceStatusBreakdown[]>>(url);
+
+  if (response.data.success) {
+    return response.data;
+  }
+
+  throw new Error(
+    response.data.error?.message || "Failed to fetch invoice status breakdown"
   );
 };
 

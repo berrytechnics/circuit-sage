@@ -16,6 +16,35 @@ export interface RevenueDataPoint {
 
 export type GroupByPeriod = "day" | "week" | "month";
 
+export interface StatusDistribution {
+  status: string;
+  count: number;
+}
+
+export interface PriorityDistribution {
+  priority: string;
+  count: number;
+}
+
+export interface RevenueByLocation {
+  locationId: string | null;
+  locationName: string;
+  revenue: number;
+}
+
+export interface TechnicianPerformance {
+  technicianId: string;
+  technicianName: string;
+  ticketsCompleted: number;
+  averageCompletionDays: number | null;
+}
+
+export interface InvoiceStatusBreakdown {
+  status: string;
+  count: number;
+  totalAmount: number;
+}
+
 export class ReportingService {
   /**
    * Get dashboard summary statistics
@@ -168,6 +197,254 @@ export class ReportingService {
     return results.map((row) => ({
       date: new Date(row.period).toISOString().split("T")[0],
       revenue: Number(row.revenue || 0),
+    }));
+  }
+
+  /**
+   * Get ticket status distribution
+   */
+  async getTicketStatusDistribution(
+    companyId: string,
+    locationId?: string | null,
+    startDate?: string,
+    endDate?: string
+  ): Promise<StatusDistribution[]> {
+    let query = db
+      .selectFrom("tickets")
+      .select([
+        "status",
+        sql<number>`COUNT(*)`.as("count"),
+      ])
+      .where("company_id", "=", companyId)
+      .where("deleted_at", "is", null)
+      .groupBy("status");
+
+    if (locationId !== undefined) {
+      if (locationId === null) {
+        query = query.where("location_id", "is", null);
+      } else {
+        query = query.where("location_id", "=", locationId);
+      }
+    }
+
+    if (startDate) {
+      query = query.where("created_at", ">=", new Date(startDate));
+    }
+
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      query = query.where("created_at", "<=", end);
+    }
+
+    const results = await query.execute();
+
+    return results.map((row) => ({
+      status: row.status,
+      count: Number(row.count || 0),
+    }));
+  }
+
+  /**
+   * Get ticket priority distribution
+   */
+  async getTicketPriorityDistribution(
+    companyId: string,
+    locationId?: string | null,
+    startDate?: string,
+    endDate?: string
+  ): Promise<PriorityDistribution[]> {
+    let query = db
+      .selectFrom("tickets")
+      .select([
+        "priority",
+        sql<number>`COUNT(*)`.as("count"),
+      ])
+      .where("company_id", "=", companyId)
+      .where("deleted_at", "is", null)
+      .groupBy("priority");
+
+    if (locationId !== undefined) {
+      if (locationId === null) {
+        query = query.where("location_id", "is", null);
+      } else {
+        query = query.where("location_id", "=", locationId);
+      }
+    }
+
+    if (startDate) {
+      query = query.where("created_at", ">=", new Date(startDate));
+    }
+
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      query = query.where("created_at", "<=", end);
+    }
+
+    const results = await query.execute();
+
+    return results.map((row) => ({
+      priority: row.priority,
+      count: Number(row.count || 0),
+    }));
+  }
+
+  /**
+   * Get revenue by location
+   */
+  async getRevenueByLocation(
+    companyId: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<RevenueByLocation[]> {
+    const start = startDate ? new Date(startDate) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const end = endDate 
+      ? new Date(endDate)
+      : new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59, 999);
+
+    if (endDate) {
+      end.setHours(23, 59, 59, 999);
+    }
+
+    const results = await db
+      .selectFrom("invoices")
+      .leftJoin("locations", "invoices.location_id", "locations.id")
+      .select([
+        "invoices.location_id",
+        sql<string | null>`COALESCE(locations.name, 'No Location')`.as("location_name"),
+        sql<number>`COALESCE(SUM(invoices.total_amount), 0)`.as("revenue"),
+      ])
+      .where("invoices.company_id", "=", companyId)
+      .where("invoices.status", "=", "paid")
+      .where("invoices.paid_date", "is not", null)
+      .where("invoices.paid_date", ">=", start)
+      .where("invoices.paid_date", "<=", end)
+      .where("invoices.deleted_at", "is", null)
+      .groupBy("invoices.location_id")
+      .groupBy("locations.name")
+      .orderBy("revenue", "desc")
+      .execute();
+
+    return results.map((row) => ({
+      locationId: row.location_id || null,
+      locationName: row.location_name || "No Location",
+      revenue: Number(row.revenue || 0),
+    }));
+  }
+
+  /**
+   * Get technician performance metrics
+   */
+  async getTechnicianPerformance(
+    companyId: string,
+    locationId?: string | null,
+    startDate?: string,
+    endDate?: string
+  ): Promise<TechnicianPerformance[]> {
+    const start = startDate ? new Date(startDate) : new Date();
+    start.setMonth(start.getMonth() - 1);
+    
+    const end = endDate 
+      ? new Date(endDate)
+      : new Date();
+    end.setHours(23, 59, 59, 999);
+
+    if (endDate) {
+      end.setHours(23, 59, 59, 999);
+    }
+
+    let query = db
+      .selectFrom("tickets")
+      .innerJoin("users", "tickets.technician_id", "users.id")
+      .select([
+        "users.id",
+        sql<string>`CONCAT(users.first_name, ' ', users.last_name)`.as("technician_name"),
+        sql<number>`COUNT(CASE WHEN tickets.status = 'completed' THEN 1 END)`.as("completed_count"),
+        sql<number>`AVG(CASE 
+          WHEN tickets.status = 'completed' AND tickets.completed_date IS NOT NULL AND tickets.created_at IS NOT NULL
+          THEN EXTRACT(EPOCH FROM (tickets.completed_date - tickets.created_at)) / 86400.0
+          ELSE NULL
+        END)`.as("avg_completion_days"),
+      ])
+      .where("tickets.company_id", "=", companyId)
+      .where("tickets.technician_id", "is not", null)
+      .where("tickets.deleted_at", "is", null)
+      .where("users.deleted_at", "is", null)
+      .where("tickets.created_at", ">=", start)
+      .where("tickets.created_at", "<=", end)
+      .groupBy("users.id")
+      .groupBy("users.first_name")
+      .groupBy("users.last_name")
+      .orderBy("completed_count", "desc");
+
+    if (locationId !== undefined) {
+      if (locationId === null) {
+        query = query.where("tickets.location_id", "is", null);
+      } else {
+        query = query.where("tickets.location_id", "=", locationId);
+      }
+    }
+
+    const results = await query.execute();
+
+    return results.map((row) => ({
+      technicianId: row.id,
+      technicianName: row.technician_name || "Unknown",
+      ticketsCompleted: Number(row.completed_count || 0),
+      averageCompletionDays: row.avg_completion_days ? Number(Number(row.avg_completion_days).toFixed(2)) : null,
+    }));
+  }
+
+  /**
+   * Get invoice status breakdown
+   */
+  async getInvoiceStatusBreakdown(
+    companyId: string,
+    locationId?: string | null,
+    startDate?: string,
+    endDate?: string
+  ): Promise<InvoiceStatusBreakdown[]> {
+    const start = startDate ? new Date(startDate) : new Date();
+    start.setMonth(start.getMonth() - 1);
+    
+    const end = endDate 
+      ? new Date(endDate)
+      : new Date();
+    end.setHours(23, 59, 59, 999);
+
+    if (endDate) {
+      end.setHours(23, 59, 59, 999);
+    }
+
+    let query = db
+      .selectFrom("invoices")
+      .select([
+        "status",
+        sql<number>`COUNT(*)`.as("count"),
+        sql<number>`COALESCE(SUM(total_amount), 0)`.as("total_amount"),
+      ])
+      .where("company_id", "=", companyId)
+      .where("deleted_at", "is", null)
+      .where("created_at", ">=", start)
+      .where("created_at", "<=", end)
+      .groupBy("status")
+      .orderBy("status", "asc");
+
+    if (locationId !== undefined) {
+      if (locationId === null) {
+        query = query.where("location_id", "is", null);
+      } else {
+        query = query.where("location_id", "=", locationId);
+      }
+    }
+
+    const results = await query.execute();
+
+    return results.map((row) => ({
+      status: row.status,
+      count: Number(row.count || 0),
+      totalAmount: Number(row.total_amount || 0),
     }));
   }
 }
