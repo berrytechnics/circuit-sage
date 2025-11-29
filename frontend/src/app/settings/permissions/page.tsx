@@ -1,6 +1,10 @@
 "use client";
 
-import { getPermissionsMatrix, updateRolePermissions } from "@/lib/api";
+import {
+  getAllAvailablePermissions,
+  getPermissionsMatrix,
+  updateRolePermissions,
+} from "@/lib/api";
 import { useUser } from "@/lib/UserContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -12,6 +16,7 @@ export default function PermissionsPage() {
   const { user, hasPermission, isLoading } = useUser();
   const [matrix, setMatrix] = useState<PermissionsMatrix | null>(null);
   const [editedMatrix, setEditedMatrix] = useState<PermissionsMatrix | null>(null);
+  const [allAvailablePermissions, setAllAvailablePermissions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,9 +30,9 @@ export default function PermissionsPage() {
     }
   }, [user, isLoading, hasPermission, router]);
 
-  // Fetch permissions matrix
+  // Fetch permissions matrix and all available permissions
   useEffect(() => {
-    const fetchMatrix = async () => {
+    const fetchData = async () => {
       if (!user || !hasPermission("permissions.view")) {
         return;
       }
@@ -35,9 +40,23 @@ export default function PermissionsPage() {
       try {
         setLoading(true);
         setError(null);
-        const data = await getPermissionsMatrix();
-        setMatrix(data);
-        setEditedMatrix({ ...data }); // Create a copy for editing
+        
+        // Fetch both the matrix and all available permissions in parallel
+        const [matrixData, availablePermissions] = await Promise.all([
+          getPermissionsMatrix(),
+          getAllAvailablePermissions(),
+        ]);
+        
+        // Ensure all roles exist in the matrix (in case backend doesn't return empty arrays)
+        const roles = ["admin", "manager", "technician", "frontdesk"];
+        const normalizedMatrix: PermissionsMatrix = {};
+        for (const role of roles) {
+          normalizedMatrix[role] = matrixData[role] || [];
+        }
+        
+        setMatrix(normalizedMatrix);
+        setEditedMatrix({ ...normalizedMatrix }); // Create a copy for editing
+        setAllAvailablePermissions(availablePermissions);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load permissions");
       } finally {
@@ -45,7 +64,7 @@ export default function PermissionsPage() {
       }
     };
 
-    fetchMatrix();
+    fetchData();
   }, [user, hasPermission]);
 
   if (isLoading || loading) {
@@ -74,10 +93,11 @@ export default function PermissionsPage() {
     return null;
   }
 
-  // Get all unique permissions from the matrix
-  const allPermissions = Array.from(
-    new Set(Object.values(matrix).flat())
-  ).sort();
+  // Use all available permissions from the backend config, not just what's in the matrix
+  // This ensures we show all possible permissions, even if they're not assigned to any role yet
+  const allPermissions = allAvailablePermissions.length > 0 
+    ? allAvailablePermissions 
+    : Array.from(new Set(Object.values(matrix).flat())).sort();
 
   // Handle checkbox change
   const handlePermissionToggle = (role: string, permission: string) => {

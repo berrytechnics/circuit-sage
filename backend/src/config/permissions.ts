@@ -58,6 +58,9 @@ export const PERMISSIONS = {
   // Permissions screen
   PERMISSIONS_VIEW: "permissions.view",
   PERMISSIONS_MANAGE: "permissions.manage",
+
+  // Reporting permissions
+  REPORTING_READ: "reporting.read",
 } as const;
 
 // Type for permission strings
@@ -119,6 +122,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     PERMISSIONS.SETTINGS_ACCESS,
     PERMISSIONS.PERMISSIONS_VIEW,
     PERMISSIONS.PERMISSIONS_MANAGE,
+
+    // Reporting
+    PERMISSIONS.REPORTING_READ,
   ],
 
   manager: [
@@ -187,6 +193,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 
     // Settings
     PERMISSIONS.SETTINGS_ACCESS,
+
+    // Reporting (dashboard stats only)
+    PERMISSIONS.REPORTING_READ,
   ],
 
   frontdesk: [

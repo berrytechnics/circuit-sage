@@ -1,9 +1,16 @@
 "use client";
 
 import { Customer, getCustomers } from "@/lib/api/customer.api";
+import {
+  DashboardStats,
+  getDashboardStats,
+  getRevenueOverTime,
+  RevenueDataPoint,
+} from "@/lib/api/reporting.api";
 import { getTickets, Ticket } from "@/lib/api/ticket.api";
 import { useUser } from "@/lib/UserContext";
 import { formatStatus, getStatusColor } from "@/lib/utils/ticketUtils";
+import RevenueChart from "@/components/RevenueChart";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -13,8 +20,14 @@ export default function DashboardPage() {
   const { user, hasPermission, isLoading: userLoading } = useUser();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(
+    null
+  );
+  const [revenueData, setRevenueData] = useState<RevenueDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingRevenue, setIsLoadingRevenue] = useState(true);
   const [error, setError] = useState("");
+  const [revenueError, setRevenueError] = useState<string | null>(null);
 
   // Check if user has permission to access this page
   useEffect(() => {
@@ -25,6 +38,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      if (!user) return;
+
       setIsLoading(true);
       try {
         // Get tickets data
@@ -37,6 +52,13 @@ export default function DashboardPage() {
         const customersResponse = await getCustomers();
         if (customersResponse.data) {
           setCustomers(customersResponse.data);
+        }
+
+        // Get dashboard stats
+        const locationId = user.currentLocationId || undefined;
+        const statsResponse = await getDashboardStats(locationId);
+        if (statsResponse.data) {
+          setDashboardStats(statsResponse.data);
         }
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
@@ -51,18 +73,64 @@ export default function DashboardPage() {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [user]);
+
+  useEffect(() => {
+    const fetchRevenueData = async () => {
+      if (!user) return;
+
+      setIsLoadingRevenue(true);
+      setRevenueError(null);
+      try {
+        // Get revenue data for last 30 days
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+
+        const locationId = user.currentLocationId || undefined;
+        const revenueResponse = await getRevenueOverTime(
+          startDate.toISOString().split("T")[0],
+          endDate.toISOString().split("T")[0],
+          locationId,
+          "day"
+        );
+        if (revenueResponse.data) {
+          setRevenueData(revenueResponse.data);
+        }
+      } catch (err) {
+        console.error("Error fetching revenue data:", err);
+        setRevenueError(
+          err instanceof Error
+            ? err.message
+            : "Failed to load revenue data. Please try again."
+        );
+      } finally {
+        setIsLoadingRevenue(false);
+      }
+    };
+
+    fetchRevenueData();
+  }, [user]);
 
   // Filter active tickets (not completed or cancelled)
   const activeTickets = tickets.filter(
     (ticket) => !["completed", "cancelled"].includes(ticket.status)
   );
 
-  // Get low stock items count (placeholder for now)
-  const lowStockItems = 0;
+  // Format monthly revenue
+  const monthlyRevenue = dashboardStats
+    ? new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }).format(dashboardStats.monthlyRevenue)
+    : "$0";
 
-  // Calculate monthly revenue (placeholder for now)
-  const monthlyRevenue = "$0";
+  // Get low stock items count
+  const lowStockItems = dashboardStats?.lowStockCount || 0;
+
+  // Get total customers (use dashboard stats if available, otherwise fallback to customers array)
+  const totalCustomers =
+    dashboardStats?.totalCustomers || customers.length;
 
   // Format date
   const formatTimeAgo = (dateString: string) => {
@@ -201,7 +269,7 @@ export default function DashboardPage() {
                       </dt>
                       <dd>
                         <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                          {customers.length}
+                          {totalCustomers}
                         </div>
                       </dd>
                     </dl>
@@ -310,6 +378,20 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+
+          {/* Revenue Chart */}
+          {hasPermission("reporting.read") && (
+            <div className="mt-8">
+              <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+                Revenue Over Time (Last 30 Days)
+              </h2>
+              <RevenueChart
+                data={revenueData}
+                loading={isLoadingRevenue}
+                error={revenueError}
+              />
+            </div>
+          )}
 
           {/* Recent Activity */}
           <div className="mt-8">

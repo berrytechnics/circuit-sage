@@ -312,6 +312,20 @@ export const getTechnicians = async (): Promise<ApiResponse<Technician[]>> => {
 };
 
 // Permissions API functions
+export const getAllAvailablePermissions = async (): Promise<string[]> => {
+  const response = await api.get<ApiResponse<string[]>>(
+    "/users/permissions/all"
+  );
+
+  if (response.data.success && response.data.data) {
+    return response.data.data;
+  }
+
+  throw new Error(
+    response.data.error?.message || "Failed to fetch available permissions"
+  );
+};
+
 export const getPermissionsMatrix = async (): Promise<Record<string, string[]>> => {
   const response = await api.get<ApiResponse<Record<string, string[]>>>(
     "/users/permissions/matrix"

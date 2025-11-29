@@ -8,7 +8,7 @@ import { getPermissionsForRole, getPermissionsMatrix } from "../config/permissio
 import { UserRole } from "../config/types.js";
 import permissionService from "../services/permission.service.js";
 import { validateRequest } from "../middlewares/auth.middleware.js";
-import { requireAdmin } from "../middlewares/rbac.middleware.js";
+import { requireAdmin, requireRole } from "../middlewares/rbac.middleware.js";
 import { requireTenantContext } from "../middlewares/tenant.middleware.js";
 import { validate } from "../middlewares/validation.middleware.js";
 import companyService from "../services/company.service.js";
@@ -195,6 +195,24 @@ router.get(
     res.json({
       success: true,
       data: formattedTechnicians,
+    });
+  })
+);
+
+// GET /api/users/permissions/all - Get all available permissions in the system
+router.get(
+  "/permissions/all",
+  validateRequest,
+  requireTenantContext,
+  requireRole(["admin"]),
+  asyncHandler(async (req: Request, res: Response) => {
+    // Return all permissions from the config
+    const { PERMISSIONS } = await import("../config/permissions.js");
+    const allPermissions = Object.values(PERMISSIONS);
+    
+    res.json({
+      success: true,
+      data: allPermissions.sort(),
     });
   })
 );
