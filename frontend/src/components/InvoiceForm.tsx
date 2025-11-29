@@ -435,7 +435,7 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       newErrors.subtotal = "Subtotal cannot be negative";
     }
 
-    if (formData.taxRate < 0 || formData.taxRate > 100) {
+    if (locationTaxRate < 0 || locationTaxRate > 100) {
       newErrors.taxRate = "Tax rate must be between 0 and 100";
     }
 

@@ -24,6 +24,7 @@ export interface Invoice {
   customer?: Customer;
   ticketId?: string;
   ticket?: Ticket;
+  locationId?: string | null;
   status: "draft" | "issued" | "paid" | "overdue" | "cancelled";
   issueDate?: string;
   dueDate?: string;

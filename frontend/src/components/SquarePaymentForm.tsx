@@ -26,9 +26,9 @@ export default function SquarePaymentForm({
   const isDarkMode = theme === "dark";
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const paymentsRef = useRef<any>(null);
+  const paymentsRef = useRef<unknown>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-  const cardInstanceRef = useRef<any>(null);
+  const cardInstanceRef = useRef<unknown>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -76,7 +76,7 @@ export default function SquarePaymentForm({
         console.log("Square SDK imported successfully", squareSdk);
         
         // The SDK exports a 'payments' function (lowercase)
-        const paymentsFunction = squareSdk.payments || squareSdk.default?.payments || squareSdk.default;
+        const paymentsFunction = squareSdk.payments;
         
         if (!paymentsFunction || typeof paymentsFunction !== 'function') {
           console.error("payments function not found in Square SDK", { squareSdk });
@@ -158,7 +158,7 @@ export default function SquarePaymentForm({
         cardInstanceRef.current = null;
       }
     };
-  }, [applicationId, locationId, onError]);
+  }, [applicationId, locationId, onError, isDarkMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,7 +172,8 @@ export default function SquarePaymentForm({
 
     try {
       // Tokenize card data using the card instance
-      const tokenResult = await cardInstanceRef.current.tokenize();
+      const cardInstance = cardInstanceRef.current as { tokenize: () => Promise<{ status: string; token?: string; errors?: Array<{ detail?: string; code?: string }> }> };
+      const tokenResult = await cardInstance.tokenize();
       
       if (tokenResult.status === "OK") {
         // Successfully tokenized - pass the nonce to parent

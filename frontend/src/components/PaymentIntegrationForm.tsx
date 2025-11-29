@@ -3,12 +3,10 @@
 import {
   getIntegration,
   saveIntegration,
-  testIntegration,
   deleteIntegration,
   SavePaymentIntegrationData,
   IntegrationConfig,
 } from "@/lib/api/integration.api";
-import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 const PAYMENT_PROVIDERS = [
@@ -18,8 +16,6 @@ const PAYMENT_PROVIDERS = [
 ];
 
 export default function PaymentIntegrationForm() {
-  const router = useRouter();
-
   const [formData, setFormData] = useState<SavePaymentIntegrationData>({
     provider: "square",
     enabled: true,
@@ -167,7 +163,9 @@ export default function PaymentIntegrationForm() {
       // Save - backend will test connection before saving
       // If save succeeds, the test passed
       const response = await saveIntegration("payment", formData);
-      setIntegration(response.data);
+      if (response.data) {
+        setIntegration(response.data);
+      }
       
       setTestResult({
         success: true,
@@ -206,8 +204,10 @@ export default function PaymentIntegrationForm() {
     try {
       // If credentials haven't changed and we have a successful test, we can skip the test
       const skipTest = integration && hasSuccessfulTest;
-      const response = await saveIntegration("payment", { ...formData, skipTest });
-      setIntegration(response.data);
+      const response = await saveIntegration("payment", { ...formData, skipTest } as SavePaymentIntegrationData & { skipTest?: boolean });
+      if (response.data) {
+        setIntegration(response.data);
+      }
       setTestResult({
         success: true,
         message: "Payment integration saved successfully.",

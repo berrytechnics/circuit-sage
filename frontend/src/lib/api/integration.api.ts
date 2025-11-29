@@ -59,10 +59,13 @@ export const getIntegration = async (
     }
 
     throw new Error(response.data.error?.message || 'Failed to fetch integration');
-  } catch (error: any) {
+  } catch (error: unknown) {
     // 404 means integration not configured yet - that's okay, return null
-    if (error?.response?.status === 404) {
-      return null;
+    if (error && typeof error === 'object' && 'response' in error) {
+      const apiError = error as { response?: { status?: number } };
+      if (apiError.response?.status === 404) {
+        return null;
+      }
     }
     throw error;
   }
@@ -70,7 +73,7 @@ export const getIntegration = async (
 
 export const saveIntegration = async (
   type: IntegrationType,
-  data: SaveEmailIntegrationData
+  data: SaveEmailIntegrationData | SavePaymentIntegrationData | Record<string, unknown>
 ): Promise<ApiResponse<IntegrationConfig>> => {
   const response = await api.post<ApiResponse<IntegrationConfig>>(
     `/integrations/${type}`,

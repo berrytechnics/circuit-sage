@@ -8,7 +8,6 @@ import {
   SaveEmailIntegrationData,
   IntegrationConfig,
 } from "@/lib/api/integration.api";
-import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 const EMAIL_PROVIDERS = [
@@ -20,8 +19,6 @@ const EMAIL_PROVIDERS = [
 ];
 
 export default function EmailIntegrationForm() {
-  const router = useRouter();
-
   const [formData, setFormData] = useState<SaveEmailIntegrationData>({
     provider: "sendgrid",
     enabled: true,
@@ -96,6 +93,7 @@ export default function EmailIntegrationForm() {
         ...prev,
         settings: {
           ...prev.settings,
+          fromEmail: prev.settings?.fromEmail || "",
           [settingKey]: value,
         },
       }));
@@ -161,7 +159,7 @@ export default function EmailIntegrationForm() {
       });
       // Refresh integration data
       const response = await getIntegration("email");
-      if (response.data) {
+      if (response && response.data) {
         setIntegration(response.data);
       }
     } catch (err) {

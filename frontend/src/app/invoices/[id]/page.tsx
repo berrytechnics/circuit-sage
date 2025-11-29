@@ -9,7 +9,7 @@ import {
   removeInvoiceItem,
   updateInvoiceItem,
 } from "@/lib/api/invoice.api";
-import { getIntegration } from "@/lib/api/integration.api";
+import { getIntegration, IntegrationConfig } from "@/lib/api/integration.api";
 import { processPayment, refundPayment } from "@/lib/api/payment.api";
 import { useUser } from "@/lib/UserContext";
 import { generateInvoicePDF } from "@/lib/utils/pdfGenerator";
@@ -37,7 +37,7 @@ export default function InvoiceDetailPage({
   const [showRefundModal, setShowRefundModal] = useState(false);
   const [isPaymentConfigured, setIsPaymentConfigured] = useState(false);
   const [paymentProvider, setPaymentProvider] = useState<string | null>(null);
-  const [paymentConfig, setPaymentConfig] = useState<any>(null);
+  const [paymentConfig, setPaymentConfig] = useState<IntegrationConfig | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // New item form state
@@ -103,7 +103,7 @@ export default function InvoiceDetailPage({
           setPaymentProvider(null);
           setPaymentConfig(null);
         }
-      } catch (err) {
+      } catch {
         setIsPaymentConfigured(false);
         setPaymentProvider(null);
         setPaymentConfig(null);
@@ -295,7 +295,9 @@ export default function InvoiceDetailPage({
       });
       await refreshInvoice();
       setShowProcessPaymentModal(false);
-      alert(`Payment processed successfully! Transaction ID: ${result.data.transactionId}`);
+      if (result.data?.transactionId) {
+        alert(`Payment processed successfully! Transaction ID: ${result.data.transactionId}`);
+      }
     } catch (err) {
       console.error("Error processing payment:", err);
       const errorMessage = err instanceof Error
@@ -321,7 +323,9 @@ export default function InvoiceDetailPage({
       });
       await refreshInvoice();
       setShowRefundModal(false);
-      alert(`Refund processed successfully! Refund ID: ${result.data.refundId}`);
+      if (result.data?.refundId) {
+        alert(`Refund processed successfully! Refund ID: ${result.data.refundId}`);
+      }
     } catch (err) {
       console.error("Error processing refund:", err);
       const errorMessage = err instanceof Error
@@ -1095,7 +1099,7 @@ function ProcessPaymentModal({
 }: {
   invoice: Invoice;
   paymentProvider: string | null;
-  paymentConfig: any;
+  paymentConfig: IntegrationConfig | null;
   onClose: () => void;
   onConfirm: (sourceId?: string) => void;
   isProcessing: boolean;

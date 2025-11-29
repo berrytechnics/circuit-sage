@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ChecklistTemplate,
   CreateChecklistTemplateData,
   CreateChecklistItemData,
   ChecklistFieldType,

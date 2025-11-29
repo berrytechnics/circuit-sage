@@ -118,19 +118,32 @@ export default function LocationForm({ locationId }: LocationFormProps) {
 
     setIsSubmitting(true);
     try {
-      // Create clean location data, trimming all string fields
-      const cleanFormData = Object.entries(formData).reduce(
-        (acc, [key, value]) => ({
-          ...acc,
-          [key]:
-            typeof value === "string"
-              ? value.trim() || undefined
-              : value !== undefined
-              ? value
-              : undefined,
-        }),
-        {} as CreateLocationData | UpdateLocationData
-      );
+      // Create clean location data, trimming all string fields and removing undefined/empty values
+      const cleanFormData: CreateLocationData | UpdateLocationData = {};
+      
+      // Always include name (required)
+      if (formData.name.trim()) {
+        cleanFormData.name = formData.name.trim();
+      }
+      
+      // Include optional fields only if they have values
+      if (formData.address?.trim()) {
+        cleanFormData.address = formData.address.trim();
+      }
+      if (formData.phone?.trim()) {
+        cleanFormData.phone = formData.phone.trim();
+      }
+      if (formData.email?.trim()) {
+        cleanFormData.email = formData.email.trim();
+      }
+      
+      // Include isActive if explicitly set (default is true, so always include it)
+      cleanFormData.isActive = formData.isActive;
+      
+      // Include taxRate only if it's not 0 (the default)
+      if (formData.taxRate !== undefined && formData.taxRate !== 0) {
+        cleanFormData.taxRate = formData.taxRate;
+      }
 
       let response;
 

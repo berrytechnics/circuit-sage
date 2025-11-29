@@ -405,7 +405,7 @@ export default function InventoryForm({ itemId }: InventoryFormProps) {
                 <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Track Quantity</span>
               </label>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                Uncheck for services that don't have physical inventory
+                Uncheck for services that don&apos;t have physical inventory
               </p>
             </div>
           </div>

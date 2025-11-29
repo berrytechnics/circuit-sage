@@ -2,8 +2,6 @@
 
 import {
   ChecklistTemplate,
-  ChecklistItem,
-  ChecklistResponse,
   ChecklistResponseData,
   getChecklistTemplate,
   getTicketChecklistResponses,
