@@ -10,6 +10,7 @@ import {
   PointElement,
   Title,
   Tooltip,
+  type TooltipItem,
 } from "chart.js";
 import { format, parseISO } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
@@ -59,8 +60,6 @@ export default function RevenueChart({
     const revenues = data.map((point) => point.revenue);
 
     const isDark = theme === "dark";
-    const textColor = isDark ? "#e5e7eb" : "#374151";
-    const gridColor = isDark ? "#374151" : "#e5e7eb";
     const pointColor = isDark ? "#6366f1" : "#4f46e5";
     const lineColor = isDark ? "#818cf8" : "#6366f1";
 
@@ -119,14 +118,18 @@ export default function RevenueChart({
           padding: 12,
           displayColors: false,
           callbacks: {
-            label: (context: { parsed: { y: number } }) => {
+            label: (tooltipItem: TooltipItem<"line">) => {
+              const value = tooltipItem.parsed.y;
+              if (value === null || value === undefined) {
+                return "Revenue: $0.00";
+              }
               return `Revenue: ${new Intl.NumberFormat("en-US", {
                 style: "currency",
                 currency: "USD",
-              }).format(context.parsed.y)}`;
+              }).format(value)}`;
             },
-            title: (context: { label: string }[]) => {
-              return context[0].label;
+            title: (tooltipItems: TooltipItem<"line">[]) => {
+              return tooltipItems[0]?.label || "";
             },
           },
         },
@@ -154,13 +157,17 @@ export default function RevenueChart({
             font: {
               size: 12,
             },
-            callback: (value: number) => {
+            callback: (value: string | number) => {
+              const numValue = typeof value === "string" ? parseFloat(value) : value;
+              if (isNaN(numValue)) {
+                return "$0";
+              }
               return new Intl.NumberFormat("en-US", {
                 style: "currency",
                 currency: "USD",
                 notation: "compact",
                 maximumFractionDigits: 1,
-              }).format(value);
+              }).format(numValue);
             },
           },
         },
