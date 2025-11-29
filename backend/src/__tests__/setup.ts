@@ -3,24 +3,24 @@
 
 // Set test environment variables
 process.env.NODE_ENV = 'test';
-process.env.JWT_SECRET = 'test_jwt_secret_for_testing_only';
+process.env.JWT_SECRET = 'test_secret_for_ci_only';
 
 // Ensure database connection variables are set for tests
-// These should match your test database configuration
+// These should match GitHub Actions test database configuration
 if (!process.env.DB_HOST) {
   process.env.DB_HOST = process.env.DB_HOST || 'localhost';
 }
 if (!process.env.DB_PORT) {
-  process.env.DB_PORT = process.env.DB_PORT || '5432';
+  process.env.DB_PORT = process.env.DB_PORT || '5433';
 }
 if (!process.env.DB_USER) {
-  process.env.DB_USER = process.env.DB_USER || 'repair_admin';
+  process.env.DB_USER = process.env.DB_USER || 'test_user';
 }
 if (!process.env.DB_PASSWORD) {
-  process.env.DB_PASSWORD = process.env.DB_PASSWORD || 'repair_password';
+  process.env.DB_PASSWORD = process.env.DB_PASSWORD || 'test_password';
 }
 if (!process.env.DB_NAME) {
-  process.env.DB_NAME = process.env.DB_NAME || 'repair_business';
+  process.env.DB_NAME = process.env.DB_NAME || 'test_db';
 }
 
 // Suppress console logs during tests (optional)

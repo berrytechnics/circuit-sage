@@ -41,8 +41,8 @@ export class ReportingService {
       .where("company_id", "=", companyId)
       .where("status", "=", "paid")
       .where("paid_date", "is not", null)
-      .where("paid_date", ">=", monthStart.toISOString())
-      .where("paid_date", "<=", monthEnd.toISOString())
+      .where("paid_date", ">=", monthStart)
+      .where("paid_date", "<=", monthEnd)
       .where("deleted_at", "is", null);
 
     if (locationId !== undefined) {
@@ -61,7 +61,7 @@ export class ReportingService {
       .selectFrom("inventory_items")
       .select((eb) => eb.fn.count<number>("id").as("count"))
       .where("company_id", "=", companyId)
-      .where("quantity", "<", sql`reorder_level`)
+      .where((eb) => eb("quantity", "<", eb.ref("reorder_level")))
       .where("deleted_at", "is", null);
 
     if (locationId !== undefined) {
@@ -149,8 +149,8 @@ export class ReportingService {
       .where("company_id", "=", companyId)
       .where("status", "=", "paid")
       .where("paid_date", "is not", null)
-      .where("paid_date", ">=", startDate)
-      .where("paid_date", "<=", endDate)
+      .where("paid_date", ">=", new Date(startDate))
+      .where("paid_date", "<=", new Date(endDate))
       .where("deleted_at", "is", null)
       .groupBy(dateTruncSql)
       .orderBy("period", "asc");

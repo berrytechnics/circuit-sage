@@ -520,10 +520,15 @@ program
         const commands = {
           lint: "yarn lint",
           typecheck: "npx tsc --noEmit",
-          test: "yarn test",
+          test: "bash scripts/test-with-setup.sh",
         };
         if (commands[options.type]) {
-          if (isContainerRunning("circuit-sage-api")) {
+          if (options.type === "test") {
+            // Use test setup script for tests (matches GitHub Actions)
+            executeCommand(commands[options.type], {
+              cwd: path.join(process.cwd(), "backend"),
+            });
+          } else if (isContainerRunning("circuit-sage-api")) {
             executeCommand(`docker exec circuit-sage-api ${commands[options.type]}`);
           } else {
             executeCommand(commands[options.type], {
@@ -539,12 +544,17 @@ program
         const checks = [
           { cmd: "yarn lint", name: "Linting" },
           { cmd: "npx tsc --noEmit", name: "Type checking" },
-          { cmd: "yarn test", name: "Tests" },
+          { cmd: "bash scripts/test-with-setup.sh", name: "Tests", useTestSetup: true },
         ];
 
         checks.forEach((check) => {
           log(`Running ${check.name}...`, "blue");
-          if (isContainerRunning("circuit-sage-api")) {
+          if (check.useTestSetup) {
+            // Use test setup script for tests (matches GitHub Actions)
+            executeCommand(check.cmd, {
+              cwd: path.join(process.cwd(), "backend"),
+            });
+          } else if (isContainerRunning("circuit-sage-api")) {
             executeCommand(`docker exec circuit-sage-api ${check.cmd}`);
           } else {
             executeCommand(check.cmd, {

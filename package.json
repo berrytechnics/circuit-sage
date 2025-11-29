@@ -15,7 +15,7 @@
     "ci:all": "npm run ci:backend && npm run ci:frontend",
     "ci:backend:lint": "cd backend && yarn lint",
     "ci:backend:typecheck": "cd backend && npx tsc --noEmit",
-    "ci:backend:test": "cd backend && yarn test",
+    "ci:backend:test": "bash backend/scripts/test-with-setup.sh",
     "ci:frontend:lint": "cd frontend && yarn lint",
     "ci:frontend:typecheck": "cd frontend && npx tsc --noEmit",
     "ci:frontend:build": "cd frontend && yarn build"
