@@ -175,7 +175,7 @@ export default function SquarePaymentForm({
       const cardInstance = cardInstanceRef.current as { tokenize: () => Promise<{ status: string; token?: string; errors?: Array<{ detail?: string; code?: string }> }> };
       const tokenResult = await cardInstance.tokenize();
       
-      if (tokenResult.status === "OK") {
+      if (tokenResult.status === "OK" && tokenResult.token) {
         // Successfully tokenized - pass the nonce to parent
         onPaymentSuccess(tokenResult.token);
       } else {

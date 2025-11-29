@@ -12,6 +12,9 @@ export interface IntegrationConfig {
   lastError?: string;
   createdAt?: string;
   updatedAt?: string;
+  // Square payment integration specific fields (added by backend for SDK initialization)
+  applicationId?: string;
+  locationId?: string;
 }
 
 export interface SaveEmailIntegrationData {
