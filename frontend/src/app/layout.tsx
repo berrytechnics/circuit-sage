@@ -1,5 +1,6 @@
 // app/layout.tsx
 import Sidebar from "@/components/Sidebar";
+import MainContent from "@/components/MainContent";
 import { ThemeProvider } from "@/lib/ThemeContext";
 import { UserProvider } from "@/lib/UserContext";
 import type { Metadata } from "next";
@@ -31,7 +32,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <div className="relative flex min-h-screen bg-background">
             <UserProvider>
               <Sidebar />
-              <main className="flex-1 p-4 lg:p-8 lg:ml-64 bg-background">{children}</main>
+              <MainContent>{children}</MainContent>
             </UserProvider>
           </div>
         </ThemeProvider>
