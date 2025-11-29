@@ -40,6 +40,16 @@ echo "Step 2: Running database migrations..."
 echo ""
 echo "Step 3: Running tests..."
 cd "${BACKEND_DIR}"
+
+# Export environment variables to match GitHub Actions exactly
+export NODE_ENV=test
+export DB_HOST=localhost
+export DB_PORT=5433
+export DB_USER=test_user
+export DB_PASSWORD=test_password
+export DB_NAME=test_db
+export JWT_SECRET=test_secret_for_ci_only
+
 yarn test
 
 echo ""

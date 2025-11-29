@@ -498,6 +498,7 @@ program
         const commands = {
           lint: "yarn lint",
           typecheck: "npx tsc --noEmit",
+          test: "yarn test",
           build: "yarn build",
         };
         if (commands[options.type]) {
@@ -512,6 +513,7 @@ program
         log("Running frontend CI checks...", "green");
         executeCommand("yarn lint", { cwd: path.join(process.cwd(), "frontend") });
         executeCommand("npx tsc --noEmit", { cwd: path.join(process.cwd(), "frontend") });
+        executeCommand("yarn test", { cwd: path.join(process.cwd(), "frontend") });
         executeCommand("yarn build", { cwd: path.join(process.cwd(), "frontend") });
       }
     } else {

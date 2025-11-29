@@ -11,14 +11,15 @@
     "unlink": "npm uninstall -g $(node -e \"console.log(require('./package.json').name)\")",
     "reinstall": "npm run unlink && npm run link",
     "ci:backend": "cd backend && yarn lint && npx tsc --noEmit && yarn test",
-    "ci:frontend": "cd frontend && yarn lint && npx tsc --noEmit && yarn build",
+    "ci:frontend": "cd frontend && yarn lint && npx tsc --noEmit && yarn test && yarn build",
     "ci:all": "npm run ci:backend && npm run ci:frontend",
     "ci:backend:lint": "cd backend && yarn lint",
     "ci:backend:typecheck": "cd backend && npx tsc --noEmit",
     "ci:backend:test": "bash backend/scripts/test-with-setup.sh",
     "ci:frontend:lint": "cd frontend && yarn lint",
     "ci:frontend:typecheck": "cd frontend && npx tsc --noEmit",
-    "ci:frontend:build": "cd frontend && yarn build"
+    "ci:frontend:test": "cd frontend && yarn test",
+    "ci:frontend:build": "cd frontend && NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 NODE_OPTIONS=--max-old-space-size=4096 yarn build"
   },
   "keywords": [
     "repair",
