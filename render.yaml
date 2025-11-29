@@ -63,4 +63,7 @@ services:
         value: https://circuit-sage-api.onrender.com/api
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
+    # Note: NEXT_PUBLIC_API_URL must be available at build time
+    # Render.com should automatically pass env vars as build args when using Docker builds
+    # The Dockerfile declares ARG NEXT_PUBLIC_API_URL to receive it
 
