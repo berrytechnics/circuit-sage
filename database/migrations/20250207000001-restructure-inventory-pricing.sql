@@ -52,3 +52,5 @@ END $$;
 -- Note: SKU uniqueness constraint is already company-wide (sku + company_id)
 -- from migration 20250101000000-add-multi-tenancy.sql, so no constraint changes needed
 
+
+

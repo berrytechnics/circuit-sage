@@ -18,3 +18,5 @@ COMMENT ON COLUMN invoices.refund_date IS 'Date when the refund was processed';
 COMMENT ON COLUMN invoices.refund_reason IS 'Reason for the refund';
 COMMENT ON COLUMN invoices.refund_method IS 'Method used for refund: manual, square, stripe, paypal';
 
+
+

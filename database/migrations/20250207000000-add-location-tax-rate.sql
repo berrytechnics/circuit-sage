@@ -8,3 +8,5 @@ ALTER TABLE locations ADD COLUMN IF NOT EXISTS tax_rate DECIMAL(5, 2) NOT NULL D
 -- Step 2: Add comment to column
 COMMENT ON COLUMN locations.tax_rate IS 'Tax rate percentage for this location (0-100)';
 
+
+

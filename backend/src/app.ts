@@ -4,6 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { HttpError, ValidationError } from "./config/errors.js";
 import logger from "./config/logger.js";
+import { apiLimiter } from "./middlewares/rate-limit.middleware.js";
 import assetRoutes from "./routes/asset.routes.js";
 import customerRoutes from "./routes/customer.routes.js";
 import diagnosticChecklistRoutes from "./routes/diagnostic-checklist.routes.js";
@@ -23,11 +24,23 @@ import userRoutes from "./routes/user.routes.js";
 
 const app: Express = express();
 
+// CORS configuration - restrict origins in production
+const corsOptions = {
+  origin: process.env.NODE_ENV === "production"
+    ? process.env.ALLOWED_ORIGINS?.split(",") || []
+    : true, // Allow all origins in development
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
-app.use(morgan("dev"));
+app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
+
+// Apply rate limiting to all API routes
+app.use("/api", apiLimiter);
 
 // Routes - all routes are prefixed with /api
 app.use("/api/auth", userRoutes);
@@ -47,8 +60,28 @@ app.use("/api/locations", locationRoutes);
 app.use("/api/payments", paymentRoutes);
 
 // Health check endpoint
-app.get("/health", (req: Request, res: Response) => {
-  res.status(200).json({ status: "ok" });
+app.get("/health", async (req: Request, res: Response) => {
+  try {
+    const { testConnection } = await import("./config/connection.js");
+    const dbHealthy = await testConnection();
+    
+    const healthStatus = {
+      status: dbHealthy ? "ok" : "unhealthy",
+      database: dbHealthy ? "connected" : "disconnected",
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    };
+    
+    res.status(dbHealthy ? 200 : 503).json(healthStatus);
+  } catch (error) {
+    logger.error("Health check failed:", error);
+    res.status(503).json({
+      status: "unhealthy",
+      database: "error",
+      timestamp: new Date().toISOString(),
+      error: process.env.NODE_ENV === "development" ? (error as Error).message : undefined,
+    });
+  }
 });
 
 // 404 handler
@@ -58,7 +91,15 @@ app.use((req: Request, res: Response) => {
 
 // Error handling middleware
 app.use((err: Error | HttpError, req: Request, res: Response, _next: NextFunction) => {
-  logger.error(err.stack || err.message);
+  // Log error with context
+  logger.error("Error occurred", {
+    message: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+    ip: req.ip,
+    userAgent: req.get("user-agent"),
+  });
   
   // Convert regular Errors to HttpError
   const httpError = err instanceof HttpError 
@@ -66,7 +107,12 @@ app.use((err: Error | HttpError, req: Request, res: Response, _next: NextFunctio
     : new HttpError(err.message || "Internal Server Error", 500);
   
   const statusCode = httpError.statusCode;
-  const message = httpError.message;
+  
+  // User-friendly error messages for production
+  let message = httpError.message;
+  if (process.env.NODE_ENV === "production" && statusCode === 500) {
+    message = "An unexpected error occurred. Please try again later.";
+  }
   
   const errorResponse: {
     success: false;
@@ -74,13 +120,19 @@ app.use((err: Error | HttpError, req: Request, res: Response, _next: NextFunctio
       message: string;
       errors?: Record<string, string>;
       stack?: string;
+      requestId?: string;
     };
   } = {
     success: false,
     error: {
       message,
       ...(httpError instanceof ValidationError && { errors: httpError.errors }),
-      ...(process.env.NODE_ENV === "development" && { stack: httpError.stack }),
+      ...(process.env.NODE_ENV === "development" && { 
+        stack: httpError.stack,
+        originalMessage: httpError.message,
+      }),
+      // Include request ID for tracking (if available)
+      ...(req.headers["x-request-id"] && { requestId: req.headers["x-request-id"] as string }),
     },
   };
   

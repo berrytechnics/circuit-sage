@@ -134,6 +134,9 @@ CREATE INDEX idx_inventory_items_brand_model ON inventory_items(brand, model);
 CREATE INDEX idx_inventory_items_active ON inventory_items(is_active);
 
 -- Create admin user (password: admin123)
+-- WARNING: This is for development only! Remove or update this user before production deployment.
+-- Run: yarn ts-node backend/scripts/remove-default-admin.ts
+-- See: docs/SECURITY.md for more information
 INSERT INTO users (first_name, last_name, email, password, role)
 VALUES (
   'Admin',

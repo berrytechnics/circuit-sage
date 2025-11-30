@@ -11,12 +11,13 @@ import { validateRequest } from "../middlewares/auth.middleware.js";
 import { requireAdmin, requireRole } from "../middlewares/rbac.middleware.js";
 import { requireTenantContext } from "../middlewares/tenant.middleware.js";
 import { validate } from "../middlewares/validation.middleware.js";
+import { authLimiter, sensitiveOperationLimiter } from "../middlewares/rate-limit.middleware.js";
 import companyService from "../services/company.service.js";
 import invitationService from "../services/invitation.service.js";
 import locationService from "../services/location.service.js";
 import userService, { UserWithoutPassword, UpdateUserDto } from "../services/user.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { generateNewJWTToken } from "../utils/auth.js";
+import { generateNewJWTToken, generateRefreshToken, verifyRefreshToken } from "../utils/auth.js";
 import { loginValidation, registerValidation } from "../validators/user.validator.js";
 
 const router = express.Router();
@@ -52,6 +53,7 @@ function formatUserForResponse(user: UserWithoutPassword) {
 
 router.post(
   "/login",
+  authLimiter,
   validate(loginValidation),
   asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = req.body;
@@ -59,15 +61,16 @@ router.post(
     if (!user) {
       throw new UnauthorizedError("Invalid credentials");
     }
-    const token = generateNewJWTToken(user);
+    const accessToken = generateNewJWTToken(user);
+    const refreshToken = generateRefreshToken(user);
     const formattedUser = formatUserForResponse(user);
     
     res.json({
       success: true,
       data: {
         user: formattedUser,
-        accessToken: token,
-        refreshToken: token, // For now, using same token. Can be updated later for refresh token implementation
+        accessToken,
+        refreshToken,
       },
     });
   })
@@ -75,6 +78,7 @@ router.post(
 
 router.post(
   "/register",
+  authLimiter,
   validate(registerValidation),
   asyncHandler(async (req: Request, res: Response) => {
     const { firstName, lastName, email, password, companyName, invitationToken, role } = req.body;
@@ -167,15 +171,16 @@ router.post(
       throw new BadRequestError("Failed to fetch user after registration");
     }
     
-    const token = generateNewJWTToken(updatedUser);
+    const accessToken = generateNewJWTToken(updatedUser);
+    const refreshToken = generateRefreshToken(updatedUser);
     const formattedUser = formatUserForResponse(updatedUser);
     
     res.status(201).json({
       success: true,
       data: {
         user: formattedUser,
-        accessToken: token,
-        refreshToken: token, // For now, using same token. Can be updated later for refresh token implementation
+        accessToken,
+        refreshToken,
       },
     });
   })
@@ -720,9 +725,38 @@ router.put(
   })
 );
 
+// POST /api/auth/refresh - Refresh access token
+router.post(
+  "/refresh",
+  asyncHandler(async (req: Request, res: Response) => {
+    const { refreshToken } = req.body;
+    
+    if (!refreshToken) {
+      throw new BadRequestError("Refresh token is required");
+    }
+    
+    const user = await verifyRefreshToken(refreshToken);
+    if (!user) {
+      throw new UnauthorizedError("Invalid or expired refresh token");
+    }
+    
+    const accessToken = generateNewJWTToken(user);
+    const newRefreshToken = generateRefreshToken(user);
+    
+    res.json({
+      success: true,
+      data: {
+        accessToken,
+        refreshToken: newRefreshToken,
+      },
+    });
+  })
+);
+
 // POST /api/users/:id/reset-password - Reset user password (admin only)
 router.post(
   "/:id/reset-password",
+  sensitiveOperationLimiter,
   validateRequest,
   requireTenantContext,
   requireAdmin(),

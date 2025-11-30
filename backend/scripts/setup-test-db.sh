@@ -12,6 +12,20 @@ DB_NAME="test_db"
 
 echo "Setting up test database..."
 
+# Check if Docker is available
+if ! command -v docker &> /dev/null; then
+  echo "ERROR: Docker is not installed or not in PATH"
+  echo "Please install Docker Desktop: https://www.docker.com/products/docker-desktop"
+  exit 1
+fi
+
+# Check if Docker daemon is running
+if ! docker ps &> /dev/null; then
+  echo "ERROR: Docker daemon is not running"
+  echo "Please start Docker Desktop and try again"
+  exit 1
+fi
+
 # Check if container already exists and remove it
 if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
   echo "Removing existing test database container..."

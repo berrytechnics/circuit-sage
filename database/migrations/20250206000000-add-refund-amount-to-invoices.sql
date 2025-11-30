@@ -9,3 +9,5 @@ CREATE INDEX IF NOT EXISTS idx_invoices_refund_amount ON invoices(refund_amount)
 -- Add comment
 COMMENT ON COLUMN invoices.refund_amount IS 'Total amount refunded for this invoice';
 
+
+

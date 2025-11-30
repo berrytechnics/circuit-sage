@@ -71,6 +71,16 @@ function setupEnvFiles() {
   }
 }
 
+// Check if docker daemon is available
+function isDockerAvailable() {
+  try {
+    execSync("docker ps", { stdio: "pipe" });
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
 // Check if docker is running and containers exist
 function isDockerRunning() {
   try {
@@ -492,6 +502,7 @@ program
   .description("Run CI checks")
   .option("-s, --service <service>", "Run CI for specific service (backend, frontend)")
   .option("-t, --type <type>", "Run specific CI check (lint, typecheck, test, build)")
+  .option("--skip-tests", "Skip tests (useful when Docker is not available)")
   .action((options) => {
     if (options.service === "frontend") {
       if (options.type) {
@@ -526,6 +537,16 @@ program
         };
         if (commands[options.type]) {
           if (options.type === "test") {
+            // Check if Docker is available for tests
+            if (!options.skipTests && !isDockerAvailable()) {
+              log("Tests require Docker to be running", "red");
+              log("Please start Docker Desktop or use --skip-tests to skip tests", "yellow");
+              process.exit(1);
+            }
+            if (options.skipTests) {
+              log("Skipping tests (--skip-tests flag provided)", "yellow");
+              process.exit(0);
+            }
             // Use test setup script for tests (matches GitHub Actions)
             executeCommand(commands[options.type], {
               cwd: path.join(process.cwd(), "backend"),
@@ -546,10 +567,23 @@ program
         const checks = [
           { cmd: "yarn lint", name: "Linting" },
           { cmd: "npx tsc --noEmit", name: "Type checking" },
-          { cmd: "bash scripts/test-with-setup.sh", name: "Tests", useTestSetup: true },
+          { cmd: "bash scripts/test-with-setup.sh", name: "Tests", useTestSetup: true, requiresDocker: true },
         ];
 
         for (const check of checks) {
+          // Skip tests if --skip-tests flag is provided
+          if (check.requiresDocker && options.skipTests) {
+            log(`Skipping ${check.name} (--skip-tests flag provided)`, "yellow");
+            continue;
+          }
+
+          // Check if Docker is required and available
+          if (check.requiresDocker && !isDockerAvailable()) {
+            log(`Skipping ${check.name} (Docker is not available)`, "yellow");
+            log("To run tests, please start Docker Desktop or use --skip-tests to skip tests", "yellow");
+            continue;
+          }
+
           log(`Running ${check.name}...`, "blue");
           if (check.useTestSetup) {
             // Use test setup script for tests (matches GitHub Actions)
