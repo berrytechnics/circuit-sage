@@ -176,10 +176,16 @@ describe('LocationForm', () => {
       await user.click(submitButton)
 
       await waitFor(() => {
-        expect(mockedLocationApi.createLocation).toHaveBeenCalledWith({
-          name: 'Test Location',
-          isActive: true,
-        })
+        expect(mockedLocationApi.createLocation).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'Test Location',
+            isActive: true,
+            taxRate: 0,
+            taxName: 'Sales Tax',
+            taxEnabled: true,
+            taxInclusive: false,
+          })
+        )
       })
     })
   })
