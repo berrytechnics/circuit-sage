@@ -41,6 +41,10 @@ services:
         generateValue: true
       - key: ENCRYPTION_KEY
         generateValue: true
+      - key: ALLOWED_ORIGINS
+        # CORS allowed origins (comma-separated)
+        # Includes Render frontend URL and custom domain
+        value: https://repair-tix-frontend.onrender.com,https://repairtix.com,https://www.repairtix.com
       - key: IS_DOCKER
         value: "true"
     buildCommand: yarn install --frozen-lockfile && yarn build
