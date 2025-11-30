@@ -318,6 +318,64 @@ See [SECURITY.md](./docs/SECURITY.md) for more details.
 curl https://your-backend-url.onrender.com/health
 ```
 
+### Custom Domain Shows "Coming Soon" Screen
+
+**Symptoms:**
+- DNS records are configured correctly
+- Domain still shows Render's "coming soon" page
+- Domain verification pending
+
+**Root Cause:**
+Render requires you to add the custom domain through their dashboard. DNS records alone are not sufficient. The "coming soon" screen appears until the domain is added and verified in Render.
+
+**Fix Steps:**
+
+1. **Add Domain in Render Dashboard:**
+   - Go to [Render Dashboard](https://dashboard.render.com)
+   - Navigate to your frontend service (`repair-tix-frontend`)
+   - Click on "Settings" in the left sidebar
+   - Scroll to "Custom Domains" section
+   - Click "Add Custom Domain"
+   - Enter your domain (e.g., `repairtix.com` or `www.repairtix.com`)
+   - Click "Save"
+
+2. **Verify DNS Records Match:**
+   - Render will show you the exact DNS records needed
+   - Common configurations:
+     - **Apex domain** (`repairtix.com`): CNAME pointing to Render's hostname
+     - **WWW subdomain** (`www.repairtix.com`): CNAME pointing to Render's hostname
+   - Ensure your DNS records match exactly what Render shows
+
+3. **Wait for Verification:**
+   - Render will automatically verify DNS propagation
+   - This can take 5-60 minutes depending on DNS TTL
+   - Check domain status in Render dashboard - it should show "Verified" when ready
+
+4. **SSL Certificate:**
+   - Render automatically provisions SSL certificates via Let's Encrypt
+   - SSL will be active once domain is verified
+   - No additional configuration needed
+
+5. **Update Environment Variables (if needed):**
+   - If using custom domain for API, update `NEXT_PUBLIC_API_URL` in frontend service
+   - Update `ALLOWED_ORIGINS` in backend service to include custom domain
+   - Restart services after updating environment variables
+
+**Important Notes:**
+- You must add BOTH `repairtix.com` AND `www.repairtix.com` as separate custom domains if you want both to work
+- The domain must be added to the **frontend service**, not the backend
+- DNS changes can take up to 48 hours to fully propagate (though usually much faster)
+- Use `dig` or `nslookup` to verify DNS propagation before contacting support
+
+**Verify DNS Propagation:**
+```bash
+# Check if DNS is resolving correctly
+dig repairtix.com
+dig www.repairtix.com
+
+# Should show Render's hostname in CNAME record
+```
+
 ## Rollback Procedure
 
 If deployment fails:
