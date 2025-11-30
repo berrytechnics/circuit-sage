@@ -10,7 +10,7 @@ services:
     name: repair-tix-api
     runtime: docker
     plan: free
-    dockerfilePath: ./backend/Dockerfile
+    dockerfilePath: backend/Dockerfile
     dockerContext: .
     envVars:
       - key: NODE_ENV
@@ -56,7 +56,7 @@ services:
     name: repair-tix-frontend
     runtime: docker
     plan: free
-    dockerfilePath: ./frontend/Dockerfile
+    dockerfilePath: frontend/Dockerfile
     dockerContext: .
     envVars:
       - key: NODE_ENV
