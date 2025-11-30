@@ -340,7 +340,7 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
     };
 
     fetchInventoryItems();
-  }, [itemMode, user?.currentLocationId]);
+  }, [itemMode, user?.currentLocationId, inventoryItems.length]);
 
   // Handle inventory item selection
   const handleInventoryItemSelect = (inventoryItemId: string) => {
@@ -978,7 +978,11 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               name="discountAmount"
               value={formData.discountAmount}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 rounded p-2 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500"
+              className={`w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 rounded p-2 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500 ${
+                !canModifyDiscounts ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              disabled={!canModifyDiscounts}
+              title={!canModifyDiscounts ? "You do not have permission to modify discounts" : ""}
             />
           </div>
         </div>

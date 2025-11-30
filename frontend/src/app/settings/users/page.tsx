@@ -37,7 +37,7 @@ type UserRole = typeof ROLES[number];
 
 export default function UsersManagementPage() {
   const router = useRouter();
-  const { user, hasPermission, isLoading: userLoading } = useUser();
+  const { user, isLoading: userLoading } = useUser();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
