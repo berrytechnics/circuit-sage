@@ -1,6 +1,6 @@
 # Monitoring and Observability Guide
 
-This guide covers monitoring, logging, and error tracking setup for CircuitSage in production.
+This guide covers monitoring, logging, and error tracking setup for RepairForge in production.
 
 ## Overview
 
@@ -135,7 +135,7 @@ module.exports = withSentryConfig(
   {
     silent: true,
     org: "your-org",
-    project: "circuit-sage",
+    project: "repair-forge",
   }
 );
 ```
@@ -149,7 +149,7 @@ NEXT_PUBLIC_SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
 
 ### Winston Configuration
 
-CircuitSage uses Winston for logging. Current configuration:
+RepairForge uses Winston for logging. Current configuration:
 
 - **Development**: Console + file logging
 - **Production**: Console logging only (configure for your platform)
@@ -189,7 +189,7 @@ logger.info("User logged in", {
 
 ### Application Health Endpoint
 
-CircuitSage includes a health check endpoint:
+RepairForge includes a health check endpoint:
 
 ```
 GET /health

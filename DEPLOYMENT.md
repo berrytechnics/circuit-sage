@@ -1,6 +1,6 @@
-# CircuitSage Deployment Guide
+# RepairForge Deployment Guide
 
-This guide provides step-by-step instructions for deploying CircuitSage to production environments.
+This guide provides step-by-step instructions for deploying RepairForge to production environments.
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@ This guide provides step-by-step instructions for deploying CircuitSage to produ
 
 Before deploying, ensure you have:
 
-- A GitHub repository with CircuitSage code
+- A GitHub repository with RepairForge code
 - Access to a deployment platform (Render.com, AWS, Google Cloud, etc.)
 - PostgreSQL 15+ database (managed or self-hosted)
 - Domain name (optional, for custom domains)
@@ -30,7 +30,7 @@ Render.com is recommended for quick deployments with minimal configuration. The 
 
 ### Alternative Platforms
 
-CircuitSage can be deployed to:
+RepairForge can be deployed to:
 - **AWS** (ECS, EC2, Elastic Beanstalk)
 - **Google Cloud Platform** (Cloud Run, Compute Engine)
 - **Azure** (App Service, Container Instances)
@@ -58,7 +58,7 @@ CircuitSage can be deployed to:
 
 After services are created, configure environment variables in Render dashboard:
 
-#### Backend Service (`circuit-sage-api`)
+#### Backend Service (`repair-forge-api`)
 
 Required variables (some auto-configured from database):
 - `NODE_ENV=production`
@@ -73,11 +73,11 @@ Required variables (some auto-configured from database):
 - `ALLOWED_ORIGINS` (set to your frontend URL, comma-separated)
 - `IS_DOCKER=true`
 
-#### Frontend Service (`circuit-sage-frontend`)
+#### Frontend Service (`repair-forge-frontend`)
 
 Required variables:
 - `NODE_ENV=production`
-- `NEXT_PUBLIC_API_URL` (set to your backend URL, e.g., `https://circuit-sage-api.onrender.com/api`)
+- `NEXT_PUBLIC_API_URL` (set to your backend URL, e.g., `https://repair-forge-api.onrender.com/api`)
 - `NEXT_TELEMETRY_DISABLED=1`
 
 ### Step 4: Generate Secrets
@@ -211,7 +211,7 @@ yarn migrate:prod
 yarn ts-node backend/scripts/remove-default-admin.ts
 
 # Option 2: Manually update via API or database
-# Change password for admin@circuitsage.com or admin@repairmanager.com
+# Change password for admin@repairforge.com or admin@repairmanager.com
 ```
 
 See [SECURITY.md](./docs/SECURITY.md) for more details.

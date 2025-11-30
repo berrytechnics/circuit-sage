@@ -1,12 +1,12 @@
 # Performance Optimization Guide
 
-This guide covers database performance optimization, query optimization, and caching strategies for CircuitSage.
+This guide covers database performance optimization, query optimization, and caching strategies for RepairForge.
 
 ## Database Indexes
 
 ### Current Index Coverage
 
-CircuitSage has comprehensive index coverage across all major tables:
+RepairForge has comprehensive index coverage across all major tables:
 
 #### Core Tables
 - **Users**: `company_id`, `email` (unique)

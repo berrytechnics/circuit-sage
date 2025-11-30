@@ -1,6 +1,6 @@
 # Security Guide
 
-This document outlines security measures implemented in CircuitSage and best practices for production deployment.
+This document outlines security measures implemented in RepairForge and best practices for production deployment.
 
 ## Security Features
 
@@ -39,7 +39,7 @@ Rate limiting is implemented to prevent brute force attacks and DoS:
 - [ ] **Remove Default Credentials**
   - Run `yarn ts-node backend/scripts/remove-default-admin.ts`
   - Or manually delete/update default admin users
-  - Default credentials: `admin@circuitsage.com` / `admin123`
+  - Default credentials: `admin@repairforge.com` / `admin123`
 
 - [ ] **Set Strong Environment Variables**
   - `JWT_SECRET`: Use a strong, random secret (minimum 32 characters)
@@ -131,7 +131,7 @@ openssl rand -hex 16
 
 ### Default Credentials
 
-**Issue**: Default admin credentials (`admin@circuitsage.com` / `admin123`) are a security risk.
+**Issue**: Default admin credentials (`admin@repairforge.com` / `admin123`) are a security risk.
 
 **Solution**: 
 1. Run the removal script: `yarn ts-node backend/scripts/remove-default-admin.ts`

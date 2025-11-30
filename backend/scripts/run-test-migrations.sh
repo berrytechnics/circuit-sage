@@ -9,7 +9,7 @@ DB_PORT="5433"
 DB_USER="test_user"
 DB_PASSWORD="test_password"
 DB_NAME="test_db"
-CONTAINER_NAME="circuit-sage-test-db"
+CONTAINER_NAME="repair-forge-test-db"
 
 # Set PGPASSWORD for psql
 export PGPASSWORD="${DB_PASSWORD}"

@@ -1,12 +1,12 @@
-# CircuitSage Quick Start Guide
+# RepairForge Quick Start Guide
 
-Welcome to CircuitSage! This guide will help you get up and running quickly.
+Welcome to RepairForge! This guide will help you get up and running quickly.
 
 ## Getting Started
 
 ### Access the Application
 
-Once CircuitSage is running, open your web browser and navigate to:
+Once RepairForge is running, open your web browser and navigate to:
 
 **http://localhost:3000**
 
@@ -14,9 +14,9 @@ The application works best in modern browsers (Chrome, Firefox, Safari, Edge).
 
 ### First Login
 
-When you first access CircuitSage, use these default credentials:
+When you first access RepairForge, use these default credentials:
 
-- **Email**: `admin@circuitsage.com`
+- **Email**: `admin@repairforge.com`
 - **Password**: `admin123`
 
 **Security Warning**: Change this password immediately after your first login!
@@ -248,7 +248,7 @@ The system will:
 
 ## User Roles and Permissions
 
-CircuitSage supports four user roles with different permission levels:
+RepairForge supports four user roles with different permission levels:
 
 ### Admin
 - **Full access** to all features
@@ -332,7 +332,7 @@ If you encounter issues or have questions:
 
 ## Browser Compatibility
 
-CircuitSage works best with:
+RepairForge works best with:
 - Chrome/Edge (latest versions)
 - Firefox (latest versions)
 - Safari (latest versions)

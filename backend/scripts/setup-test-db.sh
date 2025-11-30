@@ -4,7 +4,7 @@
 
 set -e
 
-CONTAINER_NAME="circuit-sage-test-db"
+CONTAINER_NAME="repair-forge-test-db"
 DB_PORT="5433"
 DB_USER="test_user"
 DB_PASSWORD="test_password"

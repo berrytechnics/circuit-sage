@@ -4,7 +4,7 @@
 
 set -e
 
-CONTAINER_NAME="circuit-sage-test-db"
+CONTAINER_NAME="repair-forge-test-db"
 
 echo "Tearing down test database..."
 

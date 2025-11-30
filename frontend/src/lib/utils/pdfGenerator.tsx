@@ -220,12 +220,12 @@ export async function generateInvoicePDF(invoice: Invoice): Promise<void> {
         <View style={styles.header}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 20 }}>
             <View>
-              <Text style={styles.companyName}>CircuitSage</Text>
+              <Text style={styles.companyName}>RepairForge</Text>
               <Text style={styles.companySubtitle}>Electronics Repair Services</Text>
               <Text style={styles.companySubtitle}>123 Repair Street</Text>
               <Text style={styles.companySubtitle}>City, State 12345</Text>
               <Text style={styles.companySubtitle}>Phone: (555) 123-4567</Text>
-              <Text style={styles.companySubtitle}>Email: info@circuitsage.com</Text>
+              <Text style={styles.companySubtitle}>Email: info@repairforge.com</Text>
             </View>
             <View style={{ alignItems: "flex-end" }}>
               <Text style={styles.invoiceTitle}>INVOICE</Text>

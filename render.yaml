@@ -1,13 +1,13 @@
 databases:
   # PostgreSQL Database
-  - name: circuit-sage-db
+  - name: repair-forge-db
     plan: free
     ipAllowList: []
 
 services:
   # Backend API Service
   - type: web
-    name: circuit-sage-api
+    name: repair-forge-api
     runtime: docker
     plan: free
     dockerfilePath: ./backend/Dockerfile
@@ -19,23 +19,23 @@ services:
         value: 4000
       - key: DB_HOST
         fromDatabase:
-          name: circuit-sage-db
+          name: repair-forge-db
           property: host
       - key: DB_PORT
         fromDatabase:
-          name: circuit-sage-db
+          name: repair-forge-db
           property: port
       - key: DB_USER
         fromDatabase:
-          name: circuit-sage-db
+          name: repair-forge-db
           property: user
       - key: DB_PASSWORD
         fromDatabase:
-          name: circuit-sage-db
+          name: repair-forge-db
           property: password
       - key: DB_NAME
         fromDatabase:
-          name: circuit-sage-db
+          name: repair-forge-db
           property: database
       - key: JWT_SECRET
         generateValue: true
@@ -49,7 +49,7 @@ services:
 
   # Frontend Web Service
   - type: web
-    name: circuit-sage-frontend
+    name: repair-forge-frontend
     runtime: docker
     plan: free
     dockerfilePath: ./frontend/Dockerfile
@@ -59,8 +59,8 @@ services:
         value: production
       - key: NEXT_PUBLIC_API_URL
         # Set this manually after backend is deployed
-        # Format: https://circuit-sage-api.onrender.com/api
-        value: https://circuit-sage-api.onrender.com/api
+        # Format: https://repair-forge-api.onrender.com/api
+        value: https://repair-forge-api.onrender.com/api
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
     # Note: NEXT_PUBLIC_API_URL must be available at build time

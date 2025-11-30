@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:15
-    container_name: circuit-sage-db
+    container_name: repair-forge-db
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-repair_admin}
@@ -32,7 +32,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
-    container_name: circuit-sage-api
+    container_name: repair-forge-api
     restart: always
     depends_on:
       postgres:
@@ -65,7 +65,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
-    container_name: circuit-sage-client
+    container_name: repair-forge-client
     restart: always
     depends_on:
       - backend

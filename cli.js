@@ -86,9 +86,9 @@ function isDockerRunning() {
   try {
     const output = execSync("docker ps", { stdio: "pipe" });
     return (
-      output.toString().includes("circuit-sage-api") ||
-      output.toString().includes("circuit-sage-db") ||
-      output.toString().includes("circuit-sage-client")
+      output.toString().includes("repair-forge-api") ||
+      output.toString().includes("repair-forge-db") ||
+      output.toString().includes("repair-forge-client")
     );
   } catch (error) {
     return false;
@@ -212,12 +212,12 @@ program
     "after",
     `
   Examples:
-    $ circuit-sage db:migrate         # Run all pending migrations
-    $ circuit-sage db:migrate:undo    # Undo the last migration
-    $ circuit-sage db:reset           # Reset the database (undo all, then migrate)
-    $ circuit-sage db:seed            # Seed the database
-    $ circuit-sage db:backup          # Create a database backup
-    $ circuit-sage db:restore <file>  # Restore database from backup
+    $ repair-forge db:migrate         # Run all pending migrations
+    $ repair-forge db:migrate:undo    # Undo the last migration
+    $ repair-forge db:reset           # Reset the database (undo all, then migrate)
+    $ repair-forge db:seed            # Seed the database
+    $ repair-forge db:backup          # Create a database backup
+    $ repair-forge db:restore <file>  # Restore database from backup
   `
   );
 
@@ -225,9 +225,9 @@ program
   .command("db:migrate")
   .description("Run database migrations")
   .action(() => {
-    if (isContainerRunning("circuit-sage-api")) {
+    if (isContainerRunning("repair-forge-api")) {
       log("Running migrations inside Docker container...", "green");
-      executeCommand("docker exec circuit-sage-api npx sequelize-cli db:migrate");
+      executeCommand("docker exec repair-forge-api npx sequelize-cli db:migrate");
     } else {
       log("Running migrations locally...", "green");
       executeCommand("npx sequelize-cli db:migrate", {
@@ -243,9 +243,9 @@ program
   .action((options) => {
     const command = options.all ? "db:migrate:undo:all" : "db:migrate:undo";
 
-    if (isContainerRunning("circuit-sage-api")) {
+    if (isContainerRunning("repair-forge-api")) {
       log(`Undoing migrations inside Docker container...`, "green");
-      executeCommand(`docker exec circuit-sage-api npx sequelize-cli ${command}`);
+      executeCommand(`docker exec repair-forge-api npx sequelize-cli ${command}`);
     } else {
       log(`Undoing migrations locally...`, "green");
       executeCommand(`npx sequelize-cli ${command}`, {
@@ -260,11 +260,11 @@ program
   .action(() => {
     log("Resetting database...", "yellow");
 
-    if (isContainerRunning("circuit-sage-api")) {
+    if (isContainerRunning("repair-forge-api")) {
       executeCommand(
-        "docker exec circuit-sage-api npx sequelize-cli db:migrate:undo:all"
+        "docker exec repair-forge-api npx sequelize-cli db:migrate:undo:all"
       );
-      executeCommand("docker exec circuit-sage-api npx sequelize-cli db:migrate");
+      executeCommand("docker exec repair-forge-api npx sequelize-cli db:migrate");
       log("Database reset complete!", "green");
     } else {
       executeCommand("npx sequelize-cli db:migrate:undo:all", {
@@ -284,14 +284,14 @@ program
   .action((options) => {
     const command = options.undo ? "db:seed:undo:all" : "db:seed:all";
 
-    if (isContainerRunning("circuit-sage-api")) {
+    if (isContainerRunning("repair-forge-api")) {
       log(
         `${
           options.undo ? "Undoing" : "Running"
         } seeds inside Docker container...`,
         "green"
       );
-      executeCommand(`docker exec circuit-sage-api npx sequelize-cli ${command}`);
+      executeCommand(`docker exec repair-forge-api npx sequelize-cli ${command}`);
     } else {
       log(`${options.undo ? "Undoing" : "Running"} seeds locally...`, "green");
       executeCommand(`npx sequelize-cli ${command}`, {
@@ -317,9 +317,9 @@ program
   .option("-t, --tail <number>", "Number of lines to show from the end", "100")
   .action((options) => {
     const services = {
-      backend: "circuit-sage-api",
-      frontend: "circuit-sage-client",
-      db: "circuit-sage-db",
+      backend: "repair-forge-api",
+      frontend: "repair-forge-client",
+      db: "repair-forge-db",
     };
 
     if (options.service && !services[options.service]) {
@@ -349,9 +349,9 @@ program
   .action((options) => {
     if (options.service) {
       const services = {
-        backend: "circuit-sage-api",
-        frontend: "circuit-sage-client",
-        db: "circuit-sage-db",
+        backend: "repair-forge-api",
+        frontend: "repair-forge-client",
+        db: "repair-forge-db",
       };
 
       if (!services[options.service]) {
@@ -376,9 +376,9 @@ program
   .option("-s, --service <service>", "Service to access (backend, frontend, db)", "backend")
   .action((options) => {
     const services = {
-      backend: "circuit-sage-api",
-      frontend: "circuit-sage-client",
-      db: "circuit-sage-db",
+      backend: "repair-forge-api",
+      frontend: "repair-forge-client",
+      db: "repair-forge-db",
     };
 
     if (!services[options.service]) {
@@ -412,9 +412,9 @@ program
     log("Checking service health...", "blue");
 
     const services = {
-      "circuit-sage-db": "Database",
-      "circuit-sage-api": "Backend API",
-      "circuit-sage-client": "Frontend",
+      "repair-forge-db": "Database",
+      "repair-forge-api": "Backend API",
+      "repair-forge-client": "Frontend",
     };
 
     let allHealthy = true;
@@ -485,9 +485,9 @@ program
       ? "yarn test:coverage"
       : "yarn test";
 
-    if (isContainerRunning("circuit-sage-api")) {
+    if (isContainerRunning("repair-forge-api")) {
       log("Running tests inside Docker container...", "green");
-      executeCommand(`docker exec circuit-sage-api ${testCommand}`);
+      executeCommand(`docker exec repair-forge-api ${testCommand}`);
     } else {
       log("Running tests locally...", "green");
       executeCommand(testCommand, {
@@ -551,8 +551,8 @@ program
             executeCommand(commands[options.type], {
               cwd: path.join(process.cwd(), "backend"),
             });
-          } else if (isContainerRunning("circuit-sage-api")) {
-            executeCommand(`docker exec circuit-sage-api ${commands[options.type]}`);
+          } else if (isContainerRunning("repair-forge-api")) {
+            executeCommand(`docker exec repair-forge-api ${commands[options.type]}`);
           } else {
             executeCommand(commands[options.type], {
               cwd: path.join(process.cwd(), "backend"),
@@ -590,8 +590,8 @@ program
             executeCommand(check.cmd, {
               cwd: path.join(process.cwd(), "backend"),
             });
-          } else if (isContainerRunning("circuit-sage-api")) {
-            executeCommand(`docker exec circuit-sage-api ${check.cmd}`);
+          } else if (isContainerRunning("repair-forge-api")) {
+            executeCommand(`docker exec repair-forge-api ${check.cmd}`);
           } else {
             executeCommand(check.cmd, {
               cwd: path.join(process.cwd(), "backend"),
@@ -640,7 +640,7 @@ program
   .action((options) => {
     log("Creating database backup...", "green");
 
-    if (!isContainerRunning("circuit-sage-db")) {
+    if (!isContainerRunning("repair-forge-db")) {
       log("Database container is not running", "red");
       process.exit(1);
     }
@@ -652,7 +652,7 @@ program
 
     try {
       const output = execSync(
-        `docker exec circuit-sage-db pg_dump -U ${dbUser} ${dbName}`,
+        `docker exec repair-forge-db pg_dump -U ${dbUser} ${dbName}`,
         { stdio: "pipe" }
       );
       fs.writeFileSync(backupFile, output);
@@ -675,7 +675,7 @@ program
       process.exit(1);
     }
 
-    if (!isContainerRunning("circuit-sage-db")) {
+    if (!isContainerRunning("repair-forge-db")) {
       log("Database container is not running", "red");
       process.exit(1);
     }
@@ -689,13 +689,13 @@ program
     try {
       // Copy backup file into container and restore
       const tempFile = `/tmp/restore-${Date.now()}.sql`;
-      execSync(`docker cp ${backupPath} circuit-sage-db:${tempFile}`, {
+      execSync(`docker cp ${backupPath} repair-forge-db:${tempFile}`, {
         stdio: "inherit",
       });
       executeCommand(
-        `docker exec circuit-sage-db psql -U ${dbUser} ${dbName} -f ${tempFile}`
+        `docker exec repair-forge-db psql -U ${dbUser} ${dbName} -f ${tempFile}`
       );
-      executeCommand(`docker exec circuit-sage-db rm ${tempFile}`, {
+      executeCommand(`docker exec repair-forge-db rm ${tempFile}`, {
         ignoreError: true,
       });
       log("Database restored!", "green");

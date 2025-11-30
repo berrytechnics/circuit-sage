@@ -1,12 +1,12 @@
 #!/bin/bash
-# Database backup script for CircuitSage
+# Database backup script for RepairForge
 # Usage: ./backup-db.sh [backup-dir]
 
 set -e
 
 BACKUP_DIR=${1:-./backups}
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_FILE="$BACKUP_DIR/circuit-sage-backup-$TIMESTAMP.sql"
+BACKUP_FILE="$BACKUP_DIR/repair-forge-backup-$TIMESTAMP.sql"
 
 # Create backup directory if it doesn't exist
 mkdir -p "$BACKUP_DIR"
@@ -65,7 +65,7 @@ echo "Backup size: $(du -h "${BACKUP_FILE}" | cut -f1)"
 
 # Keep only last 30 days of backups
 if [ -d "$BACKUP_DIR" ]; then
-  find "$BACKUP_DIR" -name "circuit-sage-backup-*.sql.gz" -mtime +30 -delete
+  find "$BACKUP_DIR" -name "repair-forge-backup-*.sql.gz" -mtime +30 -delete
   echo "Old backups cleaned (kept last 30 days)"
 fi
 

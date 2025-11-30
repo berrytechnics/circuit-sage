@@ -1,10 +1,10 @@
 # Integration Setup Guide
 
-This guide explains how to configure third-party integrations for CircuitSage. All integrations use a "Bring Your Own Key" (BYOK) model, meaning you provide your own API keys and credentials.
+This guide explains how to configure third-party integrations for RepairForge. All integrations use a "Bring Your Own Key" (BYOK) model, meaning you provide your own API keys and credentials.
 
 ## Overview
 
-CircuitSage supports integrations with various third-party services:
+RepairForge supports integrations with various third-party services:
 
 - **Email**: SendGrid, Mailgun, Resend, AWS SES, Brevo
 - **Payments**: Stripe, Square (coming soon)
@@ -47,7 +47,7 @@ All API keys are encrypted at rest using AES-256-GCM encryption and are never ex
    - Log in to SendGrid dashboard
    - Navigate to Settings → API Keys
    - Click "Create API Key"
-   - Name it (e.g., "CircuitSage Production")
+   - Name it (e.g., "RepairForge Production")
    - Select "Full Access" or "Restricted Access" with "Mail Send" permission
    - Copy the API key (you won't be able to see it again)
 
@@ -56,7 +56,7 @@ All API keys are encrypted at rest using AES-256-GCM encryption and are never ex
    - Verify a Single Sender or set up Domain Authentication
    - This is required to send emails
 
-4. **Configure in CircuitSage**
+4. **Configure in RepairForge**
    - Log in as an administrator
    - Go to Settings → Email Integration
    - Select "SendGrid" as the provider
@@ -68,7 +68,7 @@ All API keys are encrypted at rest using AES-256-GCM encryption and are never ex
 
 ### Email Notifications
 
-Once configured, CircuitSage will automatically send emails for:
+Once configured, RepairForge will automatically send emails for:
 
 - **Ticket Status Updates**: When a ticket status changes (new → in progress → completed, etc.)
 - **Invoice Creation**: When an invoice is created and marked as "issued"
@@ -110,7 +110,7 @@ Once configured, CircuitSage will automatically send emails for:
 3. **Key Rotation**
    - When rotating an API key:
      1. Generate a new API key in your provider's dashboard
-     2. Update the key in CircuitSage settings
+     2. Update the key in RepairForge settings
      3. Test the connection
      4. Delete the old API key from your provider (after confirming new key works)
 

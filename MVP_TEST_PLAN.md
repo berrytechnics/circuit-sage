@@ -1,7 +1,7 @@
 # MVP Hand Testing Plan
 
 ## Overview
-This plan provides a systematic approach to hand-test every action and interaction in CircuitSage before MVP completion. The plan is organized by feature area and includes role-based testing scenarios.
+This plan provides a systematic approach to hand-test every action and interaction in RepairForge before MVP completion. The plan is organized by feature area and includes role-based testing scenarios.
 
 ## Test Environment Setup
 

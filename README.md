@@ -1,11 +1,11 @@
-# CircuitSage
+# RepairForge
 
 **A modern, full-stack management system for electronics repair businesses**
 
-[![Backend CI](https://github.com/berrytechnics/circuit-sage/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/berrytechnics/circuit-sage/actions/workflows/backend-ci.yml)
-[![Frontend CI](https://github.com/berrytechnics/circuit-sage/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/berrytechnics/circuit-sage/actions/workflows/frontend-ci.yml)
+[![Backend CI](https://github.com/berrytechnics/repair-forge/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/berrytechnics/repair-forge/actions/workflows/backend-ci.yml)
+[![Frontend CI](https://github.com/berrytechnics/repair-forge/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/berrytechnics/repair-forge/actions/workflows/frontend-ci.yml)
 
-CircuitSage streamlines operations for electronics repair shops by providing comprehensive tools for managing customers, repair tickets, invoicing, inventory, and more—all in one integrated platform.
+RepairForge streamlines operations for electronics repair shops by providing comprehensive tools for managing customers, repair tickets, invoicing, inventory, and more—all in one integrated platform.
 
 ## Features
 
@@ -63,13 +63,13 @@ npm --version
 
 ## Quick Start
 
-Get CircuitSage running in minutes:
+Get RepairForge running in minutes:
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/berrytechnics/circuit-sage.git
-cd circuit-sage
+git clone https://github.com/berrytechnics/repair-forge.git
+cd repair-forge
 ```
 
 ### 2. Install Dependencies
@@ -78,7 +78,7 @@ cd circuit-sage
 npm install
 ```
 
-This installs the CircuitSage CLI tool used to manage the application.
+This installs the RepairForge CLI tool used to manage the application.
 
 ### 3. Start the Application
 
@@ -111,7 +111,7 @@ Once containers are running:
 
 Use the default admin credentials:
 
-- **Email**: `admin@circuitsage.com`
+- **Email**: `admin@repairforge.com`
 - **Password**: `admin123`
 
 **Important**: Change this password immediately after first login!
@@ -119,7 +119,7 @@ Use the default admin credentials:
 ## Project Structure
 
 ```
-circuit-sage/
+repair-forge/
 ├── backend/              # Express TypeScript API
 │   ├── src/
 │   │   ├── __tests__/    # Test suites
@@ -140,7 +140,7 @@ circuit-sage/
 │   ├── migrations/       # Database migration files
 │   └── init/             # Initialization scripts
 ├── docker-compose.yml    # Docker Compose configuration
-├── cli.js                # CircuitSage CLI tool
+├── cli.js                # RepairForge CLI tool
 └── package.json          # Root package.json
 ```
 
@@ -148,7 +148,7 @@ circuit-sage/
 
 ### Using the CLI
 
-The CircuitSage CLI provides convenient commands for common tasks:
+The RepairForge CLI provides convenient commands for common tasks:
 
 ```bash
 # Start development environment
@@ -353,7 +353,7 @@ npm run restart
 
 ```bash
 # Verify database is running
-docker ps | grep circuit-sage-db
+docker ps | grep repair-forge-db
 
 # Check database logs
 npm run logs -- -s db
@@ -386,7 +386,7 @@ npx tsc --noEmit
 
 ## Deployment
 
-CircuitSage can be deployed to various platforms. For sandbox/client testing, we recommend Render's free tier.
+RepairForge can be deployed to various platforms. For sandbox/client testing, we recommend Render's free tier.
 
 ### Quick Deployment to Render
 
