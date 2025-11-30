@@ -169,6 +169,53 @@ export class InvitationService {
     return result ? Number(result.numUpdatedRows) > 0 : false;
   }
 
+  async resend(id: string, companyId: string, invitedBy: string, expiresInDays = 7): Promise<Invitation> {
+    // Find existing invitation
+    const existing = await db
+      .selectFrom("invitations")
+      .selectAll()
+      .where("id", "=", id)
+      .where("company_id", "=", companyId)
+      .where("deleted_at", "is", null)
+      .executeTakeFirst();
+
+    if (!existing) {
+      throw new Error("Invitation not found");
+    }
+
+    // If already used, cannot resend
+    if (existing.used_at) {
+      throw new Error("Cannot resend an invitation that has already been used");
+    }
+
+    // Revoke old invitation
+    await this.revoke(id, companyId);
+
+    // Create new invitation with same email and role, but new token and expiration
+    const newExpiresAt = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000);
+    const newToken = generateToken();
+
+    const newInvitation = await db
+      .insertInto("invitations")
+      .values({
+        id: uuidv4(),
+        company_id: companyId,
+        email: existing.email,
+        token: newToken,
+        role: existing.role,
+        invited_by: invitedBy,
+        expires_at: newExpiresAt.toISOString(),
+        used_at: null,
+        created_at: sql`now()`,
+        updated_at: sql`now()`,
+        deleted_at: null,
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow();
+
+    return toInvitation(newInvitation);
+  }
+
   async isTokenValid(token: string, email: string): Promise<{
     valid: boolean;
     invitation: Invitation | null;

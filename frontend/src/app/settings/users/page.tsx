@@ -14,6 +14,7 @@ import {
   getInvitations,
   createInvitation,
   revokeInvitation,
+  resendInvitation,
   Invitation,
 } from "@/lib/api/invitation.api";
 import { useUser } from "@/lib/UserContext";
@@ -52,6 +53,9 @@ export default function UsersManagementPage() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<UserRole>("technician");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   // Check if user has permission to access this page
   useEffect(() => {
@@ -308,15 +312,10 @@ export default function UsersManagementPage() {
   };
 
   const handleResendInvitation = async (invitation: Invitation) => {
-    // Revoke old invitation and create a new one
     setIsProcessing(true);
     setError("");
     try {
-      await revokeInvitation(invitation.id);
-      await createInvitation({
-        email: invitation.email,
-        role: invitation.role,
-      });
+      await resendInvitation(invitation.id);
       // Refresh invitations list
       const response = await getInvitations();
       if (response.data) {
@@ -345,6 +344,33 @@ export default function UsersManagementPage() {
     return null;
   }
 
+  // Filter users based on search query, role, and status
+  const filteredUsers = users.filter((u) => {
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesSearch =
+        u.firstName.toLowerCase().includes(query) ||
+        u.lastName.toLowerCase().includes(query) ||
+        u.email.toLowerCase().includes(query);
+      if (!matchesSearch) return false;
+    }
+
+    // Role filter
+    if (roleFilter !== "all") {
+      const userRoles = u.roles || [u.role];
+      if (!userRoles.includes(roleFilter)) return false;
+    }
+
+    // Status filter
+    if (statusFilter !== "all") {
+      if (statusFilter === "active" && u.active === false) return false;
+      if (statusFilter === "inactive" && u.active !== false) return false;
+    }
+
+    return true;
+  });
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-6 flex items-center justify-between">
@@ -370,6 +396,55 @@ export default function UsersManagementPage() {
         </div>
       )}
 
+      {/* Search and Filter Controls */}
+      <div className="mb-4 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Search
+            </label>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by name or email..."
+              className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Filter by Role
+            </label>
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+            >
+              <option value="all">All Roles</option>
+              {ROLES.map((role) => (
+                <option key={role} value={role}>
+                  {role.charAt(0).toUpperCase() + role.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Filter by Status
+            </label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -393,12 +468,22 @@ export default function UsersManagementPage() {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {users.map((u) => (
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                    {isLoading ? "Loading users..." : "No users found matching your filters."}
+                  </td>
+                </tr>
+              ) : (
+                filteredUsers.map((u) => (
                 <tr key={u.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <Link
+                      href={`/settings/users/${u.id}`}
+                      className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                    >
                       {u.firstName} {u.lastName}
-                    </div>
+                    </Link>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -503,7 +588,8 @@ export default function UsersManagementPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>

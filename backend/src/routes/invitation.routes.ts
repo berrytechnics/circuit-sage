@@ -85,5 +85,41 @@ router.delete(
   })
 );
 
+// POST /api/invitations/:id/resend - Resend invitation
+router.post(
+  "/:id/resend",
+  requireAdmin(),
+  asyncHandler(async (req: Request, res: Response) => {
+    const companyId = req.companyId!;
+    const userId = req.user!.id;
+    const { id } = req.params;
+    const { expiresInDays } = req.body;
+    
+    try {
+      const invitation = await invitationService.resend(
+        id,
+        companyId,
+        userId,
+        expiresInDays || 7
+      );
+      
+      res.json({
+        success: true,
+        data: invitation,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "Invitation not found") {
+          throw new NotFoundError("Invitation not found");
+        }
+        if (error.message.includes("already been used")) {
+          throw new BadRequestError(error.message);
+        }
+      }
+      throw error;
+    }
+  })
+);
+
 export default router;
 

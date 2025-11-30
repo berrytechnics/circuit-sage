@@ -49,3 +49,17 @@ export const revokeInvitation = async (
   throw new Error(response.data.error?.message || "Failed to revoke invitation");
 };
 
+export const resendInvitation = async (
+  invitationId: string,
+  expiresInDays?: number
+): Promise<ApiResponse<Invitation>> => {
+  const response = await api.post<ApiResponse<Invitation>>(
+    `/invitations/${invitationId}/resend`,
+    { expiresInDays }
+  );
+  if (response.data.success) {
+    return response.data;
+  }
+  throw new Error(response.data.error?.message || "Failed to resend invitation");
+};
+

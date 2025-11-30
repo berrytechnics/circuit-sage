@@ -58,11 +58,19 @@ export const updateUser = async (
 };
 
 export const deactivateUser = async (userId: string): Promise<ApiResponse<{ message: string }>> => {
-  const response = await api.delete<ApiResponse<{ message: string }>>(`/users/${userId}`);
+  const response = await api.put<ApiResponse<{ message: string }>>(`/users/${userId}/deactivate`);
   if (response.data.success) {
     return response.data;
   }
   throw new Error(response.data.error?.message || "Failed to deactivate user");
+};
+
+export const activateUser = async (userId: string): Promise<ApiResponse<{ message: string }>> => {
+  const response = await api.put<ApiResponse<{ message: string }>>(`/users/${userId}/activate`);
+  if (response.data.success) {
+    return response.data;
+  }
+  throw new Error(response.data.error?.message || "Failed to activate user");
 };
 
 export const addUserRole = async (
