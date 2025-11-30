@@ -25,7 +25,7 @@ describe('LocationForm', () => {
     it('renders form fields correctly', () => {
       render(<LocationForm />)
 
-      expect(screen.getByLabelText(/name/i)).toBeInTheDocument()
+      expect(screen.getByRole('textbox', { name: /^name\s/i })).toBeInTheDocument()
       expect(screen.getByLabelText(/address/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/phone/i)).toBeInTheDocument()
       expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
@@ -54,7 +54,7 @@ describe('LocationForm', () => {
       const user = userEvent.setup()
       const { container } = render(<LocationForm />)
 
-      const nameInput = screen.getByLabelText(/name/i)
+      const nameInput = screen.getByRole('textbox', { name: /^name\s/i })
       await user.type(nameInput, 'Test Location')
 
       const emailInput = screen.getByLabelText(/email/i) as HTMLInputElement
@@ -83,7 +83,7 @@ describe('LocationForm', () => {
       const user = userEvent.setup()
       render(<LocationForm />)
 
-      const nameInput = screen.getByLabelText(/name/i)
+      const nameInput = screen.getByRole('textbox', { name: /^name\s/i })
       await user.type(nameInput, 'Test Location')
 
       const phoneInput = screen.getByLabelText(/phone/i)
@@ -101,7 +101,7 @@ describe('LocationForm', () => {
       const user = userEvent.setup()
       render(<LocationForm />)
 
-      const nameInput = screen.getByLabelText(/name/i)
+      const nameInput = screen.getByRole('textbox', { name: /^name\s/i })
       const submitButton = screen.getByRole('button', { name: /create location|update location/i })
 
       // Submit empty form
@@ -139,7 +139,7 @@ describe('LocationForm', () => {
 
       render(<LocationForm />)
 
-      const nameInput = screen.getByLabelText(/name/i)
+      const nameInput = screen.getByRole('textbox', { name: /^name\s/i })
       await user.type(nameInput, 'Test Location')
 
       const submitButton = screen.getByRole('button', { name: /create location|update location/i })
@@ -170,7 +170,7 @@ describe('LocationForm', () => {
 
       render(<LocationForm />)
 
-      await user.type(screen.getByLabelText(/name/i), 'Test Location')
+      await user.type(screen.getByRole('textbox', { name: /^name\s/i }), 'Test Location')
 
       const submitButton = screen.getByRole('button', { name: /create location|update location/i })
       await user.click(submitButton)
