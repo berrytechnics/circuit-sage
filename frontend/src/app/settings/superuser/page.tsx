@@ -24,7 +24,13 @@ export default function SuperuserSettingsPage() {
   // Load maintenance mode status
   useEffect(() => {
     const loadMaintenanceStatus = async () => {
-      if (!isSuperuser) return;
+      // Wait for user to be loaded and ensure superuser
+      if (isLoading || !user || !isSuperuser) {
+        if (!isLoading) {
+          setMaintenanceLoading(false);
+        }
+        return;
+      }
 
       try {
         const response = await getMaintenanceMode();
@@ -37,7 +43,7 @@ export default function SuperuserSettingsPage() {
     };
 
     loadMaintenanceStatus();
-  }, [isSuperuser]);
+  }, [isSuperuser, isLoading, user]);
 
   const handleToggleMaintenance = async () => {
     if (maintenanceToggling) return;
