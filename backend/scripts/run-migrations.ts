@@ -259,12 +259,16 @@ async function runMigrations() {
         
         // Try executing the entire SQL file first (PostgreSQL supports multiple statements)
         // If that fails, fall back to splitting statements
+        let statementCount = 0;
         try {
           await client.query(sql);
+          // Count statements for logging (approximate)
+          statementCount = sql.split(';').filter(s => s.trim().length > 0).length;
         } catch (error: any) {
           // If direct execution fails, try splitting into statements
           console.log(`  Direct execution failed, splitting into statements...`);
           const statements = splitSqlStatements(sql);
+          statementCount = statements.length;
           
           for (let i = 0; i < statements.length; i++) {
             const statement = statements[i].trim();
@@ -292,7 +296,7 @@ async function runMigrations() {
         await recordMigration(client, file, checksum, executionTime);
         await client.query("COMMIT");
         
-        console.log(`✓ Migration ${file} completed successfully (${executionTime}ms, ${statements.length} statements)`);
+        console.log(`✓ Migration ${file} completed successfully (${executionTime}ms, ${statementCount} statements)`);
         appliedCount++;
       } catch (error: any) {
         try {
