@@ -76,33 +76,126 @@ if [ $WAIT_COUNT -eq $MAX_WAIT ]; then
 fi
 
 echo -e "${GREEN}Step 4: Running database migrations...${NC}"
+
+# Function to verify database state after migrations
+verify_database_state() {
+    local DB_USER="${POSTGRES_USER:-circuit_sage_user}"
+    local DB_NAME="${POSTGRES_DB:-circuit_sage_db}"
+    
+    echo -e "${GREEN}Verifying database state...${NC}"
+    
+    # Check if migration tracking table exists
+    if ! docker compose -f docker-compose.prod.yml --env-file .env.production exec -T postgres psql -U "$DB_USER" -d "$DB_NAME" -c "SELECT 1 FROM schema_migrations LIMIT 1;" > /dev/null 2>&1; then
+        echo -e "${RED}✗ Migration tracking table (schema_migrations) does not exist${NC}"
+        return 1
+    fi
+    
+    # Check critical tables exist
+    local CRITICAL_TABLES=("companies" "users" "customers" "tickets" "invoices")
+    local MISSING_TABLES=()
+    
+    for table in "${CRITICAL_TABLES[@]}"; do
+        if ! docker compose -f docker-compose.prod.yml --env-file .env.production exec -T postgres psql -U "$DB_USER" -d "$DB_NAME" -c "SELECT 1 FROM $table LIMIT 1;" > /dev/null 2>&1; then
+            MISSING_TABLES+=("$table")
+        fi
+    done
+    
+    if [ ${#MISSING_TABLES[@]} -ne 0 ]; then
+        echo -e "${RED}✗ Critical tables missing: ${MISSING_TABLES[*]}${NC}"
+        echo -e "${YELLOW}This indicates migrations reported success but tables were not created.${NC}"
+        return 1
+    fi
+    
+    # Get migration count
+    local MIGRATION_COUNT=$(docker compose -f docker-compose.prod.yml --env-file .env.production exec -T postgres psql -U "$DB_USER" -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM schema_migrations;" | tr -d ' ')
+    
+    echo -e "${GREEN}✓ Database verification passed${NC}"
+    echo -e "${GREEN}  - Migration tracking table exists${NC}"
+    echo -e "${GREEN}  - All critical tables exist${NC}"
+    echo -e "${GREEN}  - Migrations recorded: $MIGRATION_COUNT${NC}"
+    
+    return 0
+}
+
 # Start backend temporarily to run migrations
+echo -e "${GREEN}Starting backend container for migrations...${NC}"
 docker compose -f docker-compose.prod.yml --env-file .env.production up -d backend
 
 # Wait for backend to start
-sleep 5
+echo -e "${GREEN}Waiting for backend to be ready...${NC}"
+BACKEND_READY=false
+for i in {1..30}; do
+    if docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend test -f /app/dist/scripts/run-migrations.js 2>/dev/null; then
+        BACKEND_READY=true
+        break
+    fi
+    echo -n "."
+    sleep 1
+done
+echo ""
+
+if [ "$BACKEND_READY" = false ]; then
+    echo -e "${RED}Error: Backend container failed to start or migration script not found${NC}"
+    docker compose -f docker-compose.prod.yml --env-file .env.production logs backend
+    exit 1
+fi
+
+# Verify migrations directory exists in container
+if ! docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend test -d /app/database/migrations 2>/dev/null; then
+    echo -e "${RED}Error: Migrations directory not found in container at /app/database/migrations${NC}"
+    echo -e "${YELLOW}Checking container filesystem...${NC}"
+    docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend ls -la /app/database/ 2>&1 || true
+    exit 1
+fi
 
 # Run migrations explicitly
 echo -e "${GREEN}Running migrations...${NC}"
 MIGRATION_ATTEMPTS=0
 MAX_MIGRATION_ATTEMPTS=5
 MIGRATION_SUCCESS=false
+MIGRATION_OUTPUT=""
 
 while [ $MIGRATION_ATTEMPTS -lt $MAX_MIGRATION_ATTEMPTS ]; do
-    if docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend yarn migrate:prod; then
+    echo -e "${YELLOW}Migration attempt $((MIGRATION_ATTEMPTS + 1))/${MAX_MIGRATION_ATTEMPTS}...${NC}"
+    
+    # Capture migration output
+    if MIGRATION_OUTPUT=$(docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend yarn migrate:prod 2>&1); then
+        echo "$MIGRATION_OUTPUT"
         MIGRATION_SUCCESS=true
-        echo -e "${GREEN}✓ Migrations completed successfully${NC}"
-        break
+        
+        # Verify database state after successful migration
+        if verify_database_state; then
+            echo -e "${GREEN}✓ Migrations completed and verified successfully${NC}"
+            break
+        else
+            echo -e "${RED}✗ Migrations reported success but database verification failed${NC}"
+            echo -e "${YELLOW}This may indicate a transaction persistence issue.${NC}"
+            MIGRATION_ATTEMPTS=$((MIGRATION_ATTEMPTS + 1))
+            if [ $MIGRATION_ATTEMPTS -lt $MAX_MIGRATION_ATTEMPTS ]; then
+                echo -e "${YELLOW}Retrying migration...${NC}"
+                sleep 3
+            fi
+        fi
     else
+        echo "$MIGRATION_OUTPUT"
         MIGRATION_ATTEMPTS=$((MIGRATION_ATTEMPTS + 1))
-        echo -e "${YELLOW}Migration attempt ${MIGRATION_ATTEMPTS} failed, retrying...${NC}"
-        sleep 3
+        if [ $MIGRATION_ATTEMPTS -lt $MAX_MIGRATION_ATTEMPTS ]; then
+            echo -e "${YELLOW}Migration attempt ${MIGRATION_ATTEMPTS} failed, retrying...${NC}"
+            sleep 3
+        fi
     fi
 done
 
 if [ "$MIGRATION_SUCCESS" = false ]; then
     echo -e "${RED}Error: Migrations failed after ${MAX_MIGRATION_ATTEMPTS} attempts${NC}"
-    docker compose -f docker-compose.prod.yml --env-file .env.production logs backend
+    echo -e "${YELLOW}Migration output:${NC}"
+    echo "$MIGRATION_OUTPUT"
+    echo ""
+    echo -e "${YELLOW}Backend logs:${NC}"
+    docker compose -f docker-compose.prod.yml --env-file .env.production logs --tail=50 backend
+    echo ""
+    echo -e "${YELLOW}Database state:${NC}"
+    docker compose -f docker-compose.prod.yml --env-file .env.production exec -T postgres psql -U "${POSTGRES_USER:-circuit_sage_user}" -d "${POSTGRES_DB:-circuit_sage_db}" -c "\dt" || true
     exit 1
 fi
 
