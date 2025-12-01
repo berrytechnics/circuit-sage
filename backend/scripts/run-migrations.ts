@@ -215,9 +215,16 @@ function getExpectedTables(sql: string, migrationFile: string): string[] {
   const tables: string[] = [];
   
   // Extract CREATE TABLE statements
-  const createTablePattern = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(\w+)/gi;
+  // Match both "CREATE TABLE table_name" and "CREATE TABLE IF NOT EXISTS table_name"
+  // Use two patterns to avoid capturing "IF" from "IF NOT EXISTS"
+  const createTablePattern1 = /CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+(\w+)/gi;
+  const createTablePattern2 = /CREATE\s+TABLE\s+(?!IF\s+NOT\s+EXISTS)(\w+)/gi;
+  
   let match;
-  while ((match = createTablePattern.exec(sql)) !== null) {
+  while ((match = createTablePattern1.exec(sql)) !== null) {
+    tables.push(match[1].toLowerCase());
+  }
+  while ((match = createTablePattern2.exec(sql)) !== null) {
     tables.push(match[1].toLowerCase());
   }
   
