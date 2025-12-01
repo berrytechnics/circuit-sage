@@ -6,7 +6,7 @@ This guide provides step-by-step instructions for deploying RepairTix to product
 
 - [Prerequisites](#prerequisites)
 - [Deployment Options](#deployment-options)
-- [Render.com Deployment](#rendercom-deployment)
+- [Hetzner Cloud Deployment](#hetzner-cloud-deployment)
 - [Environment Variables](#environment-variables-reference)
 - [Database Setup](#database-setup)
 - [Post-Deployment Steps](#post-deployment-steps)
@@ -17,115 +17,151 @@ This guide provides step-by-step instructions for deploying RepairTix to product
 Before deploying, ensure you have:
 
 - A GitHub repository with RepairTix code
-- Access to a deployment platform (Render.com, AWS, Google Cloud, etc.)
+- Access to a deployment platform (Hetzner Cloud, AWS, Google Cloud, etc.)
 - PostgreSQL 15+ database (managed or self-hosted)
 - Domain name (optional, for custom domains)
 - SSL certificate (for HTTPS)
 
 ## Deployment Options
 
-### Recommended: Render.com
+### Recommended: Hetzner Cloud
 
-Render.com is recommended for quick deployments with minimal configuration. The `render.yaml` file is pre-configured for Render.com.
+Hetzner Cloud is recommended for cost-effective VPS deployments with full control. See [Hetzner Cloud Deployment](#hetzner-cloud-deployment) for detailed instructions.
 
 ### Alternative Platforms
 
 RepairTix can be deployed to:
+- **Hetzner Cloud** (VPS with Docker Compose) - See [Hetzner Cloud Deployment](#hetzner-cloud-deployment)
 - **AWS** (ECS, EC2, Elastic Beanstalk)
 - **Google Cloud Platform** (Cloud Run, Compute Engine)
 - **Azure** (App Service, Container Instances)
 - **DigitalOcean** (App Platform, Droplets)
 - **Heroku** (with modifications)
 
-## Render.com Deployment
+## Hetzner Cloud Deployment
 
-### Step 1: Prepare Repository
+Deploy Circuit Sage to a Hetzner Cloud VPS with Docker Compose, Nginx reverse proxy, and SSL certificates.
 
-1. Ensure your code is pushed to GitHub
-2. Verify `render.yaml` exists in the root directory
-3. Check that Dockerfiles are present:
-   - `backend/Dockerfile`
-   - `frontend/Dockerfile`
+### Prerequisites
 
-### Step 2: Connect to Render
+- Hetzner Cloud server (Ubuntu 24.04 recommended)
+- Domain name pointing to your server's IP address
+- SSH access to your server
 
-1. Sign up/login at [render.com](https://render.com)
-2. Click "New +" → "Blueprint"
-3. Connect your GitHub repository
-4. Render will detect `render.yaml` and create services automatically
+### Quick Start
 
-### Step 3: Configure Environment Variables
+#### 1. Initial Server Setup
 
-After services are created, configure environment variables in Render dashboard:
-
-#### Backend Service (`repair-tix-api`)
-
-Required variables (some auto-configured from database):
-- `NODE_ENV=production`
-- `PORT=4000` (auto-set)
-- `DB_HOST` (auto-set from database)
-- `DB_PORT` (auto-set from database)
-- `DB_USER` (auto-set from database)
-- `DB_PASSWORD` (auto-set from database)
-- `DB_NAME` (auto-set from database)
-- `JWT_SECRET` (generate strong secret - see below)
-- `ENCRYPTION_KEY` (generate 32-character key - see below)
-- `ALLOWED_ORIGINS` (set to your frontend URL, comma-separated)
-- `IS_DOCKER=true`
-
-#### Frontend Service (`repair-tix-frontend`)
-
-Required variables:
-- `NODE_ENV=production`
-- `NEXT_PUBLIC_API_URL` (set to your backend URL, e.g., `https://repair-tix-api.onrender.com/api`)
-- `NEXT_TELEMETRY_DISABLED=1`
-
-### Step 4: Generate Secrets
-
-Generate secure secrets before deployment:
+SSH into your Hetzner server and run the setup script:
 
 ```bash
-# Generate JWT Secret (32+ characters)
-openssl rand -base64 32
+# Clone repository
+git clone https://github.com/your-repo/circuit-sage.git
+cd circuit-sage
 
-# Generate Encryption Key (exactly 32 characters for AES-256)
-openssl rand -hex 16
+# Run setup script (requires sudo)
+sudo bash deployment/hetzner/setup-server.sh
 ```
 
-### Step 5: Deploy
+This installs Docker, Docker Compose, Nginx, Certbot, and configures the firewall.
 
-1. Render will automatically build and deploy when you push to the connected branch
-2. Monitor build logs in Render dashboard
-3. Wait for services to become "Live"
-
-### Step 6: Run Database Migrations
-
-Migrations run automatically on backend startup via `backend/scripts/start.sh`. Verify in logs:
-
-1. Go to Backend service logs in Render
-2. Look for "Running database migrations..." message
-3. Verify "All migrations completed successfully"
-
-If migrations fail, you can run them manually:
+#### 2. Configure Environment Variables
 
 ```bash
-# SSH into backend container (if supported) or use Render shell
-cd /app
-yarn migrate:prod
+# Copy example file
+cp deployment/hetzner/env.production.example .env.production
+
+# Edit with your values
+nano .env.production
 ```
 
-### Step 7: Verify Deployment
+**Required variables:**
+- `DOMAIN_NAME` - Your domain name
+- `POSTGRES_PASSWORD` - Strong database password
+- `JWT_SECRET` - Generate with: `openssl rand -base64 32`
+- `ENCRYPTION_KEY` - Generate with: `openssl rand -hex 16`
+- `ALLOWED_ORIGINS` - Your domain(s) for CORS
+- `NEXT_PUBLIC_API_URL` - Your API URL (e.g., `https://yourdomain.com/api`)
 
-1. **Health Check**: Visit `https://your-backend-url.onrender.com/health`
-   - Should return: `{"status":"ok"}`
+#### 3. Deploy Application
 
-2. **Frontend**: Visit your frontend URL
-   - Should load the login page
+```bash
+# Make deploy script executable
+chmod +x deployment/hetzner/deploy.sh
 
-3. **API**: Test API endpoint
-   ```bash
-   curl https://your-backend-url.onrender.com/api/health
+# Run deployment
+./deployment/hetzner/deploy.sh
+```
+
+The deployment script will:
+- Build Docker images
+- Start all services (database, backend, frontend)
+- Configure Nginx reverse proxy
+- Set up SSL certificate with Let's Encrypt
+- Configure automatic SSL renewal
+
+### Architecture
+
+```
+Internet → Nginx (Ports 80/443)
+  ├── Frontend Container (Port 3000) → /
+  └── Backend Container (Port 4000) → /api
+        ↓
+    PostgreSQL Container (Port 5432, internal only)
+```
+
+### DNS Configuration
+
+Before deployment, configure your domain DNS:
+
+1. **A Record**: Point your domain to your Hetzner server IP
    ```
+   yourdomain.com → YOUR_SERVER_IP
+   ```
+
+2. **Optional - WWW subdomain**:
+   ```
+   www.yourdomain.com → YOUR_SERVER_IP
+   ```
+
+### Managing Services
+
+```bash
+# View logs
+docker compose -f docker-compose.prod.yml logs -f
+
+# Restart services
+docker compose -f docker-compose.prod.yml restart
+
+# Stop services
+docker compose -f docker-compose.prod.yml down
+
+# Update application
+git pull
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+### Post-Deployment
+
+1. **Verify Deployment**:
+   - Frontend: `https://yourdomain.com`
+   - Backend API: `https://yourdomain.com/api/health`
+
+2. **Remove Default Credentials**:
+   ```bash
+   docker compose -f docker-compose.prod.yml exec backend yarn ts-node scripts/remove-default-admin.ts
+   ```
+
+3. **Create Production Admin**: Register a new company via `/api/auth/register`
+
+### Troubleshooting
+
+See [deployment/hetzner/README.md](./deployment/hetzner/README.md) for detailed troubleshooting guide.
+
+Common issues:
+- **Services won't start**: Check logs with `docker compose -f docker-compose.prod.yml logs`
+- **SSL certificate issues**: Ensure DNS is configured correctly before running deployment
+- **Nginx errors**: Check configuration with `sudo nginx -t`
 
 ## Environment Variables Reference
 
@@ -135,7 +171,7 @@ yarn migrate:prod
 |----------|----------|-------------|---------|
 | `NODE_ENV` | Yes | Environment mode | `production` |
 | `PORT` | Yes | Server port | `4000` |
-| `DB_HOST` | Yes | Database host | `dpg-xxx.oregon-postgres.render.com` |
+| `DB_HOST` | Yes | Database host | `localhost` or database server IP |
 | `DB_PORT` | Yes | Database port | `5432` |
 | `DB_USER` | Yes | Database username | `circuit_sage_user` |
 | `DB_PASSWORD` | Yes | Database password | (auto-generated) |
@@ -167,11 +203,13 @@ openssl rand -hex 16
 
 ## Database Setup
 
-### Using Render.com Managed PostgreSQL
+### Using Docker Compose (Recommended)
 
-1. Render automatically creates a PostgreSQL database from `render.yaml`
-2. Connection details are auto-injected into backend service
-3. No manual setup required
+When using Docker Compose (e.g., Hetzner deployment), PostgreSQL is automatically configured:
+
+1. Database runs in a Docker container
+2. Connection details are configured via environment variables
+3. Migrations run automatically on backend startup
 
 ### Using External PostgreSQL
 
@@ -224,23 +262,24 @@ See [SECURITY.md](./docs/SECURITY.md) for more details.
 
 ### 3. Configure Custom Domain (Optional)
 
-1. In Render dashboard, go to your service
-2. Click "Settings" → "Custom Domain"
-3. Add your domain
-4. Update DNS records as instructed
-5. SSL certificate is auto-provisioned by Render
+For Hetzner deployments, custom domain configuration is handled automatically by the deployment script. See [Hetzner Cloud Deployment](#hetzner-cloud-deployment) for details.
+
+For other platforms:
+1. Configure DNS records to point to your server
+2. Set up SSL certificate (Let's Encrypt recommended)
+3. Update environment variables with your domain
 
 ### 4. Set Up Monitoring
 
-- Monitor application logs in Render dashboard
+- Monitor application logs: `docker compose -f docker-compose.prod.yml logs -f`
 - Set up health check alerts
 - Configure error tracking (see Monitoring section)
 
 ### 5. Configure Backups
 
-- Render.com: Automatic daily backups (paid plans)
-- External database: Set up automated backups
+- Set up automated database backups (see Database Backups documentation)
 - Document restore procedures
+- Test backup restoration regularly
 
 ## Troubleshooting
 
@@ -262,13 +301,13 @@ See [SECURITY.md](./docs/SECURITY.md) for more details.
 
 **Common issues:**
 - `NEXT_PUBLIC_API_URL` not set
-- Build timeout (increase in Render settings)
-- Memory limits (upgrade plan)
+- Build timeout (increase Docker build resources)
+- Memory limits (increase Docker memory allocation)
 
 **Fix:**
 ```bash
 # Ensure NEXT_PUBLIC_API_URL is set before build
-# Check Render build logs for specific errors
+# Check Docker build logs: docker compose -f docker-compose.prod.yml build --no-cache frontend
 ```
 
 ### Database Connection Errors
@@ -281,7 +320,7 @@ See [SECURITY.md](./docs/SECURITY.md) for more details.
 1. Verify database credentials in environment variables
 2. Check database is running and accessible
 3. Verify network connectivity (firewall rules)
-4. For Render: Ensure database and backend are in same region
+4. For Docker Compose: Ensure containers are on the same network
 
 ### Migrations Fail
 
@@ -315,72 +354,23 @@ See [SECURITY.md](./docs/SECURITY.md) for more details.
 
 **Test:**
 ```bash
-curl https://your-backend-url.onrender.com/health
-```
+# For Docker Compose deployments
+curl http://localhost:4000/health
 
-### Custom Domain Shows "Coming Soon" Screen
-
-**Symptoms:**
-- DNS records are configured correctly
-- Domain still shows Render's "coming soon" page
-- Domain verification pending
-
-**Root Cause:**
-Render requires you to add the custom domain through their dashboard. DNS records alone are not sufficient. The "coming soon" screen appears until the domain is added and verified in Render.
-
-**Fix Steps:**
-
-1. **Add Domain in Render Dashboard:**
-   - Go to [Render Dashboard](https://dashboard.render.com)
-   - Navigate to your frontend service (`repair-tix-frontend`)
-   - Click on "Settings" in the left sidebar
-   - Scroll to "Custom Domains" section
-   - Click "Add Custom Domain"
-   - Enter your domain (e.g., `repairtix.com` or `www.repairtix.com`)
-   - Click "Save"
-
-2. **Verify DNS Records Match:**
-   - Render will show you the exact DNS records needed
-   - Common configurations:
-     - **Apex domain** (`repairtix.com`): CNAME pointing to Render's hostname
-     - **WWW subdomain** (`www.repairtix.com`): CNAME pointing to Render's hostname
-   - Ensure your DNS records match exactly what Render shows
-
-3. **Wait for Verification:**
-   - Render will automatically verify DNS propagation
-   - This can take 5-60 minutes depending on DNS TTL
-   - Check domain status in Render dashboard - it should show "Verified" when ready
-
-4. **SSL Certificate:**
-   - Render automatically provisions SSL certificates via Let's Encrypt
-   - SSL will be active once domain is verified
-   - No additional configuration needed
-
-5. **Update Environment Variables (if needed):**
-   - If using custom domain for API, update `NEXT_PUBLIC_API_URL` in frontend service
-   - Update `ALLOWED_ORIGINS` in backend service to include custom domain
-   - Restart services after updating environment variables
-
-**Important Notes:**
-- You must add BOTH `repairtix.com` AND `www.repairtix.com` as separate custom domains if you want both to work
-- The domain must be added to the **frontend service**, not the backend
-- DNS changes can take up to 48 hours to fully propagate (though usually much faster)
-- Use `dig` or `nslookup` to verify DNS propagation before contacting support
-
-**Verify DNS Propagation:**
-```bash
-# Check if DNS is resolving correctly
-dig repairtix.com
-dig www.repairtix.com
-
-# Should show Render's hostname in CNAME record
+# For production deployments
+curl https://yourdomain.com/api/health
 ```
 
 ## Rollback Procedure
 
 If deployment fails:
 
-1. **Render.com**: Use "Manual Deploy" → select previous successful commit
+1. **Docker Compose**: Stop containers and revert to previous version
+   ```bash
+   docker compose -f docker-compose.prod.yml down
+   git checkout <previous-commit>
+   docker compose -f docker-compose.prod.yml up -d --build
+   ```
 2. **Database**: Restore from backup if migrations caused issues
 3. **Environment**: Revert environment variable changes
 
@@ -388,7 +378,7 @@ If deployment fails:
 
 ### Application Monitoring
 
-- **Logs**: Monitor Render dashboard logs
+- **Logs**: Monitor Docker logs: `docker compose -f docker-compose.prod.yml logs -f`
 - **Health Checks**: Set up automated health check monitoring
 - **Error Tracking**: Integrate Sentry or similar (see Monitoring section)
 
@@ -409,13 +399,13 @@ If deployment fails:
 - [Security Guide](./docs/SECURITY.md)
 - [Integration Setup](./docs/INTEGRATIONS.md)
 - [README](./README.md)
-- [Render.com Documentation](https://render.com/docs)
+- [Hetzner Cloud Documentation](https://docs.hetzner.com/)
 
 ## Support
 
 For deployment issues:
 
-1. Check logs in Render dashboard
+1. Check Docker logs: `docker compose -f docker-compose.prod.yml logs`
 2. Review this guide
 3. Check [Troubleshooting](#troubleshooting) section
 4. Review application logs for specific errors

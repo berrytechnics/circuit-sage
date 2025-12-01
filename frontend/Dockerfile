@@ -32,9 +32,9 @@ WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
-# PORT will be set by Render, default to 3000 for local development
+# PORT defaults to 3000, can be overridden via environment variable
 ENV PORT 3000
-# HOSTNAME must be 0.0.0.0 to bind to all interfaces (required for Render.com)
+# HOSTNAME must be 0.0.0.0 to bind to all interfaces (required for Docker)
 ENV HOSTNAME 0.0.0.0
 
 # Don't run as root
@@ -51,9 +51,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --chown=nextjs:nodejs frontend/start-server.js ./start-server.js
 RUN chmod +x ./start-server.js
 
-# Expose port (Render will set PORT env var)
+# Expose port (can be overridden via PORT environment variable)
 EXPOSE 3000
 
 # Run Next.js standalone server with wrapper script
-# The wrapper ensures binding to 0.0.0.0 for Render.com
+# The wrapper ensures binding to 0.0.0.0 for Docker deployments
 CMD ["node", "start-server.js"]

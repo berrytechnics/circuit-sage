@@ -386,14 +386,14 @@ npx tsc --noEmit
 
 ## Deployment
 
-RepairTix can be deployed to various platforms. For sandbox/client testing, we recommend Render's free tier.
+RepairTix can be deployed to various platforms. For cost-effective VPS deployments, we recommend Hetzner Cloud.
 
-### Quick Deployment to Render
+### Quick Deployment to Hetzner Cloud
 
-1. Push code to GitHub
-2. Connect Render to your repository
-3. Render will auto-detect `render.yaml` and create services
-4. Run database migrations
+1. Set up a Hetzner Cloud server (Ubuntu 24.04)
+2. Clone repository and run setup script
+3. Configure environment variables
+4. Run deployment script
 5. Access your deployed application
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.

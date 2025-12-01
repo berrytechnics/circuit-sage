@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // Wrapper script to ensure Next.js standalone server binds to 0.0.0.0
-// This is required for Render.com deployments
+// This is required for Docker deployments
 
-// Ensure PORT is set (Render provides this)
+// Ensure PORT is set (defaults to 3000)
 const port = process.env.PORT || 3000;
 process.env.PORT = port;
 
-// Set HOSTNAME to bind to all interfaces (required for Render.com)
+// Set HOSTNAME to bind to all interfaces (required for Docker)
 // Next.js standalone mode should respect this environment variable
 process.env.HOSTNAME = '0.0.0.0';
 

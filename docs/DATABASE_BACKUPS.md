@@ -12,20 +12,7 @@ Regular database backups are critical for production deployments. This guide pro
 
 ## Backup Strategies
 
-### Option 1: Render.com Managed Backups
-
-If using Render.com managed PostgreSQL:
-
-1. **Automatic Backups**: Available on paid plans
-   - Daily backups retained for 7 days
-   - Point-in-time recovery available
-   - Configure in Render dashboard → Database → Backups
-
-2. **Manual Backups**: 
-   - Go to Database → Backups → "Create Backup"
-   - Download backup file
-
-### Option 2: Automated Script Backups
+### Option 1: Automated Script Backups
 
 Use the provided backup script for external databases or additional backup layers.
 
@@ -140,14 +127,6 @@ docker exec repair-tix-db pg_dump \
   --format=plain > backup-$(date +%Y%m%d).sql
 ```
 
-### Using Render.com
-
-1. Go to Render dashboard
-2. Select your database
-3. Click "Backups" tab
-4. Click "Create Backup"
-5. Download backup file when ready
-
 ## Restore Procedures
 
 ### From SQL Backup File
@@ -184,14 +163,6 @@ docker exec -i repair-tix-db psql \
   -U repair_admin \
   -d repair_business < backup-20240101.sql
 ```
-
-### From Render.com Backup
-
-1. Go to Render dashboard
-2. Select your database
-3. Click "Backups" tab
-4. Select backup to restore
-5. Click "Restore" (creates new database) or download and restore manually
 
 ## Backup Verification
 
@@ -333,7 +304,7 @@ Set up alerts for:
 ## Additional Resources
 
 - [PostgreSQL Backup Documentation](https://www.postgresql.org/docs/current/backup.html)
-- [Render.com Backup Guide](https://render.com/docs/databases#backups)
+- [PostgreSQL Backup Documentation](https://www.postgresql.org/docs/current/backup.html)
 - [pg_dump Documentation](https://www.postgresql.org/docs/current/app-pgdump.html)
 
 

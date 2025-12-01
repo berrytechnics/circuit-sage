@@ -1,5 +1,5 @@
 #!/bin/sh
-# Production database migration script for Render deployment
+# Production database migration script for Docker deployments
 # This script runs all SQL migrations in order
 
 set -e
@@ -13,7 +13,7 @@ if [ -z "$DB_HOST" ] || [ -z "$DB_NAME" ] || [ -z "$DB_USER" ] || [ -z "$DB_PASS
   exit 1
 fi
 
-# Install psql if not available (for Render environment)
+# Install psql if not available (for Docker environment)
 if ! command -v psql &> /dev/null; then
   echo "Installing PostgreSQL client..."
   apk add --no-cache postgresql-client || apt-get update && apt-get install -y postgresql-client || echo "Warning: Could not install psql client"

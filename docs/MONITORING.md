@@ -156,10 +156,11 @@ RepairTix uses Winston for logging. Current configuration:
 
 ### Production Logging Setup
 
-#### Render.com
+#### Docker Compose
 
-Render automatically captures stdout/stderr logs. Access via:
-- Dashboard → Service → Logs
+Docker Compose captures stdout/stderr logs. Access via:
+- `docker compose -f docker-compose.prod.yml logs -f`
+- Logs are also written to files (configured in docker-compose.yml)
 
 #### CloudWatch (AWS)
 
