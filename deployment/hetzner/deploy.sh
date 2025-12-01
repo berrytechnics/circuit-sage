@@ -272,30 +272,21 @@ if [ -f "/etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem" ] || [ -f "/etc/letse
     
     # Use certbot's nginx plugin to automatically configure SSL for both domains
     # This is more reliable than manual sed edits
-    sudo certbot --nginx -d "$DOMAIN_NAME" -d "www.$DOMAIN_NAME" --non-interactive --agree-tos --email "${SSL_EMAIL:-admin@$DOMAIN_NAME}" --redirect || {
-        echo -e "${YELLOW}Certbot nginx plugin failed, trying manual configuration...${NC}"
+    if ! sudo certbot --nginx -d "$DOMAIN_NAME" -d "www.$DOMAIN_NAME" --non-interactive --agree-tos --email "${SSL_EMAIL:-admin@$DOMAIN_NAME}" --redirect; then
+        echo -e "${YELLOW}Certbot nginx plugin failed.${NC}"
+        echo -e "${YELLOW}Certificate was obtained but nginx configuration failed.${NC}"
+        echo -e "${YELLOW}Attempting to install certificate manually...${NC}"
         
-        # Fallback: Manual configuration - restore clean config first
-        sudo cp deployment/hetzner/nginx.conf /etc/nginx/sites-available/circuit-sage
-        sudo sed -i "s/yourdomain.com/$DOMAIN_NAME/g" /etc/nginx/sites-available/circuit-sage
-        
-        # Uncomment HTTPS server block (remove # from lines 73-147)
-        sudo sed -i '73,147s/^#//' /etc/nginx/sites-available/circuit-sage
-        
-        # Update SSL certificate paths
-        sudo sed -i "s|/etc/letsencrypt/live/$DOMAIN_NAME/|/etc/letsencrypt/live/$CERT_NAME/|g" /etc/nginx/sites-available/circuit-sage
-        
-        # Comment out HTTP proxy locations and uncomment redirects
-        sudo sed -i '32,46s/^/    # /' /etc/nginx/sites-available/circuit-sage
-        sudo sed -i '48,61s/^/    # /' /etc/nginx/sites-available/circuit-sage
-        sudo sed -i '64,69s/^    #\(.*\)/    \1/' /etc/nginx/sites-available/circuit-sage
-        
-        # Test configuration
-        if ! sudo nginx -t; then
-            echo -e "${YELLOW}Warning: Nginx config test failed after SSL setup.${NC}"
-            echo -e "${YELLOW}You may need to manually configure SSL in /etc/nginx/sites-available/circuit-sage${NC}"
+        # Try to install the certificate using certbot install
+        if sudo certbot install --cert-name "$CERT_NAME" --nginx --non-interactive 2>/dev/null; then
+            echo -e "${GREEN}Certificate installed successfully${NC}"
+        else
+            echo -e "${RED}Failed to install certificate automatically.${NC}"
+            echo -e "${YELLOW}Please manually configure SSL in /etc/nginx/sites-available/circuit-sage${NC}"
+            echo -e "${YELLOW}Certificate is available at: /etc/letsencrypt/live/$CERT_NAME/${NC}"
+            echo -e "${YELLOW}You can run: sudo certbot install --cert-name $CERT_NAME --nginx${NC}"
         fi
-    }
+    fi
     
     echo -e "${GREEN}✓ SSL configuration completed${NC}"
 else
