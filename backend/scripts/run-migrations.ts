@@ -32,6 +32,93 @@ function calculateChecksum(content: string): string {
 }
 
 /**
+ * Split SQL file into individual statements
+ * Handles semicolons properly, ignoring them in comments, strings, and dollar-quoted blocks
+ */
+function splitSqlStatements(sql: string): string[] {
+  // Remove single-line comments (-- style) but preserve structure
+  const lines = sql.split('\n');
+  const withoutComments = lines
+    .map(line => {
+      const commentIndex = line.indexOf('--');
+      return commentIndex >= 0 ? line.substring(0, commentIndex) : line;
+    })
+    .join('\n');
+  
+  // Split by semicolons that are not inside strings or dollar-quoted blocks
+  const statements: string[] = [];
+  let currentStatement = '';
+  let inString = false;
+  let stringChar = '';
+  let inDollarQuote = false;
+  let dollarTag = '';
+  let i = 0;
+  
+  while (i < withoutComments.length) {
+    const char = withoutComments[i];
+    const nextChar = withoutComments[i + 1];
+    
+    // Handle dollar-quoted strings (PostgreSQL feature: $$...$$, $tag$...$tag$)
+    if (!inString && !inDollarQuote && char === '$') {
+      // Try to match dollar quote tag
+      let tagEnd = i + 1;
+      while (tagEnd < withoutComments.length && withoutComments[tagEnd] !== '$') {
+        tagEnd++;
+      }
+      if (tagEnd < withoutComments.length) {
+        dollarTag = withoutComments.substring(i, tagEnd + 1);
+        inDollarQuote = true;
+        currentStatement += dollarTag;
+        i = tagEnd + 1;
+        continue;
+      }
+    } else if (inDollarQuote && char === '$') {
+      // Check if this is the closing dollar tag
+      const remaining = withoutComments.substring(i);
+      if (remaining.startsWith(dollarTag)) {
+        currentStatement += dollarTag;
+        i += dollarTag.length;
+        inDollarQuote = false;
+        dollarTag = '';
+        continue;
+      }
+    }
+    
+    // Handle regular string literals (only when not in dollar quote)
+    if (!inDollarQuote) {
+      if (!inString && (char === '"' || char === "'")) {
+        inString = true;
+        stringChar = char;
+        currentStatement += char;
+      } else if (inString && char === stringChar && withoutComments[i - 1] !== '\\') {
+        inString = false;
+        stringChar = '';
+        currentStatement += char;
+      } else if (!inString && char === ';') {
+        const trimmed = currentStatement.trim();
+        if (trimmed.length > 0) {
+          statements.push(trimmed);
+        }
+        currentStatement = '';
+        i++;
+        continue;
+      }
+    }
+    
+    currentStatement += char;
+    i++;
+  }
+  
+  // Add final statement if any
+  const trimmed = currentStatement.trim();
+  if (trimmed.length > 0) {
+    statements.push(trimmed);
+  }
+  
+  return statements;
+}
+
+/**
  * Check if migration has already been applied
  */
 async function isMigrationApplied(client: any, filename: string): Promise<boolean> {
@@ -132,16 +219,37 @@ async function runMigrations() {
       
       try {
         await client.query("BEGIN");
-        await client.query(sql);
+        
+        // Split SQL into individual statements and execute them one by one
+        const statements = splitSqlStatements(sql);
+        for (let i = 0; i < statements.length; i++) {
+          const statement = statements[i].trim();
+          if (statement) {
+            try {
+              await client.query(statement);
+            } catch (stmtError: any) {
+              // Provide context about which statement failed
+              const statementPreview = statement.substring(0, 100).replace(/\n/g, ' ');
+              console.error(`✗ Statement ${i + 1}/${statements.length} failed in migration ${file}:`);
+              console.error(`  Preview: ${statementPreview}...`);
+              throw stmtError;
+            }
+          }
+        }
         
         const executionTime = Date.now() - startTime;
         await recordMigration(client, file, checksum, executionTime);
         await client.query("COMMIT");
         
-        console.log(`✓ Migration ${file} completed successfully (${executionTime}ms)`);
+        console.log(`✓ Migration ${file} completed successfully (${executionTime}ms, ${statements.length} statements)`);
         appliedCount++;
       } catch (error: any) {
-        await client.query("ROLLBACK");
+        try {
+          await client.query("ROLLBACK");
+        } catch (rollbackError) {
+          // Ignore rollback errors, transaction might already be rolled back
+          console.error("⚠ Rollback error (may be expected):", rollbackError);
+        }
         
         // Handle idempotent errors - migrations that can be safely skipped if already applied
         const isIdempotentError = 
