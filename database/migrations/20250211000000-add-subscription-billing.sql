@@ -53,3 +53,4 @@ COMMENT ON TABLE subscriptions IS 'Tracks subscription billing status per compan
 COMMENT ON TABLE subscription_payments IS 'Payment history for subscription billing';
 COMMENT ON COLUMN locations.is_free IS 'If true, location is exempt from monthly billing charges';
 
+

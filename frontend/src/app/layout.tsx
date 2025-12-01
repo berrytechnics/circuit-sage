@@ -1,4 +1,5 @@
 // app/layout.tsx
+import MaintenanceGuard from "@/components/MaintenanceGuard";
 import Sidebar from "@/components/Sidebar";
 import MainContent from "@/components/MainContent";
 import { ThemeProvider } from "@/lib/ThemeContext";
@@ -31,8 +32,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <ThemeProvider>
           <div className="relative flex min-h-screen bg-background">
             <UserProvider>
-              <Sidebar />
-              <MainContent>{children}</MainContent>
+              <MaintenanceGuard>
+                <Sidebar />
+                <MainContent>{children}</MainContent>
+              </MaintenanceGuard>
             </UserProvider>
           </div>
         </ThemeProvider>

@@ -25,3 +25,4 @@ export const toggleLocationFreeValidation = [
     .withMessage("isFree must be a boolean"),
 ];
 
+

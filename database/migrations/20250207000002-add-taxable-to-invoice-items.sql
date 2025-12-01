@@ -18,3 +18,4 @@ WHERE inventory_item_id IS NOT NULL;
 
 
 
+

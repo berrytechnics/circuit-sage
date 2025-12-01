@@ -4,14 +4,15 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { HttpError, ValidationError } from "./config/errors.js";
 import logger from "./config/logger.js";
+import { checkMaintenanceMode } from "./middlewares/maintenance.middleware.js";
 import { apiLimiter } from "./middlewares/rate-limit.middleware.js";
 import assetRoutes from "./routes/asset.routes.js";
 import companyRoutes from "./routes/company.routes.js";
 import customerRoutes from "./routes/customer.routes.js";
 import diagnosticChecklistRoutes from "./routes/diagnostic-checklist.routes.js";
-import inventoryRoutes from "./routes/inventory.routes.js";
-import inventoryTransferRoutes from "./routes/inventory-transfer.routes.js";
 import integrationRoutes from "./routes/integration.routes.js";
+import inventoryTransferRoutes from "./routes/inventory-transfer.routes.js";
+import inventoryRoutes from "./routes/inventory.routes.js";
 import invitationRoutes from "./routes/invitation.routes.js";
 import invoiceRoutes from "./routes/invoice.routes.js";
 import locationRoutes from "./routes/location.routes.js";
@@ -19,6 +20,7 @@ import paymentRoutes from "./routes/payment.routes.js";
 import purchaseOrderRoutes from "./routes/purchase-order.routes.js";
 import reportingRoutes from "./routes/reporting.routes.js";
 import subscriptionRoutes from "./routes/subscription.routes.js";
+import systemRoutes from "./routes/system.routes.js";
 import ticketRoutes from "./routes/ticket.routes.js";
 import userRoutes from "./routes/user.routes.js";
 
@@ -118,6 +120,9 @@ app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 // Apply rate limiting to all API routes
 app.use("/api", apiLimiter);
 
+// Check maintenance mode (allows auth routes and superusers to bypass)
+app.use(checkMaintenanceMode);
+
 // Routes - all routes are prefixed with /api
 app.use("/api/auth", userRoutes);
 app.use("/api/users", userRoutes); // Also mount user routes at /api/users for technicians endpoint
@@ -136,6 +141,7 @@ app.use("/api/integrations", integrationRoutes);
 app.use("/api/locations", locationRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
+app.use("/api/system", systemRoutes);
 
 // Health check endpoint
 app.get("/health", async (req: Request, res: Response) => {

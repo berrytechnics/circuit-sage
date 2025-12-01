@@ -1,14 +1,18 @@
 "use client";
 
+import { getMaintenanceMode, setMaintenanceMode } from "@/lib/api/system.api";
 import { useUser } from "@/lib/UserContext";
 import { BuildingOffice2Icon, EyeIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function SuperuserSettingsPage() {
   const router = useRouter();
   const { user, isSuperuser, impersonatedCompanyId, stopImpersonating, isLoading } = useUser();
+  const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
+  const [maintenanceLoading, setMaintenanceLoading] = useState(true);
+  const [maintenanceToggling, setMaintenanceToggling] = useState(false);
 
   // Redirect if not superuser
   useEffect(() => {
@@ -16,6 +20,40 @@ export default function SuperuserSettingsPage() {
       router.push("/settings");
     }
   }, [user, isSuperuser, isLoading, router]);
+
+  // Load maintenance mode status
+  useEffect(() => {
+    const loadMaintenanceStatus = async () => {
+      if (!isSuperuser) return;
+
+      try {
+        const response = await getMaintenanceMode();
+        setMaintenanceEnabled(response.data?.enabled === true);
+      } catch (error) {
+        console.error("Error loading maintenance status:", error);
+      } finally {
+        setMaintenanceLoading(false);
+      }
+    };
+
+    loadMaintenanceStatus();
+  }, [isSuperuser]);
+
+  const handleToggleMaintenance = async () => {
+    if (maintenanceToggling) return;
+
+    setMaintenanceToggling(true);
+    try {
+      const newStatus = !maintenanceEnabled;
+      await setMaintenanceMode(newStatus);
+      setMaintenanceEnabled(newStatus);
+    } catch (error) {
+      console.error("Error toggling maintenance mode:", error);
+      alert("Failed to toggle maintenance mode. Please try again.");
+    } finally {
+      setMaintenanceToggling(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -79,6 +117,44 @@ export default function SuperuserSettingsPage() {
           </div>
         </div>
       )}
+
+      {/* Maintenance Mode Toggle */}
+      <div className="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+              Maintenance Mode
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Enable maintenance mode to restrict access to all pages except the home page. Superusers can always bypass maintenance mode.
+            </p>
+            {maintenanceEnabled && (
+              <p className="mt-2 text-sm text-yellow-600 dark:text-yellow-400">
+                Maintenance mode is currently enabled. Regular users will only be able to access the home page.
+              </p>
+            )}
+          </div>
+          <div className="ml-4 flex-shrink-0">
+            <button
+              onClick={handleToggleMaintenance}
+              disabled={maintenanceLoading || maintenanceToggling}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                maintenanceEnabled
+                  ? "bg-blue-600"
+                  : "bg-gray-200 dark:bg-gray-700"
+              } ${maintenanceLoading || maintenanceToggling ? "opacity-50 cursor-not-allowed" : ""}`}
+              role="switch"
+              aria-checked={maintenanceEnabled}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  maintenanceEnabled ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div className="grid gap-4">
         {settingsItems.map((item) => {

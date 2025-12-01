@@ -29,6 +29,7 @@ export interface Database {
   role_permissions: RolePermissionTable;
   subscriptions: SubscriptionTable;
   subscription_payments: SubscriptionPaymentTable;
+  system_settings: SystemSettingsTable;
   tickets: TicketTable;
   user_locations: UserLocationTable;
   user_roles: UserRoleTable;
@@ -388,6 +389,14 @@ export interface SubscriptionPaymentTable {
   failure_reason: string | null;
   created_at: Timestamp;
   updated_at: Timestamp;
+}
+
+export interface SystemSettingsTable {
+  id: UUID;
+  key: string;
+  value: Record<string, unknown>;
+  updated_at: Timestamp;
+  updated_by: UUID | null;
 }
 
 // Extend Express Request interface to include user, companyId, and locationId property

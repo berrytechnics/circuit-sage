@@ -403,4 +403,5 @@ export const restoreTokenFromStorage = (): void => {
 // Set token from storage on init (check both localStorage and sessionStorage)
 restoreTokenFromStorage();
 
+export { api };
 export default api;
