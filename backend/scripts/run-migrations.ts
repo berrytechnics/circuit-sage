@@ -272,8 +272,11 @@ async function runMigrations() {
           // Count statements for logging (approximate)
           statementCount = sql.split(';').filter(s => s.trim().length > 0).length;
         } catch (error: any) {
-          // If direct execution fails, try splitting into statements
-          console.log(`  Direct execution failed, splitting into statements...`);
+          // If direct execution fails, rollback and try splitting into statements
+          console.log(`  Direct execution failed, rolling back and splitting into statements...`);
+          await client.query("ROLLBACK");
+          await client.query("BEGIN");
+          
           const statements = splitSqlStatements(sql);
           statementCount = statements.length;
           
