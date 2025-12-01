@@ -243,10 +243,11 @@ if netstat -tlnp 2>/dev/null | grep -qE ':(80|443)' || ss -tlnp 2>/dev/null | gr
     sleep 2
 fi
 
-# Obtain certificate
+# Obtain certificate for both domain and www subdomain
 sudo certbot certonly --standalone \
     --preferred-challenges http \
     -d "$DOMAIN_NAME" \
+    -d "www.$DOMAIN_NAME" \
     --email "${SSL_EMAIL:-admin@$DOMAIN_NAME}" \
     --agree-tos \
     --non-interactive || {
@@ -269,9 +270,9 @@ if [ -f "/etc/letsencrypt/live/$DOMAIN_NAME/fullchain.pem" ] || [ -f "/etc/letse
     sudo systemctl stop nginx || true
     sleep 2
     
-    # Use certbot's nginx plugin to automatically configure SSL
+    # Use certbot's nginx plugin to automatically configure SSL for both domains
     # This is more reliable than manual sed edits
-    sudo certbot --nginx -d "$DOMAIN_NAME" --non-interactive --agree-tos --email "${SSL_EMAIL:-admin@$DOMAIN_NAME}" --redirect || {
+    sudo certbot --nginx -d "$DOMAIN_NAME" -d "www.$DOMAIN_NAME" --non-interactive --agree-tos --email "${SSL_EMAIL:-admin@$DOMAIN_NAME}" --redirect || {
         echo -e "${YELLOW}Certbot nginx plugin failed, trying manual configuration...${NC}"
         
         # Fallback: Manual configuration - restore clean config first
