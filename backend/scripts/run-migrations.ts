@@ -216,16 +216,16 @@ function getExpectedTables(sql: string, migrationFile: string): string[] {
   
   // Extract CREATE TABLE statements
   // Match both "CREATE TABLE table_name" and "CREATE TABLE IF NOT EXISTS table_name"
-  // Use two patterns to avoid capturing "IF" from "IF NOT EXISTS"
-  const createTablePattern1 = /CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+(\w+)/gi;
-  const createTablePattern2 = /CREATE\s+TABLE\s+(?!IF\s+NOT\s+EXISTS)(\w+)/gi;
+  // This regex explicitly handles both cases and captures only the table name
+  const createTablePattern = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z_][a-zA-Z0-9_]*)/gi;
   
   let match;
-  while ((match = createTablePattern1.exec(sql)) !== null) {
-    tables.push(match[1].toLowerCase());
-  }
-  while ((match = createTablePattern2.exec(sql)) !== null) {
-    tables.push(match[1].toLowerCase());
+  while ((match = createTablePattern.exec(sql)) !== null) {
+    const tableName = match[1].toLowerCase();
+    // Filter out any false matches (shouldn't happen, but be safe)
+    if (tableName && tableName !== 'if' && tableName !== 'not' && tableName !== 'exists') {
+      tables.push(tableName);
+    }
   }
   
   // Special case: base schema should create schema_migrations
