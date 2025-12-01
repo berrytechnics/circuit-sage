@@ -1,5 +1,6 @@
 // src/services/newsletter.service.ts
 import { sql } from "kysely";
+import { v4 as uuidv4 } from "uuid";
 import { db } from "../config/connection.js";
 import { BadRequestError, NotFoundError } from "../config/errors.js";
 import { NewsletterSubscriberTable } from "../config/types.js";
@@ -62,6 +63,7 @@ class NewsletterService {
     const subscriber = await db
       .insertInto("newsletter_subscribers")
       .values({
+        id: uuidv4(),
         email: normalizedEmail,
         subscribed_at: sql`now()`,
         updated_at: sql`now()`,
@@ -86,9 +88,9 @@ class NewsletterService {
       })
       .where("email", "=", normalizedEmail)
       .where("unsubscribed_at", "is", null)
-      .execute();
+      .executeTakeFirst();
 
-    if (result.numUpdatedRows === BigInt(0)) {
+    if (!result || Number(result.numUpdatedRows) === 0) {
       throw new NotFoundError("Email not found or already unsubscribed");
     }
   }
@@ -124,15 +126,24 @@ class NewsletterService {
    * Convert database row to NewsletterSubscriber
    */
   private toSubscriber(
-    row: NewsletterSubscriberTable
+    row: {
+      id: string;
+      email: string;
+      subscribed_at: Date | string;
+      unsubscribed_at: Date | string | null;
+      created_at: Date | string;
+      updated_at: Date | string;
+    }
   ): NewsletterSubscriber {
     return {
-      id: row.id,
+      id: String(row.id),
       email: row.email,
-      subscribedAt: row.subscribed_at,
-      unsubscribedAt: row.unsubscribed_at,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
+      subscribedAt: row.subscribed_at instanceof Date ? row.subscribed_at : new Date(row.subscribed_at),
+      unsubscribedAt: row.unsubscribed_at 
+        ? (row.unsubscribed_at instanceof Date ? row.unsubscribed_at : new Date(row.unsubscribed_at))
+        : null,
+      createdAt: row.created_at instanceof Date ? row.created_at : new Date(row.created_at),
+      updatedAt: row.updated_at instanceof Date ? row.updated_at : new Date(row.updated_at),
     };
   }
 }
