@@ -334,7 +334,8 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-400 py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
+          {/* Temporarily hidden footer links */}
+          {/* <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="text-xl font-bold text-white mb-4">RepairTix</div>
               <p className="text-sm">
@@ -396,8 +397,8 @@ export default function Home() {
                 </li>
               </ul>
             </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
+          </div> */}
+          <div className="text-center text-sm">
             <p>&copy; {new Date().getFullYear()} RepairTix. All rights reserved.</p>
           </div>
         </div>
