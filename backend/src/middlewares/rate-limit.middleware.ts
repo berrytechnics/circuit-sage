@@ -3,12 +3,13 @@ import logger from "../config/logger.js";
 
 /**
  * General API rate limiter
- * Limits: 100 requests per 15 minutes per IP
+ * Limits: 100 requests per 15 minutes per IP (production)
+ *         Disabled in development and test environments
  */
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
-  skip: () => process.env.NODE_ENV === "test", // Skip rate limiting in test environment
+  skip: () => process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development", // Skip rate limiting in test and development environments
   message: {
     success: false,
     error: {
@@ -59,12 +60,13 @@ export const authLimiter = rateLimit({
 
 /**
  * Rate limiter for password reset and sensitive operations
- * Limits: 3 requests per hour per IP
+ * Limits: 3 requests per hour per IP (production)
+ *         Disabled in development and test environments
  */
 export const sensitiveOperationLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 3, // Limit each IP to 3 sensitive operations per hour
-  skip: () => process.env.NODE_ENV === "test", // Skip rate limiting in test environment
+  skip: () => process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development", // Skip rate limiting in test and development environments
   message: {
     success: false,
     error: {
