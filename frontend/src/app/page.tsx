@@ -89,7 +89,7 @@ export default function Home() {
               </div>
             )}
             <p className="mt-6 text-sm text-gray-500 dark:text-gray-400">
-              No credit card required • 14-day free trial • Cancel anytime
+              No credit card required • Cancel anytime
             </p>
           </div>
         </div>
