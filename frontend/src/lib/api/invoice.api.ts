@@ -11,6 +11,8 @@ export interface InvoiceItem {
   quantity: number;
   unitPrice: number;
   discountPercent?: number;
+  discountAmount?: number;
+  subtotal?: number;
   type: "part" | "service" | "other";
   isTaxable?: boolean;
   createdAt: string;
@@ -82,6 +84,7 @@ export interface CreateInvoiceItemData {
   quantity: number;
   unitPrice: number;
   discountPercent?: number;
+  discountAmount?: number;
   type: "part" | "service" | "other";
 }
 
@@ -91,6 +94,7 @@ export interface UpdateInvoiceItemData {
   quantity?: number;
   unitPrice?: number;
   discountPercent?: number;
+  discountAmount?: number;
   type?: "part" | "service" | "other";
 }
 

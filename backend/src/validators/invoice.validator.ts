@@ -87,6 +87,10 @@ export const createInvoiceItemValidation = [
     .optional()
     .isFloat({ min: 0, max: 100 })
     .withMessage("Discount percent must be between 0 and 100"),
+  body("discountAmount")
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage("Discount amount must be a non-negative number"),
   body("type")
     .exists()
     .withMessage("Type is required")
@@ -119,6 +123,10 @@ export const updateInvoiceItemValidation = [
     .optional()
     .isFloat({ min: 0, max: 100 })
     .withMessage("Discount percent must be between 0 and 100"),
+  body("discountAmount")
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage("Discount amount must be a non-negative number"),
   body("type")
     .optional()
     .isIn(["part", "service", "other"])

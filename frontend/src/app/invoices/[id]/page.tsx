@@ -72,6 +72,7 @@ export default function InvoiceDetailPage({
     quantity: 1,
     unitPrice: 0,
     discountPercent: 0,
+    discountAmount: 0,
     type: "part" as "part" | "service" | "other",
   });
 
@@ -325,6 +326,7 @@ export default function InvoiceDetailPage({
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       discountPercent: item.discountPercent || 0,
+      discountAmount: item.discountAmount || 0,
       type: item.type,
     });
   };
@@ -337,6 +339,7 @@ export default function InvoiceDetailPage({
       quantity: 1,
       unitPrice: 0,
       discountPercent: 0,
+      discountAmount: 0,
       type: "service",
     });
   };
@@ -367,6 +370,7 @@ export default function InvoiceDetailPage({
         quantity: editingItem.quantity,
         unitPrice: editingItem.unitPrice,
         discountPercent: editingItem.discountPercent || undefined,
+        discountAmount: editingItem.discountAmount || undefined,
         type: editingItem.type,
       });
       await refreshInvoice();
@@ -970,7 +974,7 @@ export default function InvoiceDetailPage({
                     Unit Price
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Discount
+                    Discount (% / $)
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Subtotal
@@ -1023,20 +1027,41 @@ export default function InvoiceDetailPage({
                             />
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <input
-                              type="number"
-                              min="0"
-                              max="100"
-                              step="0.01"
-                              value={editingItem.discountPercent}
-                              onChange={(e) =>
-                                setEditingItem({ ...editingItem, discountPercent: Number(e.target.value) })
-                              }
-                              className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                            />
+                            <div className="flex gap-2">
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.01"
+                                value={editingItem.discountPercent}
+                                onChange={(e) => {
+                                  const percent = Number(e.target.value);
+                                  const itemSubtotal = Number(editingItem.quantity) * Number(editingItem.unitPrice);
+                                  const amount = itemSubtotal > 0 ? (itemSubtotal * percent / 100) : 0;
+                                  setEditingItem({ ...editingItem, discountPercent: percent, discountAmount: amount });
+                                }}
+                                placeholder="%"
+                                className="w-20 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                              />
+                              <span className="self-center text-gray-500 dark:text-gray-400">/</span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={editingItem.discountAmount}
+                                onChange={(e) => {
+                                  const amount = Number(e.target.value);
+                                  const itemSubtotal = Number(editingItem.quantity) * Number(editingItem.unitPrice);
+                                  const percent = itemSubtotal > 0 ? ((amount / itemSubtotal) * 100) : 0;
+                                  setEditingItem({ ...editingItem, discountAmount: amount, discountPercent: percent });
+                                }}
+                                placeholder="$"
+                                className="w-24 rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                              />
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                            ${(Number(editingItem.quantity) * Number(editingItem.unitPrice) * (1 - (Number(editingItem.discountPercent) || 0) / 100)).toFixed(2)}
+                            ${((Number(editingItem.quantity) * Number(editingItem.unitPrice)) - (Number(editingItem.discountAmount) || 0)).toFixed(2)}
                           </td>
                           {canEdit && (
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
@@ -1069,10 +1094,14 @@ export default function InvoiceDetailPage({
                             ${Number(item.unitPrice).toFixed(2)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                            {item.discountPercent ? `${item.discountPercent}%` : "-"}
+                            {item.discountAmount && item.discountAmount > 0 
+                              ? `$${Number(item.discountAmount).toFixed(2)}${item.discountPercent && item.discountPercent > 0 ? ` (${item.discountPercent}%)` : ''}`
+                              : item.discountPercent && item.discountPercent > 0
+                              ? `${item.discountPercent}%`
+                              : "-"}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                            ${(Number(item.quantity) * Number(item.unitPrice) * (1 - (Number(item.discountPercent) || 0) / 100)).toFixed(2)}
+                            ${((Number(item.quantity) * Number(item.unitPrice)) - (Number(item.discountAmount) || 0)).toFixed(2)}
                           </td>
                           {canEdit && (
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">

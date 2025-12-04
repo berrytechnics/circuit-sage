@@ -99,6 +99,7 @@ export interface CreateInvoiceItemDto {
   quantity: number;
   unitPrice: number;
   discountPercent?: number;
+  discountAmount?: number;
   type: "part" | "service" | "other";
 }
 
@@ -108,6 +109,7 @@ export interface UpdateInvoiceItemDto {
   quantity?: number;
   unitPrice?: number;
   discountPercent?: number;
+  discountAmount?: number;
   type?: "part" | "service" | "other";
 }
 
@@ -321,6 +323,29 @@ export class InvoiceService {
       .selectAll()
       .where("invoice_id", "=", id)
       .execute();
+
+    // Recalculate totals to ensure tax rate is current from location
+    // This ensures that if location tax rate changed, invoice reflects current rate
+    if (items.length > 0) {
+      await this.recalculateInvoiceTotals(id, companyId);
+      
+      // Fetch updated invoice with recalculated totals
+      const updatedInvoice = await db
+        .selectFrom("invoices")
+        .selectAll()
+        .where("id", "=", id)
+        .where("company_id", "=", companyId)
+        .where("deleted_at", "is", null)
+        .executeTakeFirst();
+      
+      if (updatedInvoice) {
+        const invoiceData = toInvoice(updatedInvoice);
+        return {
+          ...invoiceData,
+          invoiceItems: items.map(toInvoiceItem),
+        };
+      }
+    }
 
     const invoiceData = toInvoice(invoice);
     return {
@@ -664,9 +689,22 @@ export class InvoiceService {
     }
 
     // Calculate item subtotal
-    const discountPercent = data.discountPercent ?? 0;
     const itemSubtotal = data.quantity * data.unitPrice;
-    const discountAmount = itemSubtotal * (discountPercent / 100);
+    let discountPercent = data.discountPercent ?? 0;
+    let discountAmount = data.discountAmount ?? 0;
+    
+    // If discountAmount is provided, calculate discountPercent from it
+    // Otherwise, calculate discountAmount from discountPercent
+    if (data.discountAmount !== undefined && data.discountAmount !== null) {
+      discountAmount = data.discountAmount;
+      if (itemSubtotal > 0) {
+        discountPercent = (discountAmount / itemSubtotal) * 100;
+      }
+    } else if (data.discountPercent !== undefined && data.discountPercent !== null) {
+      discountPercent = data.discountPercent;
+      discountAmount = itemSubtotal * (discountPercent / 100);
+    }
+    
     const finalSubtotal = itemSubtotal - discountAmount;
 
     // Insert invoice item
@@ -760,7 +798,8 @@ export class InvoiceService {
           throw new ForbiddenError("You do not have permission to modify prices");
         }
       }
-      if (data.discountPercent !== undefined && Number(data.discountPercent) !== Number(existingItem.discount_percent)) {
+      if ((data.discountPercent !== undefined && Number(data.discountPercent) !== Number(existingItem.discount_percent)) ||
+          (data.discountAmount !== undefined && Number(data.discountAmount) !== Number(existingItem.discount_amount))) {
         if (!userPermissions.includes("invoices.modifyDiscounts")) {
           throw new ForbiddenError("You do not have permission to modify discounts");
         }
@@ -780,7 +819,6 @@ export class InvoiceService {
     const description = data.description ?? existingItem.description;
     const quantity = data.quantity ?? existingItem.quantity;
     const unitPrice = data.unitPrice ?? Number(existingItem.unit_price);
-    const discountPercent = data.discountPercent ?? Number(existingItem.discount_percent);
     const type = data.type ?? existingItem.type;
     const inventoryItemId = data.inventoryItemId !== undefined ? data.inventoryItemId : existingItem.inventory_item_id;
 
@@ -793,7 +831,7 @@ export class InvoiceService {
     if (inventoryChanged) {
       try {
         // Get invoice to get locationId
-        const invoice = await this.findById(data.invoiceId, companyId);
+        const invoice = await this.findById(invoiceId, companyId);
         if (!invoice || !invoice.locationId) {
           throw new BadRequestError("Invoice location is required for inventory operations");
         }
@@ -918,7 +956,22 @@ export class InvoiceService {
 
     // Recalculate item subtotal
     const itemSubtotal = quantity * unitPrice;
-    const discountAmount = itemSubtotal * (discountPercent / 100);
+    let discountPercent = data.discountPercent ?? Number(existingItem.discount_percent);
+    let discountAmount = data.discountAmount ?? Number(existingItem.discount_amount);
+    
+    // If discountAmount is provided, calculate discountPercent from it
+    // Otherwise, if discountPercent is provided, calculate discountAmount from it
+    // If neither is provided, use existing values
+    if (data.discountAmount !== undefined && data.discountAmount !== null) {
+      discountAmount = data.discountAmount;
+      if (itemSubtotal > 0) {
+        discountPercent = (discountAmount / itemSubtotal) * 100;
+      }
+    } else if (data.discountPercent !== undefined && data.discountPercent !== null) {
+      discountPercent = data.discountPercent;
+      discountAmount = itemSubtotal * (discountPercent / 100);
+    }
+    
     const finalSubtotal = itemSubtotal - discountAmount;
 
     updateQuery = updateQuery.set({
