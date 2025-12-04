@@ -59,7 +59,7 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   // Form state
   const [formData, setFormData] = useState<InvoiceFormState>({
     customerId: "",
-    status: "draft",
+    status: "issued",
     invoiceItems: [],
     subtotal: 0,
     discountAmount: 0,
