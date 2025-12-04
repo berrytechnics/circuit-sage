@@ -1,24 +1,25 @@
 "use client";
 
+import LoadingSpinner from "@/components/LoadingSpinner";
+import { getIntegration, IntegrationConfig } from "@/lib/api/integration.api";
+import { getInventory, InventoryItem as InventoryItemType, searchInventory } from "@/lib/api/inventory.api";
 import {
-  Invoice,
-  InvoiceItem,
   addInvoiceItem,
   getInvoiceById,
+  Invoice,
+  InvoiceItem,
   markInvoiceAsPaid,
   refundInvoice,
   removeInvoiceItem,
   updateInvoiceItem,
 } from "@/lib/api/invoice.api";
-import { getIntegration, IntegrationConfig } from "@/lib/api/integration.api";
 import { processPayment, refundPayment } from "@/lib/api/payment.api";
 import { useUser } from "@/lib/UserContext";
 import { generateInvoicePDF } from "@/lib/utils/pdfGenerator";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
-import LoadingSpinner from "@/components/LoadingSpinner";
 
 const SquarePaymentForm = dynamic(
   () => import("@/components/SquarePaymentForm"),
@@ -49,14 +50,20 @@ export default function InvoiceDetailPage({
   const [paymentProvider, setPaymentProvider] = useState<string | null>(null);
   const [paymentConfig, setPaymentConfig] = useState<IntegrationConfig | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [inventoryItems, setInventoryItems] = useState<InventoryItemType[]>([]);
+  const [isLoadingInventory, setIsLoadingInventory] = useState(false);
+  const [selectedInventoryItem, setSelectedInventoryItem] = useState<InventoryItemType | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  // New item form state
+  // New item form state - always a part from inventory
   const [newItem, setNewItem] = useState({
     description: "",
     quantity: 1,
     unitPrice: 0,
     discountPercent: 0,
-    type: "service" as "part" | "service" | "other",
+    inventoryItemId: undefined as string | undefined,
   });
 
   // Edit item form state
@@ -65,7 +72,7 @@ export default function InvoiceDetailPage({
     quantity: 1,
     unitPrice: 0,
     discountPercent: 0,
-    type: "service" as "part" | "service" | "other",
+    type: "part" as "part" | "service" | "other",
   });
 
   // Check if user has permission to access this page
@@ -122,6 +129,91 @@ export default function InvoiceDetailPage({
     checkPaymentIntegration();
   }, []);
 
+  // Debounced search for inventory items
+  useEffect(() => {
+    if (!user?.currentLocationId) {
+      setInventoryItems([]);
+      return;
+    }
+
+    const searchInventoryItems = async () => {
+      setIsSearching(true);
+      try {
+        let response;
+        if (searchQuery.trim()) {
+          // Use search API
+          response = await searchInventory(searchQuery);
+        } else {
+          // Fetch all items with location filter
+          const params = new URLSearchParams();
+          params.append("locationId", user.currentLocationId);
+          response = await getInventory(params);
+        }
+
+        if (response.data) {
+          // Filter to items that are available at the current location:
+          // 1. Items that don't track quantity (trackQuantity: false) - always include
+          // 2. Items with quantity > 0 at this location
+          const inStockItems = response.data.filter(item => {
+            if (!item.trackQuantity) {
+              return true;
+            }
+            // If we searched, we need to check locationQuantities
+            if (searchQuery.trim() && item.locationQuantities) {
+              const locationQty = item.locationQuantities.find(
+                (lq) => lq.locationId === user.currentLocationId
+              );
+              return (locationQty?.quantity ?? 0) > 0;
+            }
+            // If we fetched with locationId, quantity property is set
+            return (item.quantity ?? 0) > 0;
+          });
+          setInventoryItems(inStockItems);
+        }
+      } catch (error) {
+        console.error("Failed to search inventory items:", error);
+        setInventoryItems([]);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    // Debounce search
+    const timeoutId = setTimeout(() => {
+      searchInventoryItems();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, user?.currentLocationId]);
+
+  // Handle inventory item selection
+  const handleInventoryItemSelect = (item: InventoryItemType) => {
+    setSelectedInventoryItem(item);
+    setNewItem({
+      description: item.name,
+      quantity: 1,
+      unitPrice: Number(item.sellingPrice) || 0,
+      discountPercent: 0,
+      inventoryItemId: item.id,
+    });
+    setSearchQuery(item.name);
+    setShowDropdown(false);
+  };
+
+  // Handle clearing selection
+  const handleClearSelection = () => {
+    setSelectedInventoryItem(null);
+    setNewItem({
+      description: "",
+      quantity: 1,
+      unitPrice: 0,
+      discountPercent: 0,
+      inventoryItemId: undefined,
+    });
+    setSearchQuery("");
+    setShowDropdown(false);
+  };
+
   // Refresh invoice data
   const refreshInvoice = async () => {
     try {
@@ -132,6 +224,38 @@ export default function InvoiceDetailPage({
     } catch (err) {
       console.error("Error refreshing invoice:", err);
     }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.inventory-search-container')) {
+        setShowDropdown(false);
+      }
+    };
+
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showDropdown]);
+
+  // Get quantity for current location
+  const getItemQuantity = (item: InventoryItemType): number => {
+    if (!user?.currentLocationId) return 0;
+    if (!item.trackQuantity) return 999; // Unlimited for non-tracked items
+    
+    // Check locationQuantities if available
+    if (item.locationQuantities) {
+      const locationQty = item.locationQuantities.find(
+        (lq) => lq.locationId === user.currentLocationId
+      );
+      return locationQty?.quantity ?? 0;
+    }
+    
+    // Fallback to quantity property
+    return item.quantity ?? 0;
   };
 
   // Handle add item
@@ -153,14 +277,24 @@ export default function InvoiceDetailPage({
       return;
     }
 
+    // Validate stock item quantity
+    if (selectedInventoryItem) {
+      const availableQty = getItemQuantity(selectedInventoryItem);
+      if (selectedInventoryItem.trackQuantity && newItem.quantity > availableQty) {
+        alert(`Quantity cannot exceed available stock (${availableQty})`);
+        return;
+      }
+    }
+
     setIsProcessing(true);
     try {
       await addInvoiceItem(invoice.id, {
+        inventoryItemId: newItem.inventoryItemId,
         description: newItem.description,
         quantity: newItem.quantity,
         unitPrice: newItem.unitPrice,
         discountPercent: newItem.discountPercent || undefined,
-        type: newItem.type,
+        type: "part",
       });
       await refreshInvoice();
       setNewItem({
@@ -168,8 +302,10 @@ export default function InvoiceDetailPage({
         quantity: 1,
         unitPrice: 0,
         discountPercent: 0,
-        type: "service",
+        inventoryItemId: undefined,
       });
+      setSelectedInventoryItem(null);
+      setSearchQuery("");
       setIsAddingItem(false);
     } catch (err) {
       console.error("Error adding item:", err);
@@ -248,6 +384,12 @@ export default function InvoiceDetailPage({
   // Handle delete item
   const handleDeleteItem = async (itemId: string) => {
     if (!invoice) return;
+
+    // Prevent deletion if invoice is paid
+    if (invoice.status === "paid") {
+      alert("Cannot remove items from paid invoices");
+      return;
+    }
 
     if (!confirm("Are you sure you want to delete this item?")) {
       return;
@@ -664,7 +806,94 @@ export default function InvoiceDetailPage({
           {/* Add Item Form */}
           {isAddingItem && canEdit && (
             <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-6">
+              <div className="mb-4 inventory-search-container relative">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Search Parts
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowDropdown(true);
+                      if (!e.target.value) {
+                        setSelectedInventoryItem(null);
+                        setNewItem({
+                          description: "",
+                          quantity: 1,
+                          unitPrice: 0,
+                          discountPercent: 0,
+                          inventoryItemId: undefined,
+                        });
+                      }
+                    }}
+                    onFocus={() => setShowDropdown(true)}
+                    disabled={!user?.currentLocationId}
+                    placeholder={
+                      !user?.currentLocationId
+                        ? "No location selected"
+                        : "Type to search for parts..."
+                    }
+                    className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm pr-10"
+                  />
+                  {selectedInventoryItem && (
+                    <button
+                      type="button"
+                      onClick={handleClearSelection}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+                {showDropdown && searchQuery && (
+                  <div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+                    {isSearching ? (
+                      <div className="px-4 py-2 text-gray-500 dark:text-gray-400 text-center">
+                        Searching...
+                      </div>
+                    ) : inventoryItems.length === 0 ? (
+                      <div className="px-4 py-2 text-gray-500 dark:text-gray-400 text-center">
+                        No parts found
+                      </div>
+                    ) : (
+                      inventoryItems.map((item) => {
+                        const qty = getItemQuantity(item);
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => handleInventoryItemSelect(item)}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-gray-100 dark:focus:bg-gray-700 focus:outline-none"
+                          >
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <div className="font-medium text-gray-900 dark:text-gray-100">
+                                  {item.name}
+                                </div>
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                  {item.sku && `SKU: ${item.sku} • `}
+                                  ${Number(item.sellingPrice || 0).toFixed(2)}
+                                  {item.trackQuantity && ` • Qty: ${qty}`}
+                                </div>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+                {selectedInventoryItem && (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Selected: {selectedInventoryItem.name} | Available: {getItemQuantity(selectedInventoryItem)} | Price: ${Number(selectedInventoryItem.sellingPrice || 0).toFixed(2)}
+                  </p>
+                )}
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Description *
@@ -672,11 +901,10 @@ export default function InvoiceDetailPage({
                   <input
                     type="text"
                     value={newItem.description}
-                    onChange={(e) =>
-                      setNewItem({ ...newItem, description: e.target.value })
-                    }
-                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    placeholder="Item description"
+                    readOnly
+                    disabled={!selectedInventoryItem}
+                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm bg-gray-100 dark:bg-gray-800 cursor-not-allowed sm:text-sm"
+                    placeholder="Select a part"
                   />
                 </div>
                 <div className="sm:col-span-1">
@@ -687,11 +915,18 @@ export default function InvoiceDetailPage({
                     type="number"
                     min="1"
                     value={newItem.quantity}
-                    onChange={(e) =>
-                      setNewItem({ ...newItem, quantity: Number(e.target.value) })
-                    }
+                    onChange={(e) => {
+                      const value = e.target.value === "" ? "" : Number(e.target.value);
+                      setNewItem({ ...newItem, quantity: value === "" ? 0 : value });
+                    }}
+                    disabled={!selectedInventoryItem}
                     className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                   />
+                  {selectedInventoryItem && selectedInventoryItem.trackQuantity && (
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Max: {getItemQuantity(selectedInventoryItem)}
+                    </p>
+                  )}
                 </div>
                 <div className="sm:col-span-1">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -702,40 +937,20 @@ export default function InvoiceDetailPage({
                     min="0"
                     step="0.01"
                     value={newItem.unitPrice}
-                    onChange={(e) =>
-                      setNewItem({ ...newItem, unitPrice: Number(e.target.value) })
-                    }
-                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    readOnly
+                    disabled={!selectedInventoryItem}
+                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm bg-gray-100 dark:bg-gray-800 cursor-not-allowed sm:text-sm"
                   />
                 </div>
-                <div className="sm:col-span-1">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Type *
-                  </label>
-                  <select
-                    value={newItem.type}
-                    onChange={(e) =>
-                      setNewItem({
-                        ...newItem,
-                        type: e.target.value as "part" | "service" | "other",
-                      })
-                    }
-                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  >
-                    <option value="service">Service</option>
-                    <option value="part">Part</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div className="sm:col-span-1 flex items-end">
-                  <button
-                    onClick={handleAddItem}
-                    disabled={isProcessing}
-                    className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                  >
-                    {isProcessing ? "Adding..." : "Add"}
-                  </button>
-                </div>
+              </div>
+              <div className="mt-4">
+                <button
+                  onClick={handleAddItem}
+                  disabled={isProcessing || !selectedInventoryItem}
+                  className="inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                >
+                  {isProcessing ? "Adding..." : "Add Part"}
+                </button>
               </div>
             </div>
           )}
@@ -870,8 +1085,9 @@ export default function InvoiceDetailPage({
                               </button>
                               <button
                                 onClick={() => handleDeleteItem(item.id)}
-                                disabled={isProcessing || editingItemId !== null}
-                                className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 disabled:opacity-50"
+                                disabled={isProcessing || editingItemId !== null || invoice.status === "paid"}
+                                className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                title={invoice.status === "paid" ? "Cannot remove items from paid invoices" : ""}
                               >
                                 Delete
                               </button>

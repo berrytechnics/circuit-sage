@@ -70,7 +70,6 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItemType[]>([]);
   const [isLoadingInventory, setIsLoadingInventory] = useState(false);
-  const [itemMode, setItemMode] = useState<"service" | "stock">("service");
   const [selectedInventoryItem, setSelectedInventoryItem] = useState<InventoryItemType | null>(null);
 
   // Form management states
@@ -79,13 +78,13 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  // New item state
+  // New item state - always a part from inventory
   const [newItem, setNewItem] = useState<NewInvoiceItem>({
     description: "",
     quantity: 1,
     unitPrice: 0,
     discountPercent: 0,
-    type: "service",
+    type: "part",
     inventoryItemId: undefined,
   });
 
@@ -135,27 +134,14 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               ticketId: ticketIdParam || undefined,
             }));
 
-            // If ticketId is provided, fetch ticket details and create initial invoice item
+            // If ticketId is provided, fetch ticket details for notes
             if (ticketIdParam) {
               try {
                 const ticketResponse = await getTicketById(ticketIdParam);
                 if (ticketResponse.data) {
                   const ticket = ticketResponse.data;
-                  // Create an initial invoice item based on the ticket
-                  const initialItem: InvoiceItem = {
-                    id: `temp-${Date.now()}`,
-                    invoiceId: "",
-                    description: `Repair service for ${ticket.deviceType}${ticket.deviceBrand ? ` - ${ticket.deviceBrand}` : ""}${ticket.deviceModel ? ` ${ticket.deviceModel}` : ""}`,
-                    quantity: 1,
-                    unitPrice: 0, // User can set the price
-                    discountPercent: undefined,
-                    type: "service",
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                  };
                   setFormData((prev) => ({
                     ...prev,
-                    invoiceItems: [initialItem],
                     notes: ticket.issueDescription ? `Ticket: ${ticket.ticketNumber}\n${ticket.issueDescription}` : undefined,
                   }));
                 }
@@ -182,14 +168,23 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           const response = await getInvoiceById(invoiceId);
           if (response.data) {
             // Normalize invoice items to ensure numeric values are numbers
-            const normalizedItems = (response.data.invoiceItems || []).map((item) => ({
-              ...item,
+            const invoiceItems = response.data.invoiceItems || [];
+            const normalizedItems = invoiceItems.map((item) => ({
+              id: item.id,
+              invoiceId: item.invoiceId,
+              inventoryItemId: item.inventoryItemId,
+              description: item.description,
               quantity: Number(item.quantity || 0),
               unitPrice: Number(item.unitPrice || 0),
               discountPercent: item.discountPercent ? Number(item.discountPercent) : undefined,
+              type: item.type,
+              isTaxable: item.isTaxable,
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt,
             }));
             
-            setFormData({
+            setFormData((prev) => ({
+              ...prev,
               customerId: response.data.customerId,
               ticketId: response.data.ticketId || undefined,
               status: response.data.status,
@@ -197,7 +192,7 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               subtotal: Number(response.data.subtotal || 0),
               discountAmount: Number(response.data.discountAmount || 0),
               notes: response.data.notes,
-            });
+            }));
             // Fetch location tax rate from invoice's location
             if (response.data.locationId) {
               try {
@@ -308,18 +303,30 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
     }));
   };
 
-  // Fetch inventory items when stock mode is selected
+  // Fetch inventory items when user has a location
   useEffect(() => {
     const fetchInventoryItems = async () => {
-      if (itemMode === "stock" && user?.currentLocationId && inventoryItems.length === 0) {
+      if (user?.currentLocationId) {
         setIsLoadingInventory(true);
         try {
           const params = new URLSearchParams();
           params.append("locationId", user.currentLocationId);
           const response = await getInventory(params);
           if (response.data) {
-            // Filter to items with quantity > 0
-            const inStockItems = response.data.filter(item => item.quantity > 0);
+            // Filter to items that are available:
+            // 1. Items that don't track quantity (trackQuantity: false) - always include
+            // 2. Items with quantity > 0 at this location
+            // Note: When locationId is provided, backend sets quantity property if record exists,
+            // or undefined if no record exists for that location
+            const inStockItems = response.data.filter(item => {
+              // If item doesn't track quantity, include it (services, etc.)
+              if (!item.trackQuantity) {
+                return true;
+              }
+              // For items that track quantity, check if quantity > 0
+              // quantity will be undefined if no record exists for this location (meaning 0 stock)
+              return (item.quantity ?? 0) > 0;
+            });
             setInventoryItems(inStockItems);
           }
         } catch (error) {
@@ -328,19 +335,11 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
         } finally {
           setIsLoadingInventory(false);
         }
-      } else if (itemMode === "service") {
-        // Reset inventory-related state when switching to service mode
-        setInventoryItems([]);
-        setSelectedInventoryItem(null);
-        setNewItem((prev) => ({
-          ...prev,
-          inventoryItemId: undefined,
-        }));
       }
     };
 
     fetchInventoryItems();
-  }, [itemMode, user?.currentLocationId, inventoryItems.length]);
+  }, [user?.currentLocationId]);
 
   // Handle inventory item selection
   const handleInventoryItemSelect = (inventoryItemId: string) => {
@@ -363,26 +362,13 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
         ...prev,
         inventoryItemId: item.id,
         description: item.name,
-        unitPrice: item.sellingPrice,
+        unitPrice: Number(item.sellingPrice) || 0,
         quantity: 1,
         type: "part",
       }));
     }
   };
 
-  // Handle item mode change
-  const handleItemModeChange = (mode: "service" | "stock") => {
-    setItemMode(mode);
-    setNewItem({
-      description: "",
-      quantity: 1,
-      unitPrice: 0,
-      discountPercent: 0,
-      type: mode === "stock" ? "part" : "service",
-      inventoryItemId: undefined,
-    });
-    setSelectedInventoryItem(null);
-  };
 
   // Add invoice item
   const handleAddInvoiceItem = async () => {
@@ -410,8 +396,8 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
     if (isEditMode && invoiceId) {
       setIsSubmitting(true);
       try {
-        // Validate stock item quantity if it's a stock item
-        if (itemMode === "stock" && selectedInventoryItem) {
+        // Validate stock item quantity
+        if (selectedInventoryItem) {
           if (newItem.quantity > selectedInventoryItem.quantity) {
             setErrors((prev) => ({
               ...prev,
@@ -428,7 +414,7 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           quantity: newItem.quantity,
           unitPrice: newItem.unitPrice,
           discountPercent: newItem.discountPercent || undefined,
-          type: newItem.type,
+          type: "part",
         });
         // Refresh invoice data
         const response = await getInvoiceById(invoiceId);
@@ -464,32 +450,33 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       } finally {
         setIsSubmitting(false);
       }
-    } else {
-      // In create mode, validate stock item quantity
-      if (itemMode === "stock" && selectedInventoryItem) {
-        if (newItem.quantity > selectedInventoryItem.quantity) {
-          setErrors((prev) => ({
-            ...prev,
-            itemQuantity: `Quantity cannot exceed available stock (${selectedInventoryItem.quantity})`,
-          }));
-          return;
+      } else {
+        // In create mode, validate stock item quantity
+        if (selectedInventoryItem) {
+          if (newItem.quantity > selectedInventoryItem.quantity) {
+            setErrors((prev) => ({
+              ...prev,
+              itemQuantity: `Quantity cannot exceed available stock (${selectedInventoryItem.quantity})`,
+            }));
+            return;
+          }
         }
-      }
 
-      // In create mode, add to local state
-      // Convert NewInvoiceItem to InvoiceItem with temporary id fields
-      const tempItem: InvoiceItem = {
-        ...newItem,
-        id: `temp-${Date.now()}`,
-        invoiceId: "",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setFormData((prevState) => ({
-        ...prevState,
-        invoiceItems: [...prevState.invoiceItems, tempItem],
-      }));
-    }
+        // In create mode, add to local state
+        // Convert NewInvoiceItem to InvoiceItem with temporary id fields
+        const tempItem: InvoiceItem = {
+          ...newItem,
+          type: "part",
+          id: `temp-${Date.now()}`,
+          invoiceId: "",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        setFormData((prevState) => ({
+          ...prevState,
+          invoiceItems: [...prevState.invoiceItems, tempItem],
+        }));
+      }
 
     // Reset new item form
     setNewItem({
@@ -497,7 +484,7 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
       quantity: 1,
       unitPrice: 0,
       discountPercent: 0,
-      type: itemMode === "stock" ? "part" : "service",
+      type: "part",
       inventoryItemId: undefined,
     });
     setSelectedInventoryItem(null);
@@ -712,101 +699,74 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
           <h3 className="text-lg font-medium mb-4 text-gray-900 dark:text-gray-100">Invoice Items</h3>
 
           {/* Existing Items List */}
-          {formData.invoiceItems.map((item, index) => {
-            const itemId = item.id;
-            return (
-              <div
-                key={itemId || index}
-                className="flex justify-between items-center bg-gray-100 dark:bg-gray-700/50 p-3 rounded mb-2"
-              >
-                <div>
-                  <p className="text-gray-900 dark:text-gray-100">{item.description}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {item.quantity} × ${Number(item.unitPrice || 0).toFixed(2)} ({item.type})
-                    {item.discountPercent && item.discountPercent > 0 && (
-                      <span className="ml-2">- {item.discountPercent}%</span>
-                    )}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveInvoiceItem(index, itemId)}
-                  disabled={isSubmitting}
-                  className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 disabled:opacity-50"
+          {formData.invoiceItems && formData.invoiceItems.length > 0 ? (
+            formData.invoiceItems.map((item, index) => {
+              const itemId = item.id;
+              const isPaid = formData.status === "paid";
+              return (
+                <div
+                  key={itemId || `item-${index}`}
+                  className="flex justify-between items-center bg-gray-100 dark:bg-gray-700/50 p-3 rounded mb-2"
                 >
-                  Remove
-                </button>
-              </div>
-            );
-          })}
+                  <div>
+                    <p className="text-gray-900 dark:text-gray-100">{item.description}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {item.quantity} × ${Number(item.unitPrice || 0).toFixed(2)}
+                      {item.discountPercent && item.discountPercent > 0 && (
+                        <span className="ml-2">- {item.discountPercent}%</span>
+                      )}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveInvoiceItem(index, itemId)}
+                    disabled={isSubmitting || isPaid}
+                    className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={isPaid ? "Cannot remove items from paid invoices" : ""}
+                  >
+                    Remove
+                  </button>
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">No items added yet</p>
+          )}
 
-          {/* Item Mode Selector */}
+          {/* Add New Part */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Item Type
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Select Part
             </label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => handleItemModeChange("service")}
-                className={`px-4 py-2 rounded-md text-sm font-medium ${
-                  itemMode === "service"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                }`}
-              >
-                Service
-              </button>
-              <button
-                type="button"
-                onClick={() => handleItemModeChange("stock")}
-                className={`px-4 py-2 rounded-md text-sm font-medium ${
-                  itemMode === "stock"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                }`}
-              >
-                Stock Item
-              </button>
-            </div>
+            <select
+              value={selectedInventoryItem?.id || ""}
+              onChange={(e) => handleInventoryItemSelect(e.target.value)}
+              disabled={isLoadingInventory || !user?.currentLocationId}
+              className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            >
+              <option value="">
+                {isLoadingInventory
+                  ? "Loading inventory..."
+                  : !user?.currentLocationId
+                  ? "No location selected"
+                  : inventoryItems.length === 0
+                  ? "No items in stock"
+                  : "Select a part"}
+              </option>
+              {inventoryItems.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name} {item.sku && `(${item.sku})`} - ${Number(item.sellingPrice || 0).toFixed(2)} - Qty: {item.quantity}
+                </option>
+              ))}
+            </select>
+            {selectedInventoryItem && (
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Available: {selectedInventoryItem.quantity} | Price: ${Number(selectedInventoryItem.sellingPrice || 0).toFixed(2)}
+              </p>
+            )}
           </div>
 
-          {/* New Item Input */}
-          {itemMode === "stock" ? (
-            <>
-              {/* Stock Item Selection */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Select Inventory Item
-                </label>
-                <select
-                  value={selectedInventoryItem?.id || ""}
-                  onChange={(e) => handleInventoryItemSelect(e.target.value)}
-                  disabled={isLoadingInventory || !user?.currentLocationId}
-                  className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                >
-                  <option value="">
-                    {isLoadingInventory
-                      ? "Loading inventory..."
-                      : !user?.currentLocationId
-                      ? "No location selected"
-                      : inventoryItems.length === 0
-                      ? "No items in stock"
-                      : "Select an inventory item"}
-                  </option>
-                  {inventoryItems.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name} {item.sku && `(${item.sku})`} - ${item.sellingPrice.toFixed(2)} - Qty: {item.quantity}
-                    </option>
-                  ))}
-                </select>
-                {selectedInventoryItem && (
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Available: {selectedInventoryItem.quantity} | Price: ${selectedInventoryItem.sellingPrice.toFixed(2)}
-                  </p>
-                )}
-              </div>
-              {/* Stock Item Fields */}
+          {/* Part Fields */}
           <div className="grid grid-cols-4 gap-4">
             <input
               type="text"
@@ -814,102 +774,44 @@ export default function InvoiceForm({ invoiceId }: InvoiceFormProps) {
               placeholder="Description"
               value={newItem.description}
               onChange={handleNewItemChange}
-              className="col-span-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 rounded p-2 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500"
-                  disabled={!selectedInventoryItem}
-                />
-                <input
-                  type="number"
-                  name="quantity"
-                  placeholder="Quantity"
-                  min="1"
-                  max={selectedInventoryItem?.quantity || 1}
-                  value={newItem.quantity}
-                  onChange={handleNewItemChange}
-                  className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 rounded p-2 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500"
-                  disabled={!selectedInventoryItem}
-                />
-                <input
-                  type="number"
-                  name="unitPrice"
-                  placeholder="Unit Price"
-                  value={newItem.unitPrice}
-                  onChange={handleNewItemChange}
-                  className={`border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 rounded p-2 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500 ${
-                    !canModifyPrices ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                  disabled={!selectedInventoryItem || !canModifyPrices}
-                  title={!canModifyPrices ? "You do not have permission to modify prices" : ""}
-                />
-              </div>
-              {errors.itemQuantity && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.itemQuantity}</p>
-              )}
-              <div className="mt-2">
-                <button
-                  type="button"
-                  onClick={handleAddInvoiceItem}
-                  disabled={isSubmitting || !selectedInventoryItem}
-                  className="bg-blue-500 dark:bg-blue-700 text-white rounded p-2 px-4 hover:bg-blue-600 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500 disabled:opacity-50"
-                >
-                  {isSubmitting ? "Adding..." : "Add Stock Item"}
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Service Item Fields */}
-              <div className="grid grid-cols-4 gap-4">
-                <input
-                  type="text"
-                  name="description"
-                  placeholder="Description"
-                  value={newItem.description}
-                  onChange={handleNewItemChange}
-                  className="col-span-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 rounded p-2 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500"
+              readOnly
+              className="col-span-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 rounded p-2 bg-gray-100 dark:bg-gray-800 cursor-not-allowed"
+              disabled={!selectedInventoryItem}
             />
             <input
               type="number"
               name="quantity"
               placeholder="Quantity"
+              min="1"
+              max={selectedInventoryItem?.quantity || 1}
               value={newItem.quantity}
               onChange={handleNewItemChange}
               className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 rounded p-2 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500"
+              disabled={!selectedInventoryItem}
             />
-            <select
-              name="type"
-              value={newItem.type}
-              onChange={handleNewItemChange}
-              className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded p-2 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500"
-            >
-              <option value="service">Service</option>
-              <option value="part">Part</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div className="grid grid-cols-4 gap-4 mt-2">
             <input
               type="number"
               name="unitPrice"
               placeholder="Unit Price"
               value={newItem.unitPrice}
-              onChange={handleNewItemChange}
-                  className={`col-span-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 rounded p-2 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500 ${
-                    !canModifyPrices ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                  disabled={!canModifyPrices}
-                  title={!canModifyPrices ? "You do not have permission to modify prices" : ""}
+              readOnly
+              className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 rounded p-2 bg-gray-100 dark:bg-gray-800 cursor-not-allowed"
+              disabled={!selectedInventoryItem}
             />
+          </div>
+          {errors.itemQuantity && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.itemQuantity}</p>
+          )}
+          <div className="mt-2">
             <button
               type="button"
               onClick={handleAddInvoiceItem}
-              disabled={isSubmitting}
-              className="bg-blue-500 dark:bg-blue-700 text-white rounded p-2 hover:bg-blue-600 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500 disabled:opacity-50"
+              disabled={isSubmitting || !selectedInventoryItem}
+              className="bg-blue-500 dark:bg-blue-700 text-white rounded p-2 px-4 hover:bg-blue-600 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500 disabled:opacity-50"
             >
-              {isSubmitting ? "Adding..." : "Add Item"}
+              {isSubmitting ? "Adding..." : "Add Part"}
             </button>
           </div>
-            </>
-          )}
           {errors.invoiceItems && (
             <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.invoiceItems}</p>
           )}
