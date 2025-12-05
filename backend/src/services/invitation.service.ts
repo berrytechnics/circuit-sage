@@ -3,7 +3,10 @@ import crypto from "crypto";
 import { sql } from "kysely";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "../config/connection.js";
+import logger from "../config/logger.js";
 import { InvitationTable, UserRole } from "../config/types.js";
+import emailService from "../integrations/email/email.service.js";
+import companyService from "./company.service.js";
 
 // Input DTOs
 export interface CreateInvitationDto {
@@ -97,7 +100,28 @@ export class InvitationService {
       .returningAll()
       .executeTakeFirstOrThrow();
 
-    return toInvitation(invitation);
+    const invitationResult = toInvitation(invitation);
+
+    // Send invitation email (don't fail if email fails)
+    try {
+      const company = await companyService.findById(companyId);
+
+      await emailService.sendInvitationEmail(
+        companyId,
+        {
+          email: invitationResult.email,
+          token: invitationResult.token,
+          role: invitationResult.role,
+          expiresAt: invitationResult.expiresAt,
+        },
+        company?.name || 'the team'
+      );
+    } catch (error) {
+      // Log error but don't fail invitation creation
+      logger.error(`Failed to send invitation email for ${invitationResult.email}:`, error);
+    }
+
+    return invitationResult;
   }
 
   async findByToken(token: string): Promise<Invitation | null> {
@@ -213,7 +237,28 @@ export class InvitationService {
       .returningAll()
       .executeTakeFirstOrThrow();
 
-    return toInvitation(newInvitation);
+    const invitationResult = toInvitation(newInvitation);
+
+    // Send invitation email (don't fail if email fails)
+    try {
+      const company = await companyService.findById(companyId);
+
+      await emailService.sendInvitationEmail(
+        companyId,
+        {
+          email: invitationResult.email,
+          token: invitationResult.token,
+          role: invitationResult.role,
+          expiresAt: invitationResult.expiresAt,
+        },
+        company?.name || 'the team'
+      );
+    } catch (error) {
+      // Log error but don't fail invitation resend
+      logger.error(`Failed to send invitation email for ${invitationResult.email}:`, error);
+    }
+
+    return invitationResult;
   }
 
   async isTokenValid(token: string, email: string): Promise<{

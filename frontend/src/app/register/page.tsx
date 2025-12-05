@@ -3,11 +3,12 @@
 import { getCurrentUser, register } from "@/lib/api";
 import { useUser } from "@/lib/UserContext";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -19,6 +20,15 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { setUser } = useUser();
+
+  // Check for token in URL params on mount
+  useEffect(() => {
+    const token = searchParams.get("token");
+    if (token) {
+      setInvitationToken(token);
+      setRegistrationType("invitation");
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -238,11 +248,16 @@ export default function RegisterPage() {
                     value={invitationToken}
                     onChange={(e) => setInvitationToken(e.target.value)}
                     placeholder="Enter your invitation token"
-                    className="block w-full appearance-none rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 px-3 py-2 placeholder-gray-400 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500"
+                    readOnly={!!searchParams.get("token")}
+                    className={`block w-full appearance-none rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 px-3 py-2 placeholder-gray-400 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-500 ${
+                      searchParams.get("token") ? "bg-gray-50 dark:bg-gray-900 cursor-not-allowed" : ""
+                    }`}
                   />
                 </div>
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Enter the invitation token you received to join an existing company.
+                  {searchParams.get("token")
+                    ? "Your invitation token has been automatically filled from the link."
+                    : "Enter the invitation token you received to join an existing company."}
                 </p>
               </div>
             )}

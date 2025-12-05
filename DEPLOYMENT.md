@@ -179,6 +179,15 @@ Common issues:
 | `JWT_SECRET` | Yes | JWT signing secret (32+ chars) | (generate with openssl) |
 | `ENCRYPTION_KEY` | Yes | Encryption key (32 chars) | (generate with openssl) |
 | `ALLOWED_ORIGINS` | Recommended | CORS allowed origins | `https://yourdomain.com` |
+| `FRONTEND_URL` | Optional | Frontend URL for invitation links (falls back to ALLOWED_ORIGINS) | `https://yourdomain.com` |
+| `SENDGRID_API_KEY` | Optional | Site-wide SendGrid API key for user invitations | `SG.xxxxxxxxxxxxx` |
+| `SENDGRID_FROM_EMAIL` | Optional | From email for site-wide SendGrid (must be verified in SendGrid) | `noreply@yourdomain.com` |
+| `SENDGRID_FROM_NAME` | Optional | From name for site-wide SendGrid | `Circuit Sage` |
+| `SENDGRID_REPLY_TO` | Optional | Reply-to email for site-wide SendGrid | `support@yourdomain.com` |
+
+**Note:** There are two SendGrid configurations:
+- **Site-wide** (env vars): Used for sending user invitation emails. Configure via `SENDGRID_API_KEY` and `SENDGRID_FROM_EMAIL`.
+- **Company-specific** (UI): Used for ticket status updates and invoice emails. Configure per company via Settings → Integrations → Email.
 | `IS_DOCKER` | Yes | Docker environment flag | `true` |
 | `SENTRY_DSN` | Optional | Sentry DSN for error tracking | `https://...@o4510454298902528.ingest.us.sentry.io/...` |
 

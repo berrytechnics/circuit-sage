@@ -12,7 +12,8 @@
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "migrate:prod": "node dist/scripts/run-migrations.js",
     "migrate:dev": "tsx scripts/run-migrations.ts",
-    "reset:db": "tsx scripts/reset-db.ts"
+    "reset:db": "tsx scripts/reset-db.ts",
+    "test:sendgrid": "tsx scripts/test-sendgrid.ts"
   },
   "dependencies": {
     "@paypal/checkout-server-sdk": "^1.0.3",

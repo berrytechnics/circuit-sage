@@ -1,17 +1,63 @@
 // src/integrations/email/email.service.ts
-import credentialService from '../../services/credential.service.js';
-import sendGridAdapter, { EmailData } from './sendgrid.adapter.js';
 import { EmailIntegrationConfig } from '../../config/integrations.js';
 import logger from '../../config/logger.js';
-import { Ticket } from '../../services/ticket.service.js';
+import credentialService from '../../services/credential.service.js';
 import { Customer } from '../../services/customer.service.js';
 import { Invoice } from '../../services/invoice.service.js';
+import { Ticket } from '../../services/ticket.service.js';
+import sendGridAdapter, { EmailData } from './sendgrid.adapter.js';
 
 /**
  * High-level email service for sending notifications
  * Handles integration configuration and fallback gracefully
+ * 
+ * SendGrid Configuration:
+ * - Site-wide SendGrid (via env vars): Used for user invitations
+ *   Set SENDGRID_API_KEY and SENDGRID_FROM_EMAIL in backend .env
+ * - Company-specific SendGrid (via UI): Used for ticket/invoice emails
+ *   Configured per company via Settings > Integrations > Email
  */
 export class EmailService {
+  /**
+   * Check if site-wide SendGrid is configured (for invitations)
+   */
+  private isSiteWideSendGridConfigured(): boolean {
+    const hasApiKey = !!process.env.SENDGRID_API_KEY;
+    const hasFromEmail = !!process.env.SENDGRID_FROM_EMAIL;
+    
+    if (!hasApiKey) {
+      logger.debug('Site-wide SendGrid: SENDGRID_API_KEY not found in environment');
+    }
+    if (!hasFromEmail) {
+      logger.debug('Site-wide SendGrid: SENDGRID_FROM_EMAIL not found in environment');
+    }
+    
+    return hasApiKey && hasFromEmail;
+  }
+
+  /**
+   * Get site-wide SendGrid config from environment variables
+   */
+  private getSiteWideSendGridConfig(): EmailIntegrationConfig | null {
+    if (!this.isSiteWideSendGridConfigured()) {
+      return null;
+    }
+
+    return {
+      type: 'email',
+      provider: 'sendgrid',
+      enabled: true,
+      credentials: {
+        apiKey: process.env.SENDGRID_API_KEY!,
+      },
+      settings: {
+        fromEmail: process.env.SENDGRID_FROM_EMAIL!,
+        fromName: process.env.SENDGRID_FROM_NAME || 'Circuit Sage',
+        replyTo: process.env.SENDGRID_REPLY_TO || process.env.SENDGRID_FROM_EMAIL!,
+      },
+    };
+  }
+
   /**
    * Check if email integration is configured and enabled
    */
@@ -218,6 +264,136 @@ Thank you for your business!
     } catch (error) {
       // Don't fail the invoice operation if email fails
       logger.error(`Failed to send invoice email for invoice ${invoice.invoiceNumber}:`, error);
+    }
+  }
+
+  /**
+   * Send invitation email to user
+   * Uses site-wide SendGrid if configured, otherwise falls back to company-specific integration
+   */
+  async sendInvitationEmail(
+    companyId: string,
+    invitation: {
+      email: string;
+      token: string;
+      role: string;
+      expiresAt: Date | null;
+    },
+    companyName: string
+  ): Promise<void> {
+    try {
+      // Debug: Log environment variable status
+      logger.debug(`Checking SendGrid config - API Key present: ${!!process.env.SENDGRID_API_KEY}, From Email present: ${!!process.env.SENDGRID_FROM_EMAIL}`);
+      // Get frontend URL from environment
+      // Try FRONTEND_URL first, then derive from ALLOWED_ORIGINS, fallback to localhost for dev
+      let frontendUrl = process.env.FRONTEND_URL;
+      if (!frontendUrl && process.env.ALLOWED_ORIGINS) {
+        // Extract first origin from ALLOWED_ORIGINS (comma-separated)
+        const firstOrigin = process.env.ALLOWED_ORIGINS.split(',')[0].trim();
+        frontendUrl = firstOrigin;
+      }
+      if (!frontendUrl) {
+        frontendUrl = process.env.NODE_ENV === 'production' 
+          ? 'https://yourdomain.com' // Should be set in production
+          : 'http://localhost:3000'; // Default for development
+      }
+      const invitationLink = `${frontendUrl}/register?token=${invitation.token}`;
+
+      // Format expiration date
+      const expirationText = invitation.expiresAt
+        ? new Date(invitation.expiresAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })
+        : '7 days';
+
+      const roleDisplayNames: Record<string, string> = {
+        admin: 'Administrator',
+        technician: 'Technician',
+        frontdesk: 'Front Desk',
+      };
+      const roleDisplay = roleDisplayNames[invitation.role] || invitation.role;
+
+      const subject = `You've been invited to join ${companyName}`;
+
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">You've been invited!</h2>
+          <p>Hello,</p>
+          <p>You've been invited to join <strong>${companyName}</strong> as a <strong>${roleDisplay}</strong>.</p>
+          <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p><strong>Role:</strong> ${roleDisplay}</p>
+            <p><strong>Expires:</strong> ${expirationText}</p>
+          </div>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${invitationLink}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Accept Invitation</a>
+          </div>
+          <p style="color: #666; font-size: 12px;">Or copy and paste this link into your browser:</p>
+          <p style="color: #666; font-size: 12px; word-break: break-all;">${invitationLink}</p>
+          <p style="margin-top: 30px; color: #666;">If you didn't expect this invitation, you can safely ignore this email.</p>
+        </div>
+      `;
+
+      const text = `
+You've been invited!
+
+Hello,
+
+You've been invited to join ${companyName} as a ${roleDisplay}.
+
+Role: ${roleDisplay}
+Expires: ${expirationText}
+
+Accept your invitation by clicking the link below:
+${invitationLink}
+
+If you didn't expect this invitation, you can safely ignore this email.
+      `;
+
+      const emailData: EmailData = {
+        to: invitation.email,
+        subject,
+        text,
+        html,
+      };
+
+      // Try site-wide SendGrid first (for invitations)
+      const siteWideConfig = this.getSiteWideSendGridConfig();
+      if (siteWideConfig) {
+        try {
+          logger.info(`Attempting to send invitation email via site-wide SendGrid to ${invitation.email}`);
+          await sendGridAdapter.sendEmail(siteWideConfig, emailData);
+          logger.info(`✅ Invitation email sent via site-wide SendGrid to ${invitation.email} for company ${companyId}`);
+          return;
+        } catch (error) {
+          logger.error(`❌ Site-wide SendGrid failed for invitation email to ${invitation.email}:`, error);
+          // Log full error details for debugging
+          if (error instanceof Error) {
+            logger.error(`Error message: ${error.message}`);
+            const errorResponse = (error as { response?: { body?: unknown } }).response;
+            if (errorResponse?.body) {
+              logger.error(`SendGrid error details:`, JSON.stringify(errorResponse.body, null, 2));
+            }
+          }
+          logger.warn(`Falling back to company integration...`);
+          // Fall through to company-specific integration
+        }
+      } else {
+        logger.warn('⚠️ Site-wide SendGrid not configured (SENDGRID_API_KEY or SENDGRID_FROM_EMAIL missing)');
+      }
+
+      // Fall back to company-specific integration
+      if (!(await this.isEmailConfigured(companyId))) {
+        logger.debug('Email integration not configured, skipping invitation email');
+        return;
+      }
+
+      await this.sendEmailInternal(companyId, emailData);
+      logger.info(`Invitation email sent via company integration to ${invitation.email} for company ${companyId}`);
+    } catch (error) {
+      // Don't fail the invitation creation if email fails
+      logger.error(`Failed to send invitation email to ${invitation.email}:`, error);
     }
   }
 }
