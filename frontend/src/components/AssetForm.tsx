@@ -257,7 +257,7 @@ export default function AssetForm({
                       id="deviceBrand"
                       value={formData.deviceBrand || ""}
                       onChange={handleChange}
-                      className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                       placeholder="e.g., Apple, Samsung, Dell"
                     />
                   </div>
@@ -277,7 +277,7 @@ export default function AssetForm({
                       id="deviceModel"
                       value={formData.deviceModel || ""}
                       onChange={handleChange}
-                      className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                       placeholder="e.g., iPhone 13, MacBook Pro"
                     />
                   </div>
@@ -297,7 +297,7 @@ export default function AssetForm({
                       id="serialNumber"
                       value={formData.serialNumber || ""}
                       onChange={handleChange}
-                      className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                       placeholder="Device serial number"
                     />
                   </div>
@@ -317,7 +317,7 @@ export default function AssetForm({
                       rows={4}
                       value={formData.notes || ""}
                       onChange={handleChange}
-                      className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                       placeholder="Additional information about the device"
                     ></textarea>
                   </div>

@@ -252,8 +252,10 @@ router.post(
 
         // Get user's name for email
         const userWithName = await userService.findById(user.id);
+        // UserWithoutPassword extends UserTable which has first_name and last_name at runtime (snake_case from DB)
+        type UserWithSnakeCase = UserWithoutPassword & { first_name?: string; last_name?: string };
         const userName = userWithName 
-          ? `${(userWithName as any).first_name || ''} ${(userWithName as any).last_name || ''}`.trim() || undefined
+          ? `${(userWithName as unknown as UserWithSnakeCase).first_name || ''} ${(userWithName as unknown as UserWithSnakeCase).last_name || ''}`.trim() || undefined
           : undefined;
 
         // Send password reset email

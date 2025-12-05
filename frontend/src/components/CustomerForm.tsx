@@ -224,7 +224,7 @@ export default function CustomerForm({ customerId }: CustomerFormProps) {
                       id="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      className={`block w-full rounded-md dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 ${
+                      className={`block w-full rounded-md border dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 px-3 py-2 ${
                         errors.firstName
                           ? "border-red-300 dark:border-red-600 text-red-900 dark:text-red-400 placeholder-red-300 dark:placeholder-red-500 focus:border-red-500 focus:ring-red-500"
                           : "border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500"
@@ -252,7 +252,7 @@ export default function CustomerForm({ customerId }: CustomerFormProps) {
                       id="lastName"
                       value={formData.lastName}
                       onChange={handleChange}
-                      className={`block w-full rounded-md dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 ${
+                      className={`block w-full rounded-md border dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 px-3 py-2 ${
                         errors.lastName
                           ? "border-red-300 dark:border-red-600 text-red-900 dark:text-red-400 placeholder-red-300 dark:placeholder-red-500 focus:border-red-500 focus:ring-red-500"
                           : "border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500"
@@ -280,7 +280,7 @@ export default function CustomerForm({ customerId }: CustomerFormProps) {
                       id="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className={`block w-full rounded-md dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 ${
+                      className={`block w-full rounded-md border dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 px-3 py-2 ${
                         errors.email
                           ? "border-red-300 dark:border-red-600 text-red-900 dark:text-red-400 placeholder-red-300 dark:placeholder-red-500 focus:border-red-500 focus:ring-red-500"
                           : "border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500"
@@ -308,7 +308,7 @@ export default function CustomerForm({ customerId }: CustomerFormProps) {
                       id="phone"
                       value={formData.phone || ""}
                       onChange={handleChange}
-                      className={`block w-full rounded-md dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 ${
+                      className={`block w-full rounded-md border dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 px-3 py-2 ${
                         errors.phone
                           ? "border-red-300 dark:border-red-600 text-red-900 dark:text-red-400 placeholder-red-300 dark:placeholder-red-500 focus:border-red-500 focus:ring-red-500"
                           : "border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500"
@@ -336,7 +336,7 @@ export default function CustomerForm({ customerId }: CustomerFormProps) {
                       id="address"
                       value={formData.address || ""}
                       onChange={handleChange}
-                      className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                     />
                   </div>
                 </div>
@@ -355,7 +355,7 @@ export default function CustomerForm({ customerId }: CustomerFormProps) {
                       id="city"
                       value={formData.city || ""}
                       onChange={handleChange}
-                      className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                     />
                   </div>
                 </div>
@@ -375,7 +375,7 @@ export default function CustomerForm({ customerId }: CustomerFormProps) {
                         id="state"
                         value={formData.state || ""}
                         onChange={handleChange}
-                        className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        className="block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                       />
                     </div>
                   </div>
@@ -394,7 +394,7 @@ export default function CustomerForm({ customerId }: CustomerFormProps) {
                         id="zipCode"
                         value={formData.zipCode || ""}
                         onChange={handleChange}
-                        className={`block w-full rounded-md dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 ${
+                        className={`block w-full rounded-md border dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 px-3 py-2 ${
                           errors.zipCode
                             ? "border-red-300 dark:border-red-600 text-red-900 dark:text-red-400 placeholder-red-300 dark:placeholder-red-500 focus:border-red-500 focus:ring-red-500"
                             : "border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500"
@@ -423,7 +423,7 @@ export default function CustomerForm({ customerId }: CustomerFormProps) {
                       rows={4}
                       value={formData.notes || ""}
                       onChange={handleChange}
-                      className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                       placeholder="Additional information about the customer"
                     ></textarea>
                   </div>

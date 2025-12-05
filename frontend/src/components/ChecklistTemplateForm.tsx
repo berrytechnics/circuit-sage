@@ -264,7 +264,7 @@ export default function ChecklistTemplateForm({
           name="name"
           value={formData.name}
           onChange={handleChange}
-          className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+          className={`mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
             errors.name ? "border-red-500" : ""
           }`}
         />
@@ -288,7 +288,7 @@ export default function ChecklistTemplateForm({
           value={formData.description}
           onChange={handleChange}
           rows={3}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
         />
       </div>
 
@@ -385,7 +385,7 @@ export default function ChecklistTemplateForm({
                       onChange={(e) =>
                         updateItem(index, { label: e.target.value })
                       }
-                      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+                      className={`mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
                         errors[`item_${index}_label`] ? "border-red-500" : ""
                       }`}
                     />
@@ -409,7 +409,7 @@ export default function ChecklistTemplateForm({
                             e.target.value === "dropdown" ? [] : undefined,
                         })
                       }
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     >
                       <option value="text">Text Input</option>
                       <option value="checkbox">Checkbox</option>
@@ -456,7 +456,7 @@ export default function ChecklistTemplateForm({
                         });
                       }}
                       rows={3}
-                      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+                      className={`mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
                         errors[`item_${index}_options`] ? "border-red-500" : ""
                       }`}
                       placeholder="Option 1&#10;Option 2&#10;Option 3"

@@ -36,7 +36,7 @@ export class PasswordResetService {
       })
       .where("user_id", "=", userId)
       .where("used_at", "is", null)
-      .where("expires_at", ">", sql`now()`)
+      .where("expires_at", ">", new Date())
       .execute();
 
     // Create new token
@@ -65,7 +65,7 @@ export class PasswordResetService {
       .selectAll()
       .where("token", "=", token)
       .where("used_at", "is", null)
-      .where("expires_at", ">", sql`now()`)
+      .where("expires_at", ">", new Date())
       .executeTakeFirst();
 
     if (!result) {
