@@ -102,3 +102,44 @@ export const registerValidation = [
   }),
 ];
 
+/**
+ * Validation rules for forgot password
+ */
+export const forgotPasswordValidation = [
+  body("email")
+    .exists()
+    .withMessage("Email is required")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Email must be a valid email address")
+    .isLength({ max: 255 })
+    .withMessage("Email must not exceed 255 characters"),
+];
+
+/**
+ * Validation rules for reset password
+ */
+export const resetPasswordValidation = [
+  body("token")
+    .exists()
+    .withMessage("Reset token is required")
+    .trim()
+    .notEmpty()
+    .withMessage("Reset token is required")
+    .isLength({ min: 10 })
+    .withMessage("Reset token must be at least 10 characters"),
+  body("password")
+    .exists()
+    .withMessage("Password is required")
+    .notEmpty()
+    .withMessage("Password is required")
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters")
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+    .withMessage(
+      "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+    ),
+];
+

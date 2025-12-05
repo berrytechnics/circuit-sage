@@ -1,12 +1,14 @@
 import express, { Request, Response } from "express";
-import {
-  BadRequestError,
-  NotFoundError,
-  UnauthorizedError,
-} from "../config/errors.js";
 import { db } from "../config/connection.js";
+import {
+    BadRequestError,
+    NotFoundError,
+    UnauthorizedError,
+} from "../config/errors.js";
+import logger from "../config/logger.js";
 import { getPermissionsForRole, getPermissionsMatrix } from "../config/permissions.js";
 import { UserRole } from "../config/types.js";
+import emailService from "../integrations/email/email.service.js";
 import { checkAuthMaintenanceMode } from "../middlewares/auth-maintenance.middleware.js";
 import { validateRequest } from "../middlewares/auth.middleware.js";
 import { authLimiter, sensitiveOperationLimiter } from "../middlewares/rate-limit.middleware.js";
@@ -16,11 +18,12 @@ import { validate } from "../middlewares/validation.middleware.js";
 import companyService from "../services/company.service.js";
 import invitationService from "../services/invitation.service.js";
 import locationService from "../services/location.service.js";
+import passwordResetService from "../services/password-reset.service.js";
 import permissionService from "../services/permission.service.js";
 import userService, { UpdateUserDto, UserWithoutPassword } from "../services/user.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { generateNewJWTToken, generateRefreshToken, verifyRefreshToken } from "../utils/auth.js";
-import { loginValidation, registerValidation } from "../validators/user.validator.js";
+import { forgotPasswordValidation, loginValidation, registerValidation, resetPasswordValidation } from "../validators/user.validator.js";
 
 const router = express.Router();
 
@@ -225,6 +228,86 @@ router.post(
         user: formattedUser,
         accessToken,
         refreshToken,
+      },
+    });
+  })
+);
+
+// POST /api/auth/forgot-password - Request password reset
+router.post(
+  "/forgot-password",
+  authLimiter,
+  checkAuthMaintenanceMode,
+  validate(forgotPasswordValidation),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { email } = req.body;
+
+    // Find user by email (don't reveal if user exists or not for security)
+    const user = await userService.findByEmail(email);
+
+    if (user && user.active) {
+      try {
+        // Generate reset token
+        const resetToken = await passwordResetService.createToken(user.id, 1); // 1 hour expiry
+
+        // Get user's name for email
+        const userWithName = await userService.findById(user.id);
+        const userName = userWithName 
+          ? `${(userWithName as any).first_name || ''} ${(userWithName as any).last_name || ''}`.trim() || undefined
+          : undefined;
+
+        // Send password reset email
+        await emailService.sendPasswordResetEmail(
+          user.id,
+          email,
+          resetToken,
+          userName
+        );
+
+        logger.info(`Password reset email sent to ${email}`);
+      } catch (error) {
+        // Log error but don't reveal to user
+        logger.error(`Failed to send password reset email to ${email}:`, error);
+      }
+    }
+
+    // Always return success to prevent email enumeration
+    res.json({
+      success: true,
+      data: {
+        message: "If an account with that email exists, a password reset link has been sent.",
+      },
+    });
+  })
+);
+
+// POST /api/auth/reset-password - Reset password with token
+router.post(
+  "/reset-password",
+  authLimiter,
+  checkAuthMaintenanceMode,
+  validate(resetPasswordValidation),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { token, password } = req.body;
+
+    // Validate token
+    const validation = await passwordResetService.validateToken(token);
+    if (!validation.valid || !validation.userId) {
+      throw new BadRequestError(validation.error || "Invalid or expired reset token");
+    }
+
+    // Update password
+    await userService.update(validation.userId, { password });
+
+    // Mark token as used
+    await passwordResetService.markAsUsed(token);
+
+    logger.info(`Password reset successful for user ${validation.userId}`);
+
+    res.json({
+      success: true,
+      data: {
+        message: "Password has been reset successfully. You can now login with your new password.",
       },
     });
   })

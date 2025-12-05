@@ -37,6 +37,7 @@ export interface Database {
   users: UserTable;
   inventory_transfers: InventoryTransferTable;
   newsletter_subscribers: NewsletterSubscriberTable;
+  password_reset_tokens: PasswordResetTokenTable;
 }
 
 // Table definitions
@@ -326,6 +327,16 @@ export interface UserTable {
   created_at: Timestamp;
   updated_at: Timestamp;
   deleted_at: SoftDelete;
+}
+
+export interface PasswordResetTokenTable {
+  id: UUID;
+  user_id: UUID;
+  token: string;
+  expires_at: Timestamp;
+  used_at: Timestamp | null;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
 
 export type ChecklistFieldType = "checkbox" | "text" | "dropdown";

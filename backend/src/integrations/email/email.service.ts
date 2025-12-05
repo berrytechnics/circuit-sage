@@ -1,4 +1,5 @@
 // src/integrations/email/email.service.ts
+import { db } from '../../config/connection.js';
 import { EmailIntegrationConfig } from '../../config/integrations.js';
 import logger from '../../config/logger.js';
 import credentialService from '../../services/credential.service.js';
@@ -394,6 +395,118 @@ If you didn't expect this invitation, you can safely ignore this email.
     } catch (error) {
       // Don't fail the invitation creation if email fails
       logger.error(`Failed to send invitation email to ${invitation.email}:`, error);
+    }
+  }
+
+  /**
+   * Send password reset email to user
+   * Uses site-wide SendGrid if configured, otherwise falls back to company-specific integration
+   */
+  async sendPasswordResetEmail(
+    userId: string,
+    userEmail: string,
+    resetToken: string,
+    userName?: string
+  ): Promise<void> {
+    try {
+      // Get user's company ID to determine which email config to use
+      const user = await db
+        .selectFrom("users")
+        .select("company_id")
+        .where("id", "=", userId)
+        .where("deleted_at", "is", null)
+        .executeTakeFirst();
+
+      const companyId = user?.company_id as string | undefined;
+
+      // Get frontend URL from environment
+      let frontendUrl = process.env.FRONTEND_URL;
+      if (!frontendUrl && process.env.ALLOWED_ORIGINS) {
+        const firstOrigin = process.env.ALLOWED_ORIGINS.split(',')[0].trim();
+        frontendUrl = firstOrigin;
+      }
+      if (!frontendUrl) {
+        frontendUrl = process.env.NODE_ENV === 'production' 
+          ? 'https://yourdomain.com'
+          : 'http://localhost:3000';
+      }
+      const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
+
+      const subject = 'Reset your password';
+
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Password Reset Request</h2>
+          <p>Hello${userName ? ` ${userName}` : ''},</p>
+          <p>We received a request to reset your password. Click the button below to reset it:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetLink}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Reset Password</a>
+          </div>
+          <p style="color: #666; font-size: 12px;">Or copy and paste this link into your browser:</p>
+          <p style="color: #666; font-size: 12px; word-break: break-all;">${resetLink}</p>
+          <p style="margin-top: 30px; color: #666; font-size: 14px;">
+            <strong>This link will expire in 1 hour.</strong>
+          </p>
+          <p style="color: #666; font-size: 14px;">
+            If you didn't request a password reset, you can safely ignore this email. Your password will not be changed.
+          </p>
+        </div>
+      `;
+
+      const text = `
+Password Reset Request
+
+Hello${userName ? ` ${userName}` : ''},
+
+We received a request to reset your password. Click the link below to reset it:
+
+${resetLink}
+
+This link will expire in 1 hour.
+
+If you didn't request a password reset, you can safely ignore this email. Your password will not be changed.
+      `;
+
+      const emailData: EmailData = {
+        to: userEmail,
+        subject,
+        text,
+        html,
+      };
+
+      // Try site-wide SendGrid first (for password resets)
+      const siteWideConfig = this.getSiteWideSendGridConfig();
+      if (siteWideConfig) {
+        try {
+          logger.info(`Attempting to send password reset email via site-wide SendGrid to ${userEmail}`);
+          await sendGridAdapter.sendEmail(siteWideConfig, emailData);
+          logger.info(`✅ Password reset email sent via site-wide SendGrid to ${userEmail}`);
+          return;
+        } catch (error) {
+          logger.error(`❌ Site-wide SendGrid failed for password reset email to ${userEmail}:`, error);
+          if (error instanceof Error) {
+            logger.error(`Error message: ${error.message}`);
+            const errorResponse = (error as { response?: { body?: unknown } }).response;
+            if (errorResponse?.body) {
+              logger.error(`SendGrid error details:`, JSON.stringify(errorResponse.body, null, 2));
+            }
+          }
+          logger.warn(`Falling back to company integration...`);
+        }
+      } else {
+        logger.warn('⚠️ Site-wide SendGrid not configured (SENDGRID_API_KEY or SENDGRID_FROM_EMAIL missing)');
+      }
+
+      // Fall back to company-specific integration if company ID is available
+      if (companyId && (await this.isEmailConfigured(companyId))) {
+        await this.sendEmailInternal(companyId, emailData);
+        logger.info(`Password reset email sent via company integration to ${userEmail}`);
+      } else {
+        logger.warn(`Cannot send password reset email - no email integration configured for user ${userId}`);
+      }
+    } catch (error) {
+      // Don't fail the password reset request if email fails
+      logger.error(`Failed to send password reset email to ${userEmail}:`, error);
     }
   }
 }

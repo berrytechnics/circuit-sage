@@ -341,6 +341,28 @@ export const register = async (
   throw new Error(response.data.error?.message || "Registration failed");
 };
 
+export const forgotPassword = async (email: string): Promise<ApiResponse<{ message: string }>> => {
+  const response = await api.post<ApiResponse<{ message: string }>>(
+    "/auth/forgot-password",
+    { email }
+  );
+  if (response.data.success) {
+    return response.data;
+  }
+  throw new Error(response.data.error?.message || "Failed to send password reset email");
+};
+
+export const resetPassword = async (token: string, password: string): Promise<ApiResponse<{ message: string }>> => {
+  const response = await api.post<ApiResponse<{ message: string }>>(
+    "/auth/reset-password",
+    { token, password }
+  );
+  if (response.data.success) {
+    return response.data;
+  }
+  throw new Error(response.data.error?.message || "Failed to reset password");
+};
+
 export const getCurrentUser = async (): Promise<User> => {
   const response = await api.get<ApiResponse<User>>("/auth/me");
 

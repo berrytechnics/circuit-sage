@@ -1,5 +1,6 @@
 "use client";
 
+import { forgotPassword } from "@/lib/api";
 import Link from "next/link";
 import React, { useState } from "react";
 
@@ -16,9 +17,7 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement password reset API endpoint
-      // For now, show a message that this feature is coming soon
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await forgotPassword(email);
       setSuccess(true);
     } catch (err) {
       console.error("Password reset error:", err);
@@ -60,7 +59,10 @@ export default function ForgotPasswordPage() {
           {success ? (
             <div className="space-y-4">
               <div className="p-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-md border border-green-200 dark:border-green-800">
-                Password reset feature is coming soon. Please contact your administrator for assistance.
+                <p className="font-medium">Check your email</p>
+                <p className="mt-1 text-sm">
+                  If an account with that email exists, we've sent you instructions to reset your password.
+                </p>
               </div>
               <Link
                 href="/login"
