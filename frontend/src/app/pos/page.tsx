@@ -137,11 +137,35 @@ export default function POSPage() {
     }
   };
 
-  const selectCustomer = (customer: Customer) => {
+  const selectCustomer = async (customer: Customer) => {
     setSelectedCustomer(customer);
     setShowCustomerSearch(false);
     setCustomers([]);
     setCustomerSearchQuery("");
+    
+    // Automatically create invoice when customer is selected
+    setIsCreatingInvoice(true);
+    setError("");
+    try {
+      const invoiceData: CreateInvoiceData = {
+        customerId: customer.id,
+        status: "draft",
+      };
+      const response = await createInvoice(invoiceData);
+      if (response.data) {
+        const normalizedInvoice = normalizeInvoice(response.data);
+        setInvoice(normalizedInvoice);
+        setShowCustomerSearch(false);
+        setShowInvoiceSearch(false);
+      }
+    } catch (err) {
+      console.error("Error creating invoice:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to create invoice"
+      );
+    } finally {
+      setIsCreatingInvoice(false);
+    }
   };
 
   // Search invoices
@@ -653,6 +677,33 @@ export default function POSPage() {
             )}
 
             {/* Selected Customer Display */}
+            {selectedCustomer && !invoice && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h2 className="text-lg font-medium mb-2">Selected Customer</h2>
+                <div>
+                  <strong>
+                    {selectedCustomer.firstName} {selectedCustomer.lastName}
+                  </strong>
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  {selectedCustomer.email}
+                </div>
+                {selectedCustomer.phone && (
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    {selectedCustomer.phone}
+                  </div>
+                )}
+                <div className="mt-4">
+                  <button
+                    onClick={handleCreateInvoice}
+                    disabled={isCreatingInvoice}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {isCreatingInvoice ? "Creating Invoice..." : "Create Invoice"}
+                  </button>
+                </div>
+              </div>
+            )}
             {selectedCustomer && invoice && (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                 <h2 className="text-lg font-medium mb-2">Customer</h2>
@@ -676,11 +727,15 @@ export default function POSPage() {
                       <h2 className="text-lg font-medium">
                         Invoice {invoice.invoiceNumber}
                       </h2>
-                      {!invoice.customerId && (
+                      {invoice.customerId && selectedCustomer ? (
+                        <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                          {selectedCustomer.firstName} {selectedCustomer.lastName}
+                        </div>
+                      ) : !invoice.customerId ? (
                         <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                           Walk-in Sale (No Customer)
                         </div>
-                      )}
+                      ) : null}
                     </div>
                     <button
                       onClick={handleNewTransaction}
